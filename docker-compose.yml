@@ -1,0 +1,11 @@
+services:
+  app:
+    container_name: your_app
+    build:
+      context: .
+      args:
+         NPM_TOKEN: $NPM_TOKEN
+    env_file:
+      - .env
+    ports:
+      - "8081:3000"
