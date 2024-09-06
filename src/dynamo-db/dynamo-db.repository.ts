@@ -4,7 +4,6 @@ import { getIndexes } from "./decorators/index.decorator";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from 'uuid';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
-import { AttributeDefinition, LocalSecondaryIndex } from "@aws-sdk/client-dynamodb";
 import { getSortKey } from "./decorators/sort-key.decorator";
 import { IScanFilter } from "./interfaces/scan-filter.interface";
 import { getPrimaryKey } from "./decorators/primary-key.decorator";

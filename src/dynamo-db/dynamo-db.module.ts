@@ -1,4 +1,4 @@
-import { DynamicModule, InjectionToken, Module, Provider } from "@nestjs/common";
+import { DynamicModule, Module, Provider } from "@nestjs/common";
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DynamoDbRepository } from "./dynamo-db.repository";
 import { getModelToken } from "./decorators/model-token.helper";
@@ -81,10 +81,6 @@ export class DynamodbModule {
                 provide: 'DYNAMO-DB-MODEL',
                 useClass: cls
             },
-            // {
-            //     provide: 'DYNAMO-DB-TABLE-NAME',
-            //     useValue: cls.name.toLowerCase()
-            // },
             {
                 provide: getModelToken(cls.name.toLowerCase(), connectionName),
                 useClass: DynamoDbRepository
