@@ -14,8 +14,13 @@ export class FolderService {
 
     async findUserFolderById(id: string, userId: string) {
         return this.folderRepository.readByFilter({
-            'match': { id, userId }
-        });
+            'match': { id, userId },
+            limit: 1
+        }).then(data => data[0])
+            .catch(err => {
+                this.logger.error(err);
+                throw err;
+            });
     }
 
     async findAllByUserId(userId: string) {

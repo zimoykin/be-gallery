@@ -3,6 +3,8 @@ import { FolderService } from './folder.service';
 import { FolderInputDto } from './dtos/folder-input.dto';
 import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
+import { FolderOutputDto } from './dtos/folder-output.dto';
 
 @UserAccess()
 @ApiBearerAuth('Authorization')
@@ -17,7 +19,9 @@ export class FolderController {
     async findAll(
         @AuthUser() user: IAuthUser
     ) {
-        return this.folderService.findAllByUserId(user.id);
+        return this.folderService.findAllByUserId(user.id).then(data => {
+            return plainToInstance(FolderOutputDto, data);
+        });
     }
 
     @Get(':id')

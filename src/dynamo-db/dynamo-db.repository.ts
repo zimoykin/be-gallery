@@ -82,7 +82,8 @@ export class DynamoDbRepository implements OnModuleInit {
             return this.connection.db.scan({
                 TableName: this.getTableName(),
                 FilterExpression: filterExpression.join(' AND '),
-                ExpressionAttributeValues: marshall(expressionAttributeValues)
+                ExpressionAttributeValues: marshall(expressionAttributeValues),
+                Limit: filter.limit || 100
             }).then(data => {
                 const result = data.Items?.map((item) => this.transfromDataToObject(item));
                 return result as any[];
