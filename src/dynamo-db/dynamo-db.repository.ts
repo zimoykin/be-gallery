@@ -1,11 +1,16 @@
-// import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { IConnection } from "./dynamo-db.interfaces";
 import { getIndexes } from "./decorators/index.decorator";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from 'uuid';
-import { AttributeDefinition, LocalSecondaryIndex, LocalSecondaryIndexDescription } from "@aws-sdk/client-dynamodb";
-import { getSortKey } from "./decorators/secondary-key.decorator";
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { AttributeDefinition, LocalSecondaryIndex } from "@aws-sdk/client-dynamodb";
+import { getSortKey } from "./decorators/sort-key.decorator";
+import { IScanFilter } from "./interfaces/scan-filter.interface";
+import { getPrimaryKey } from "./decorators/primary-key.decorator";
+import { getTable } from "./decorators/table.decorator";
+import { createTable } from "./helpers/create-table.helper";
+import { getRequired } from "./decorators/required.decorator";
 
 @Injectable()
 export class DynamoDbRepository implements OnModuleInit {
@@ -13,106 +18,136 @@ export class DynamoDbRepository implements OnModuleInit {
 
     constructor(
         @Inject('DYNAMO-DB-CONNECTION') private readonly connection: IConnection,
-        @Inject('DYNAMO-DB-TABLE-NAME') private readonly table: string,
         @Inject('DYNAMO-DB-MODEL') private readonly modelCls: new () => any,
     ) { }
 
     private getTableName() {
-        let tableName = this.table;
+        let tableName = getTable(this.modelCls);
+        if (!tableName) {
+            throw new Error(`Table name is not defined for ${this.modelCls.name}`);
+        }
         if (this.connection.prefixCollection) {
-            tableName = `${this.connection.prefixCollection}_${tableName}`;
+            tableName = `${this.connection.prefixCollection.toLowerCase().trim()}_${tableName.toLowerCase().trim()}`;
         }
         return tableName;
     }
     async onModuleInit() {
-
-        const tables = await this.connection.db.listTables();
-        if (tables.TableNames.includes(this.getTableName())) {
-            return;
-        }
-
-
-        const sortKey = getSortKey(this.modelCls);
-        const _AttributeDefinitions: AttributeDefinition[] = [{
-            AttributeName: 'id',
-            AttributeType: 'S'
-        },
-        {
-            AttributeName: String(sortKey),
-            AttributeType: 'N' //TODO: type?
-        }];
-
-        for (const index of getIndexes(this.modelCls)) {
-            _AttributeDefinitions.push({
-                AttributeName: String(index),
-                AttributeType: 'S'
-            });
-        }
-
-        const _LocalSecondaryIndexes: LocalSecondaryIndex[] = [];
-
-        for (const index of getIndexes(this.modelCls)) {
-            _LocalSecondaryIndexes.push({
-                IndexName: `${String(index)}_Index`,
-                KeySchema: [
-                    {
-                        AttributeName: 'id',
-                        KeyType: 'HASH'
-                    },
-                    {
-                        AttributeName: String(index),
-                        KeyType: 'RANGE'
-                    }
-                ],
-                Projection: {
-                    ProjectionType: 'ALL'
-                }
-            });
-        }
-
-
-        await this.connection.db.createTable({
-            TableName: this.getTableName(),
-            AttributeDefinitions: _AttributeDefinitions,
-            KeySchema: [
-                {
-                    AttributeName: 'id',
-                    KeyType: 'HASH'
-                },
-                {
-                    AttributeName: String(sortKey),
-                    KeyType: 'RANGE'
-                }
-            ],
-            LocalSecondaryIndexes: _LocalSecondaryIndexes,
-            ProvisionedThroughput: {
-                ReadCapacityUnits: 1,
-                WriteCapacityUnits: 1
-            },
-            StreamSpecification: {
-                StreamEnabled: false
-            }
-        });
-
+        await createTable(
+            this.connection.db,
+            this.getTableName(),
+            getPrimaryKey(this.modelCls),
+            getSortKey(this.modelCls),
+            getIndexes(this.modelCls));
     }
 
+    private transfromDataToObject(marschalledData: any) {
+        const data = unmarshall(marschalledData);
 
-    async read() {
+        return {
+            id: data.id,
+            ...data.data
+        };
+    }
+
+    async readByFilter(filter?: IScanFilter, indexName?: string): Promise<any[]> {
+        const index = [...getIndexes(this.modelCls), getSortKey(this.modelCls), getPrimaryKey(this.modelCls)];
+
+        const filterExpression = [];
+        const expressionAttributeValues = {};
+
+        if (filter) {
+            for (const [key, value] of Object.entries(filter)) {
+                switch (key) {
+                    case 'match': {
+                        for (const [k, v] of Object.entries(value)) {
+                            if (index.includes(k)) {
+                                filterExpression.push(`${k} = :${k}`);
+                                expressionAttributeValues[`:${k}`] = v;
+                            }
+                        }
+                        break;
+                    }
+                    //TODO: check
+                    case 'contains': {
+                        for (const [k, v] of Object.entries(value)) {
+                            if (index.includes(k)) {
+                                filterExpression.push(`contains(${k}, :${k})`);
+                                expressionAttributeValues[`:${k}`] = v;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            return this.connection.db.scan({
+                TableName: this.getTableName(),
+                FilterExpression: filterExpression.join(' AND '),
+                ExpressionAttributeValues: marshall(expressionAttributeValues)
+            }).then(data => {
+                const result = data.Items?.map((item) => this.transfromDataToObject(item));
+                return result as any[];
+            }).catch(err => {
+                this.logger.debug(err);
+                throw err;
+            });
+        }
+    }
+    /**
+     * Finds a record by its id.
+     * @param id - The id to search for.
+     * @throws {Error} - If no record is found.
+     * @returns A Promise resolving to the found record.
+     */
+    async findById(id: string) {
+        const primaryKey = getPrimaryKey(this.modelCls);
+        const filter = {};
+        const expression = `${primaryKey} = :${primaryKey}`;
+        filter[`:${primaryKey}`] = id;
+
         return this.connection.db.scan({
             TableName: this.getTableName(),
-            Limit: 50
+            FilterExpression: expression,
+            ExpressionAttributeValues: marshall(filter)
+        }).then(data => {
+            if (data.Items.length === 0) {
+                throw new Error('not found');
+            } else {
+                return this.transfromDataToObject(data.Items[0]);
+            }
+        }).catch(err => {
+            this.logger.debug(err);
         });
     }
 
+    /**
+     * Creates a new record in DynamoDB.
+     * @param data - The data to save.
+     * @throws {Error} - If the sort key is not exists in the data object.
+     * @throws {Error} - If any required property is not exists in the data object.
+     * @returns A Promise resolving to the created record.
+     */
     async create(data: any) {
         const indexes = getIndexes(this.modelCls);
         const sortKey = getSortKey(this.modelCls);
+        const primaryKey = getPrimaryKey(this.modelCls);
+        const required = getRequired(this.modelCls) || [];
 
-        if (!data[String(sortKey)]) {
-            throw new Error(`Sort key ${sortKey} already exists`);
+        if (data[String(sortKey)] === undefined) {
+            throw new Error(`Sort key ${sortKey} is not exists`);
         }
+
+
+        //check required properties
+        for (const index of required) {
+            if (data[index] === undefined) {
+                throw new Error(`${index} is required`);
+            }
+        }
+
+        const primaryId = uuidv4();
         const record = {
-            id: uuidv4(),
+            [primaryKey]: primaryId,
             [String(sortKey)]: data[String(sortKey)],
             data: data
         };
@@ -122,11 +157,11 @@ export class DynamoDbRepository implements OnModuleInit {
                 record[String(index)] = data[index];
             }
         }
-
         await this.connection.db.send(new PutCommand({
             TableName: this.getTableName(),
             Item: record
         }));
+        return this.findById(primaryId);
     }
 
 }

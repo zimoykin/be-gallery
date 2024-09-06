@@ -81,10 +81,10 @@ export class DynamodbModule {
                 provide: 'DYNAMO-DB-MODEL',
                 useClass: cls
             },
-            {
-                provide: 'DYNAMO-DB-TABLE-NAME',
-                useValue: cls.name.toLowerCase()
-            },
+            // {
+            //     provide: 'DYNAMO-DB-TABLE-NAME',
+            //     useValue: cls.name.toLowerCase()
+            // },
             {
                 provide: getModelToken(cls.name.toLowerCase(), connectionName),
                 useClass: DynamoDbRepository

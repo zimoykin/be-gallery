@@ -10,6 +10,6 @@ export function SortKey(): PropertyDecorator {
     };
 }
 
-export function getSortKey(target: Object): (string | symbol)[] {
-    return Reflect.getMetadata(SORT_METADATA_KEY, target) || [];
+export function getSortKey(target: Object): string {
+    return Reflect.getMetadata(SORT_METADATA_KEY, target) || undefined;
 }

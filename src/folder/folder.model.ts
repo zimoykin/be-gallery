@@ -1,10 +1,13 @@
-import { Index } from "src/dynamo-db/decorators/index.decorator";
-import { SortKey } from "src/dynamo-db/decorators/secondary-key.decorator";
+import { Required } from "src/dynamo-db/decorators/required.decorator";
+import { Index } from "../dynamo-db/decorators/index.decorator";
+import { PrimaryKey } from "../dynamo-db/decorators/primary-key.decorator";
+import { SortKey } from "../dynamo-db/decorators/sort-key.decorator";
+import { Table } from "../dynamo-db/decorators/table.decorator";
 
-
+@Table('folder')
 export class Folder {
-    title: string;
-    description: string;
+    @PrimaryKey()
+    id: string;
 
     @Index()
     userId: string;
@@ -12,6 +15,15 @@ export class Folder {
     @SortKey()
     sortOrder: number;
 
+    @Required()
+    title: string;
+
+    @Required()
+    description: string;
+
+    @Required()
     color: string;
+
+    @Required()
     bgColor: string;
 }
