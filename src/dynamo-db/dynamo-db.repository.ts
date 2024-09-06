@@ -83,7 +83,7 @@ export class DynamoDbRepository implements OnModuleInit {
                 TableName: this.getTableName(),
                 FilterExpression: filterExpression.join(' AND '),
                 ExpressionAttributeValues: marshall(expressionAttributeValues),
-                Limit: filter.limit || 100
+                Limit: filter.limit || 100,  
             }).then(data => {
                 const result = data.Items?.map((item) => this.transfromDataToObject(item));
                 return result as any[];

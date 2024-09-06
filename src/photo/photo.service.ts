@@ -15,11 +15,10 @@ export class PhotoService {
 
     async createPhotoObject(folderId: string, userId: string, data: Partial<Photo>, file: any) {
         const url = await this.s3BucketService.upload(file, `${userId}/${folderId}/${file.originalname}`);
-        const signedUrl = await this.s3BucketService.generateSignedUrl(url.key);
         return this.photoRepository.create({
             folderId,
             userId,
-            url: signedUrl,
+            url,
             ...data
         });
     }

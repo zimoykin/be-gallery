@@ -53,7 +53,7 @@ export class PhotoController {
             },
         },
     })
-    @Post(':folderId/:photoId')
+    @Post(':folderId')
     async uploadImg(
         @Param('folderId') folderId: string,
         @Body() data: PhotoInputDto,
