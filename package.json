@@ -1,7 +1,7 @@
 {
-  "name": "template-service",
+  "name": "gallery-service",
   "version": "0.0.1",
-  "description": "this is just a template service",
+  "description": "this is just a gallery service",
   "author": "Dmitrii Zimoikin",
   "private": true,
   "license": "UNLICENSED",

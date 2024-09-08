@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { IConnection } from "./dynamo-db.interfaces";
 import { getIndexes } from "./decorators/index.decorator";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from 'uuid';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { getSortKey } from "./decorators/sort-key.decorator";
@@ -41,9 +41,12 @@ export class DynamoDbRepository implements OnModuleInit {
 
     private transfromDataToObject(marschalledData: any) {
         const data = unmarshall(marschalledData);
+        const primaryKey = getPrimaryKey(this.modelCls);
+        const sortKey = getSortKey(this.modelCls);
 
         return {
-            id: data.id,
+            [primaryKey]: data[primaryKey],
+            [sortKey]: data[sortKey],
             ...data.data
         };
     }
@@ -76,6 +79,7 @@ export class DynamoDbRepository implements OnModuleInit {
                         }
                         break;
                     }
+                    //TODO: add more
                 }
             }
 
@@ -83,7 +87,7 @@ export class DynamoDbRepository implements OnModuleInit {
                 TableName: this.getTableName(),
                 FilterExpression: filterExpression.join(' AND '),
                 ExpressionAttributeValues: marshall(expressionAttributeValues),
-                Limit: filter.limit || 100,  
+                // Limit: filter.limit || 100,
             }).then(data => {
                 const result = data.Items?.map((item) => this.transfromDataToObject(item));
                 return result as any[];
@@ -137,7 +141,6 @@ export class DynamoDbRepository implements OnModuleInit {
             throw new Error(`Sort key ${sortKey} is not exists`);
         }
 
-
         //check required properties
         for (const index of required) {
             if (data[index] === undefined) {
@@ -164,4 +167,89 @@ export class DynamoDbRepository implements OnModuleInit {
         return this.findById(primaryId);
     }
 
+    async update(id: string, data: any) {
+        const existingRecord = await this.findById(id);
+
+        if (!existingRecord) {
+            throw new Error('not found');
+        }
+
+        const indexes = getIndexes(this.modelCls);
+        const sortKey = getSortKey(this.modelCls);
+        const primaryKey = getPrimaryKey(this.modelCls);
+        const required = getRequired(this.modelCls) || [];
+
+        if (data[String(sortKey)] === undefined) {
+            throw new Error(`Sort key ${sortKey} is not exists`);
+        }
+
+        const record = {
+            [primaryKey]: id,
+            [String(sortKey)]: data[String(sortKey)],
+            data: data
+        };
+
+        for (const index of indexes) {
+            if (!data[index]) {
+                throw new Error(`${index} is required`);
+            }
+            record[String(index)] = data[index];
+        }
+
+        for (const index of required) {
+            if (data[index] === undefined) {
+                throw new Error(`${index} is required`);
+            }
+        }
+
+        const expressionAttributeNames = {};
+        const expressionAttributeValues = {};
+        const updateExpression = [];
+
+        for (const [k, v] of Object.entries(record)) {
+            if (k === primaryKey || k === String(sortKey)) {
+                continue;
+            }
+            expressionAttributeNames[`#${k}`] = k;
+            expressionAttributeValues[`:${k}`] = v;
+            updateExpression.push(`#${k} = :${k}`);
+        }
+
+        const update = new UpdateCommand({
+            TableName: this.getTableName(),
+            Key: {
+                [primaryKey]: id,
+                [String(sortKey)]: existingRecord[String(sortKey)]
+            },
+            ExpressionAttributeNames: expressionAttributeNames,
+            ReturnValues: 'UPDATED_NEW',
+            ExpressionAttributeValues: expressionAttributeValues,
+            UpdateExpression: 'SET ' + updateExpression.join(', ')
+        });
+
+        await this.connection.db.send(update);
+
+        return this.findById(id);
+    }
+
+
+
+    async remove(id: string) {
+        const primaryKey = getPrimaryKey(this.modelCls);
+        const sortKey = getSortKey(this.modelCls);
+        const existingRecord = await this.findById(id);
+        if (!existingRecord) {
+            throw new Error('not found');
+        }
+        const deleteCommand = new DeleteCommand({
+            TableName: this.getTableName(),
+            Key: {
+                [primaryKey]: id,
+                [String(sortKey)]: existingRecord[String(sortKey)]
+            }
+        });
+        await this.connection.db.send(deleteCommand);
+
+        return existingRecord;
+    }
 }

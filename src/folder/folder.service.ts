@@ -3,6 +3,7 @@ import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorato
 import { Folder } from './folder.model';
 import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
 import { SCAN_FILTER_OPERATIONS } from 'src/dynamo-db/interfaces/scan-filter.interface';
+import { FolderInputDto } from './dtos/folder-input.dto';
 
 @Injectable()
 export class FolderService {
@@ -28,5 +29,17 @@ export class FolderService {
     }
     async createFolder(data: Partial<Folder>) {
         return this.folderRepository.create(data);
+    }
+
+    async updateFolder(id: string, data: FolderInputDto, userId: string) {
+        return this.folderRepository.update(id, { ...data, userId });
+    }
+
+    async removeFolder(id: string, userId: string) {
+        const userFolder = await this.findUserFolderById(id, userId);
+        if (!userFolder) {
+            throw new Error(`Folder with id ${id} not found`);
+        }
+        return this.folderRepository.remove(id);
     }
 }

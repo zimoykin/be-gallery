@@ -37,20 +37,29 @@ export class FolderController {
         @AuthUser() user: IAuthUser,
         @Body() data: FolderInputDto
     ) {
-        return this.folderService.createFolder({ ...data, userId: user.id });
+        return this.folderService.createFolder({ ...data, userId: user.id }).then(data => {
+            return plainToInstance(FolderOutputDto, data);
+        });
     }
 
     @Put(':id')
     async update(
         @Param('id') id: string,
+        @AuthUser() user: IAuthUser,
         @Body() data: FolderInputDto
-    ) {
-        throw new NotImplementedException();
+    ): Promise<FolderOutputDto> {
+        return this.folderService.updateFolder(id, data, user.id).then(data => {
+            return plainToInstance(FolderOutputDto, data);
+        });
     }
+
     @Delete(':id')
     async delete(
-        @Param('id') id: string
+        @Param('id') id: string,
+        @AuthUser() user: IAuthUser
     ) {
-        throw new NotImplementedException();
+        return this.folderService.removeFolder(id, user.id).then(data => {
+            return plainToInstance(FolderOutputDto, data);
+        });
     }
 }
