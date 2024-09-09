@@ -25,8 +25,8 @@ export class PhotoService {
         });
     }
 
-    async getSpecificPhotoByIdByFolderId(folderId: string, userId: string, id: string) {
-        const photos = await this.photoRepository.readByFilter({
+    async getSpecificPhotoByIdByFolderId(folderId: string, userId: string, id: string): Promise<Photo & { url: string; }> {
+        const photo = await this.photoRepository.readByFilter<Photo>({
             match: {
                 folderId: folderId,
                 id: id,
@@ -34,28 +34,41 @@ export class PhotoService {
             }
         });
 
-        for await (const photo of photos) {
-            photo.url = await this.s3BucketService.generateSignedUrl(photo.url?.key);
-        }
-        return photos;
-
+        if (photo.length === 0) {
+            throw new NotFoundException();
+        } else
+            return {
+                ...photo[0],
+                url: await this.s3BucketService.generateSignedUrl(photo[0].bucket.key)
+            };
     }
-    async getPhotosByFolderId(folderId: string, userId: string) {
-        const photos = await this.photoRepository.readByFilter({
+
+    async getPhotosByFolderId(folderId: string, userId: string): Promise<Array<Photo & { url: string; }>> {
+        const photos = await this.photoRepository.readByFilter<Photo>({
             match: {
                 folderId: folderId,
                 userId: userId
             }
         });
 
-        for await (const photo of photos) {
-            photo.url = await this.s3BucketService.generateSignedUrl(photo.bucket?.key);
+        if (photos.length === 0) {
+            return [];
+        } else {
+
+            const sighnedPhotos: Array<Photo & { url: string; }> = [];
+
+            for await (const photo of photos) {
+                sighnedPhotos.push({
+                    ...photo,
+                    url: await this.s3BucketService.generateSignedUrl(photo.bucket.key)
+                });
+            }
+            return sighnedPhotos;
         }
-        return photos;
     }
 
     async removePhoto(folderId: string, userId: string, id: string) {
-        const existingPhoto = await this.photoRepository.readByFilter({
+        const existingPhoto = await this.photoRepository.readByFilter<Photo>({
             match: {
                 id: id,
                 folderId: folderId,
@@ -66,12 +79,14 @@ export class PhotoService {
             throw new NotFoundException();
         }
         else {
+            await this.s3BucketService.deleteFile(existingPhoto[0].bucket.key);
             return this.photoRepository.remove(id);
+            
         }
     }
 
     async removePhotosByFolderId(folderId: string, userId: string) {
-        const photos = await this.photoRepository.readByFilter({
+        const photos = await this.photoRepository.readByFilter<Photo>({
             match: {
                 folderId: folderId,
                 userId: userId
@@ -79,7 +94,7 @@ export class PhotoService {
         });
 
         for await (const photo of photos) {
-            await this.s3BucketService.deleteFile(photo.url?.key);
+            await this.s3BucketService.deleteFile(photo.bucket.key);
             await this.photoRepository.remove(photo.id);
         }
     }
