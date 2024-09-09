@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
 import { Folder } from './folder.model';
 import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
@@ -39,7 +39,7 @@ export class FolderService {
     async removeFolder(id: string, userId: string) {
         const userFolder = await this.findUserFolderById(id, userId);
         if (!userFolder) {
-            throw new Error(`Folder with id ${id} not found`);
+            throw new NotFoundException(`Folder with id ${id} not found`);
         }
         //delete all photos from folder
         await this.photoService.removePhotosByFolderId(id, userId);

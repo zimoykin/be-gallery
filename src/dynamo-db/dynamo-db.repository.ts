@@ -252,7 +252,6 @@ export class DynamoDbRepository implements OnModuleInit {
             }
         });
         await this.connection.db.send(deleteCommand);
-
         return existingRecord;
     }
 }
