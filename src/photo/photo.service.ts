@@ -49,7 +49,7 @@ export class PhotoService {
         });
 
         for await (const photo of photos) {
-            photo.url = await this.s3BucketService.generateSignedUrl(photo.url?.key);
+            photo.url = await this.s3BucketService.generateSignedUrl(photo.bucket?.key);
         }
         return photos;
     }
