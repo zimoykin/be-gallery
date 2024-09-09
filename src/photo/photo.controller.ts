@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Logger, Param, Post, UploadedFile, UseIn
 import { PhotoService } from './photo.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
-import { PhotoInputDto } from './dtos/photo.dto';
+import { PhotoInputDto } from './dtos/photo-input.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -43,13 +43,13 @@ export class PhotoController {
                     type: 'string',
                     format: 'binary',
                 },
-                sortOrder: { type: 'number' },
-                camera: { type: 'string' },
-                lens: { type: 'string' },
-                iso: { type: 'string' },
-                film: { type: 'string' },
-                location: { type: 'string' },
-                description: { type: 'string' },
+                sortOrder: { type: 'number', example: 0 },
+                camera: { type: 'string', example: 'Canon EOS 650' },
+                lens: { type: 'string', example: 'EF-35-8-mm f/4-5.6 USM' },
+                iso: { type: 'string', example: '200' },
+                film: { type: 'string', example: 'Kodak color plus 200 35mm' },
+                location: { type: 'string', example: 'Regensburg, Germany' },
+                description: { type: 'string', example: '2024' },
             },
         },
     })
