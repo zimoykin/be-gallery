@@ -3,12 +3,14 @@ import { FolderController } from './folder.controller';
 import { FolderService } from './folder.service';
 import { DynamodbModule } from 'src/dynamo-db/dynamo-db.module';
 import { Folder } from './folder.model';
+import { PhotoModule } from '../photo/photo.module';
 
 @Module({
   imports: [
-    DynamodbModule.forFeature(Folder)
+    DynamodbModule.forFeature(Folder),
+    PhotoModule
   ],
   controllers: [FolderController],
   providers: [FolderService]
 })
-export class FolderModule {}
+export class FolderModule { }

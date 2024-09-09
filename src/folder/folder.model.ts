@@ -9,10 +9,10 @@ export class Folder {
     @PrimaryKey()
     id: string;
 
-    @Index()
+    @SortKey('S')
     userId: string;
 
-    @SortKey()
+    @Index('N')
     sortOrder: number;
 
     @Required()

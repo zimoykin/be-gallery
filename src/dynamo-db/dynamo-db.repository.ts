@@ -42,7 +42,7 @@ export class DynamoDbRepository implements OnModuleInit {
     private transfromDataToObject(marschalledData: any) {
         const data = unmarshall(marschalledData);
         const primaryKey = getPrimaryKey(this.modelCls);
-        const sortKey = getSortKey(this.modelCls);
+        const [sortKey] = getSortKey(this.modelCls);
 
         return {
             [primaryKey]: data[primaryKey],
@@ -52,7 +52,11 @@ export class DynamoDbRepository implements OnModuleInit {
     }
 
     async readByFilter(filter?: IScanFilter, indexName?: string): Promise<any[]> {
-        const index = [...getIndexes(this.modelCls), getSortKey(this.modelCls), getPrimaryKey(this.modelCls)];
+        const index = [
+            ...getIndexes(this.modelCls),
+            getSortKey(this.modelCls)[0],
+            getPrimaryKey(this.modelCls)
+        ];
 
         const filterExpression = [];
         const expressionAttributeValues = {};
@@ -131,9 +135,9 @@ export class DynamoDbRepository implements OnModuleInit {
      * @throws {Error} - If any required property is not exists in the data object.
      * @returns A Promise resolving to the created record.
      */
-    async create(data: any) {
+    async create<T>(data: T): Promise<T> {
         const indexes = getIndexes(this.modelCls);
-        const sortKey = getSortKey(this.modelCls);
+        const [sortKey, typeSortKey] = getSortKey(this.modelCls);
         const primaryKey = getPrimaryKey(this.modelCls);
         const required = getRequired(this.modelCls) || [];
 
@@ -149,15 +153,16 @@ export class DynamoDbRepository implements OnModuleInit {
         }
 
         const primaryId = uuidv4();
+        const sortKeyValue = data[String(sortKey)] ? data[String(sortKey)] : Date.now();
         const record = {
             [primaryKey]: primaryId,
-            [String(sortKey)]: data[String(sortKey)],
+            [String(sortKey)]: sortKeyValue,
             data: data
         };
 
-        for (const index of indexes) {
-            if (data[index]) {
-                record[String(index)] = data[index];
+        for (const { indexName, type } of indexes) {
+            if (data[indexName]) {
+                record[String(indexName)] = data[indexName];
             }
         }
         await this.connection.db.send(new PutCommand({
@@ -175,7 +180,7 @@ export class DynamoDbRepository implements OnModuleInit {
         }
 
         const indexes = getIndexes(this.modelCls);
-        const sortKey = getSortKey(this.modelCls);
+        const [sortKey, type] = getSortKey(this.modelCls);
         const primaryKey = getPrimaryKey(this.modelCls);
         const required = getRequired(this.modelCls) || [];
 
@@ -189,11 +194,11 @@ export class DynamoDbRepository implements OnModuleInit {
             data: data
         };
 
-        for (const index of indexes) {
-            if (!data[index]) {
-                throw new Error(`${index} is required`);
+        for (const { indexName, type } of indexes) {
+            if (data[indexName] == undefined) {
+                throw new Error(`${indexName} is required`);
             }
-            record[String(index)] = data[index];
+            record[String(indexName)] = data[indexName];
         }
 
         for (const index of required) {
@@ -232,11 +237,9 @@ export class DynamoDbRepository implements OnModuleInit {
         return this.findById(id);
     }
 
-
-
     async remove(id: string) {
         const primaryKey = getPrimaryKey(this.modelCls);
-        const sortKey = getSortKey(this.modelCls);
+        const [sortKey, type] = getSortKey(this.modelCls);
         const existingRecord = await this.findById(id);
         if (!existingRecord) {
             throw new Error('not found');

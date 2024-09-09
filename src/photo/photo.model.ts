@@ -9,15 +9,14 @@ export class Photo {
     @PrimaryKey()
     id: string;
 
-    @SortKey()
+    @Index('N')
     sortOrder: number;
 
-    @Index()
+    @Index('S')
     @Required()
     userId: string;
 
-    @Index()
-    @Required()
+    @SortKey('S')
     folderId: string;
 
     @Required()
@@ -29,10 +28,13 @@ export class Photo {
     description?: string;
 
     @Required()
-    url: {
+    bucket: {
         bucketName: string;
         folder: string;
         url: string,
         key: string;
     };
 }
+
+
+export type PhotoData = Omit<Photo, 'id'>;

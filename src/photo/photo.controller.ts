@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { PhotoService } from './photo.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
@@ -9,7 +9,7 @@ import { validate } from 'class-validator';
 
 @ApiBearerAuth("Authorization")
 @UserAccess()
-@Controller('api/v1/photo')
+@Controller('api/v1/photos')
 export class PhotoController {
     private readonly logger = new Logger(PhotoController.name);
     constructor(private readonly photoService: PhotoService) { }
@@ -65,10 +65,18 @@ export class PhotoController {
             await validate(photoData);
             return this.photoService.createPhotoObject(folderId, user.id, photoData, file);
         } catch (error) {
-
             this.logger.debug(error);
             throw error;
         }
+    }
+
+    @Delete(':folderId/:photoId')
+    async removePhoto(
+        @Param('folderId') folderId: string,
+        @Param('photoId') photoId: string,
+        @AuthUser() user: IAuthUser
+    ) {
+        return this.photoService.removePhoto(folderId, user.id, photoId);
     }
 }
 

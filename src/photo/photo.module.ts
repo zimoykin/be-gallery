@@ -11,6 +11,7 @@ import { S3BucketModule } from 'src/s3-bucket/s3-bucket.module';
     S3BucketModule.forFeature('photos')
   ],
   controllers: [PhotoController],
-  providers: [PhotoService]
+  providers: [PhotoService],
+  exports: [PhotoService]
 })
 export class PhotoModule { }

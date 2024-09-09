@@ -1,4 +1,4 @@
-import { GetObjectCommand, PutObjectCommandInput, S3Client, } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommandInput, S3Client, } from '@aws-sdk/client-s3';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -53,5 +53,12 @@ export class S3BucketService {
         });
 
         return getSignedUrl(this.s3, params, { expiresIn: 3600, signingDate: new Date(), signingService: 's3' });
+    }
+
+    async deleteFile(key: string) {
+        await this.s3.send(new DeleteObjectCommand({
+            Bucket: this.bucketName,
+            Key: `${this.folderName}/${key}`
+        }));
     }
 }

@@ -8,7 +8,7 @@ import { FolderOutputDto } from './dtos/folder-output.dto';
 
 @UserAccess()
 @ApiBearerAuth('Authorization')
-@Controller('api/v1/folder')
+@Controller('api/v1/folders')
 export class FolderController {
     private readonly logger = new Logger(FolderController.name);
     constructor(

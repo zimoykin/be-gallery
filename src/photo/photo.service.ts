@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
-import { Photo } from './photo.model';
+import { Photo, PhotoData } from './photo.model';
 import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
 import { S3BucketService } from 'src/s3-bucket/s3-bucket.service';
 import { InjectS3Bucket } from 'src/s3-bucket/inject-s3-bucket.decorator';
@@ -15,11 +15,13 @@ export class PhotoService {
 
     async createPhotoObject(folderId: string, userId: string, data: Partial<Photo>, file: any) {
         const url = await this.s3BucketService.upload(file, `${userId}/${folderId}/${file.originalname}`);
-        return this.photoRepository.create({
+        return this.photoRepository.create<PhotoData>({
             folderId,
             userId,
-            url,
-            ...data
+            bucket: url,
+            camera: data.camera ?? 'no info',
+            sortOrder: data.sortOrder ?? 0,
+            ...data,
         });
     }
 
@@ -50,5 +52,35 @@ export class PhotoService {
             photo.url = await this.s3BucketService.generateSignedUrl(photo.url?.key);
         }
         return photos;
+    }
+
+    async removePhoto(folderId: string, userId: string, id: string) {
+        const existingPhoto = await this.photoRepository.readByFilter({
+            match: {
+                id: id,
+                folderId: folderId,
+                userId: userId
+            }
+        });
+        if (existingPhoto.length === 0) {
+            throw new NotFoundException();
+        }
+        else {
+            return this.photoRepository.remove(id);
+        }
+    }
+
+    async removePhotosByFolderId(folderId: string, userId: string) {
+        const photos = await this.photoRepository.readByFilter({
+            match: {
+                folderId: folderId,
+                userId: userId
+            }
+        });
+
+        for await (const photo of photos) {
+            await this.s3BucketService.deleteFile(photo.url?.key);
+            await this.photoRepository.remove(photo.id);
+        }
     }
 }

@@ -2,15 +2,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
 import { Folder } from './folder.model';
 import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
-import { SCAN_FILTER_OPERATIONS } from 'src/dynamo-db/interfaces/scan-filter.interface';
 import { FolderInputDto } from './dtos/folder-input.dto';
+import { PhotoService } from 'src/photo/photo.service';
 
 @Injectable()
 export class FolderService {
     private readonly logger = new Logger(FolderService.name);
 
     constructor(
-        @InjectRepository(Folder.name) private readonly folderRepository: DynamoDbRepository
+        @InjectRepository(Folder.name) private readonly folderRepository: DynamoDbRepository,
+        private readonly photoService: PhotoService
     ) { }
 
     async findUserFolderById(id: string, userId: string) {
@@ -40,6 +41,8 @@ export class FolderService {
         if (!userFolder) {
             throw new Error(`Folder with id ${id} not found`);
         }
+        //delete all photos from folder
+        await this.photoService.removePhotosByFolderId(id, userId);
         return this.folderRepository.remove(id);
     }
 }
