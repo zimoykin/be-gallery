@@ -51,7 +51,7 @@ export class DynamoDbRepository implements OnModuleInit {
         };
     }
 
-    async readByFilter(filter?: IScanFilter, indexName?: string): Promise<any[]> {
+    async readByFilter<T>(filter?: IScanFilter, indexName?: string): Promise<T[]> {
         const index = [
             ...getIndexes(this.modelCls),
             getSortKey(this.modelCls)[0],

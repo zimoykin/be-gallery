@@ -56,9 +56,12 @@ export class S3BucketService {
     }
 
     async deleteFile(key: string) {
-        await this.s3.send(new DeleteObjectCommand({
+        return this.s3.send(new DeleteObjectCommand({
             Bucket: this.bucketName,
             Key: `${this.folderName}/${key}`
-        }));
+        })).catch((err) => {
+            this.logger.error(err);
+            throw err;
+        });
     }
 }
