@@ -34,6 +34,22 @@ export class Photo {
         url: string,
         key: string;
     };
+
+    compressed?: {
+        bucketName: string;
+        folder: string;
+        url: string,
+        key: string;
+    };
+
+    preview?: {
+        bucketName: string;
+        folder: string;
+        url: string,
+        key: string;
+        previewWidth: number;
+        previewHeight: number;
+    };
 }
 
 

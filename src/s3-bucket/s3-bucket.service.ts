@@ -12,12 +12,12 @@ export class S3BucketService {
         @Inject('S3_BUCKET_CONNECTION') private readonly s3: S3Client
     ) { }
 
-    async upload(file: any, key: string): Promise<{ url: string, key: string, bucketName: string, folder: string; }> {
+    async upload(fileBuffer: Buffer, key: string): Promise<{ url: string, key: string, bucketName: string, folder: string; }> {
         //TODO: do resize img + preview image somewhere here
         const params: PutObjectCommandInput = {
             Bucket: this.bucketName,
             Key: `${this.folderName}/${key}`,
-            Body: file.buffer,
+            Body: fileBuffer,
         };
 
         const upload = new Upload({
