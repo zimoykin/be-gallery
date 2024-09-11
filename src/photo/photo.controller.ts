@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Logger, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Logger,
+    Param,
+    Post,
+    UploadedFile,
+    UseInterceptors,
+} from '@nestjs/common';
 import { PhotoService } from './photo.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
@@ -6,34 +16,46 @@ import { PhotoInputDto } from './dtos/photo-input.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { PhotoParamDto } from './dtos/photo-param.dto';
+import { PhotoOutputDto } from './dtos/photo-output.dto';
 
-@ApiBearerAuth("Authorization")
+@ApiBearerAuth('Authorization')
 @UserAccess()
 @Controller('api/v1/photos')
 export class PhotoController {
     private readonly logger = new Logger(PhotoController.name);
     constructor(private readonly photoService: PhotoService) { }
 
-
-    @Get(':folderId')
+    @Get(':folderId/:type')
     async getPhotoByFolderId(
-        @Param('folderId') folderId: string,
-        @AuthUser() user: IAuthUser
-    ) {
-        const photos = await this.photoService.getPhotosByFolderId(folderId, user.id);
-        return photos;
+        @Param() params: PhotoParamDto,
+        @AuthUser() user: IAuthUser,
+    ): Promise<PhotoOutputDto[]> {
+        const photos = await this.photoService.getPhotosByFolderId(
+            params.folderId,
+            params.type,
+            user.id,
+        );
+        return photos.map(photo => plainToInstance(PhotoOutputDto, photo));
     }
 
     @Get(':folderId/:photoId')
+
     async getSpecificPhotoByIdByFolderId(
         @Param('folderId') folderId: string,
         @Param('photoId') photoId: string,
-        @AuthUser() user: IAuthUser
+        @AuthUser() user: IAuthUser,
     ) {
-        return this.photoService.getSpecificPhotoByIdByFolderId(folderId, user.id, photoId);
+        return this.photoService.getSpecificPhotoByIdByFolderId(
+            folderId,
+            user.id,
+            photoId,
+        );
     }
 
-    @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 1024 * 1024 * 10 } }))
+    @UseInterceptors(
+        FileInterceptor('file', { limits: { fileSize: 1024 * 1024 * 10 } }),
+    )
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
@@ -58,12 +80,17 @@ export class PhotoController {
         @Param('folderId') folderId: string,
         @Body() data: PhotoInputDto,
         @AuthUser() user: IAuthUser,
-        @UploadedFile() file: File
+        @UploadedFile() file: File,
     ) {
         try {
             const photoData = plainToInstance(PhotoInputDto, data);
             await validate(photoData);
-            return this.photoService.createPhotoObject(folderId, user.id, photoData, file);
+            return this.photoService.createPhotoObject(
+                folderId,
+                user.id,
+                photoData,
+                file,
+            );
         } catch (error) {
             this.logger.debug(error);
             throw error;
@@ -74,9 +101,8 @@ export class PhotoController {
     async removePhoto(
         @Param('folderId') folderId: string,
         @Param('photoId') photoId: string,
-        @AuthUser() user: IAuthUser
+        @AuthUser() user: IAuthUser,
     ) {
         return this.photoService.removePhoto(folderId, user.id, photoId);
     }
 }
-

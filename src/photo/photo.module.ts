@@ -12,10 +12,10 @@ import { ImageCompressorModule } from 'src/image-compressor/image-compressor.mod
     S3BucketModule.forFeature('photos'),
     S3BucketModule.forFeature('preview'),
     S3BucketModule.forFeature('compressed'),
-    ImageCompressorModule
+    ImageCompressorModule,
   ],
   controllers: [PhotoController],
   providers: [PhotoService],
-  exports: [PhotoService]
+  exports: [PhotoService],
 })
-export class PhotoModule { }
+export class PhotoModule {}

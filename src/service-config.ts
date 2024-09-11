@@ -1,4 +1,4 @@
-import * as Joi from "joi";
+import * as Joi from 'joi';
 import { auth_schema } from '@zimoykin/auth';
 const schema = {
   MODE: Joi.string().valid('dev', 'prod'),
@@ -7,7 +7,7 @@ const schema = {
   AWS_ACCESS_KEY_ID: Joi.string().required(),
   AWS_SECRET_ACCESS_KEY: Joi.string().required(),
   S3_BUCKET_NAME: Joi.string().required(),
-  ...auth_schema
+  ...auth_schema,
 };
 export const serviceSchema = Joi.object(schema);
 export type ConfigVariables = typeof schema;

@@ -5,4 +5,4 @@ import { ImageCompressorService } from './image-compressor.service';
   providers: [ImageCompressorService],
   exports: [ImageCompressorService],
 })
-export class ImageCompressorModule { }
+export class ImageCompressorModule {}

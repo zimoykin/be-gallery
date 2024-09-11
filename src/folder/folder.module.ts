@@ -6,11 +6,8 @@ import { Folder } from './folder.model';
 import { PhotoModule } from '../photo/photo.module';
 
 @Module({
-  imports: [
-    DynamodbModule.forFeature(Folder),
-    PhotoModule
-  ],
+  imports: [DynamodbModule.forFeature(Folder), PhotoModule],
   controllers: [FolderController],
-  providers: [FolderService]
+  providers: [FolderService],
 })
-export class FolderModule { }
+export class FolderModule {}
