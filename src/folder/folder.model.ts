@@ -1,29 +1,29 @@
-import { Required } from "src/dynamo-db/decorators/required.decorator";
-import { Index } from "../dynamo-db/decorators/index.decorator";
-import { PrimaryKey } from "../dynamo-db/decorators/primary-key.decorator";
-import { SortKey } from "../dynamo-db/decorators/sort-key.decorator";
-import { Table } from "../dynamo-db/decorators/table.decorator";
+import { Required } from 'src/dynamo-db/decorators/required.decorator';
+import { Index } from '../dynamo-db/decorators/index.decorator';
+import { PrimaryKey } from '../dynamo-db/decorators/primary-key.decorator';
+import { SortKey } from '../dynamo-db/decorators/sort-key.decorator';
+import { Table } from '../dynamo-db/decorators/table.decorator';
 
 @Table('folder')
 export class Folder {
-    @PrimaryKey()
-    id: string;
+  @PrimaryKey()
+  id: string;
 
-    @SortKey('S')
-    userId: string;
+  @SortKey('S')
+  userId: string;
 
-    @Index('N')
-    sortOrder: number;
+  @Index('N')
+  sortOrder: number;
 
-    @Required()
-    title: string;
+  @Required()
+  title: string;
 
-    @Required()
-    description: string;
+  @Required()
+  description: string;
 
-    @Required()
-    color: string;
+  @Required()
+  color: string;
 
-    @Required()
-    bgColor: string;
+  @Required()
+  bgColor: string;
 }

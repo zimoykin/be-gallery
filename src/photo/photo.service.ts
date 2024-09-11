@@ -11,11 +11,15 @@ import { InternalServerError } from '@aws-sdk/client-dynamodb';
 export class PhotoService {
     private readonly logger = new Logger(PhotoService.name);
     constructor(
-        @InjectRepository(Photo.name) private readonly photoRepository: DynamoDbRepository,
-        @InjectS3Bucket('photos') private readonly s3BucketServiceOriginal: S3BucketService,
-        @InjectS3Bucket('preview') private readonly s3BucketServicePreview: S3BucketService,
-        @InjectS3Bucket('compressed') private readonly s3BucketServiceCompressed: S3BucketService,
-        private readonly imageCompressorService: ImageCompressorService
+        @InjectRepository(Photo.name)
+        private readonly photoRepository: DynamoDbRepository,
+        @InjectS3Bucket('photos')
+        private readonly s3BucketServiceOriginal: S3BucketService,
+        @InjectS3Bucket('preview')
+        private readonly s3BucketServicePreview: S3BucketService,
+        @InjectS3Bucket('compressed')
+        private readonly s3BucketServiceCompressed: S3BucketService,
+        private readonly imageCompressorService: ImageCompressorService,
     ) { }
 
     /**
@@ -26,54 +30,96 @@ export class PhotoService {
      * @throws InternalServerError if there are any errors
      */
     private async resizeImage(file: Buffer, photoId: string, key: string) {
-        let photo = await this.photoRepository.findById(photoId);
+        const photo = await this.photoRepository.findById(photoId);
         if (!photo) {
-            throw new NotFoundException('could not find photo, could not resize image');
+            throw new NotFoundException(
+                'could not find photo, could not resize image',
+            );
         }
 
-        const preview = await this.imageCompressorService.compressImage(file, 320, 320);
-        let bucketPreview = await this.s3BucketServicePreview.upload(preview, key);
+        const imageSize = await this.imageCompressorService.getImageSize(file);
 
-        photo = await this.photoRepository.update(photoId, { ...photo, preview: { ...bucketPreview, width: 320, height: 320 } }).catch(err => {
-            this.logger.error(err);
-            throw new InternalServerError(err);
-        });
+        const [previewWidth, previewHeight] = [
+            Math.min(320, imageSize.width),
+            Math.min(320, imageSize.height),
+        ];
+        const compressedWidth = Math.min(1280, imageSize.width);
 
-        bucketPreview = null;
+        const preview = await this.imageCompressorService.compressImage(
+            file,
+            previewWidth,
+            previewHeight,
+        );
+        const bucketPreview = await this.s3BucketServicePreview.upload(
+            preview,
+            key,
+        );
 
-        const compressed = await this.imageCompressorService.compressImage(file, 1280, 1280);
-        bucketPreview = await this.s3BucketServiceCompressed.upload(compressed, key);
-        await this.photoRepository.update(photoId, { ...photo, compressed: { ...bucketPreview, width: 1280, height: 1280 } })
-            .catch(err => {
+        const compressed = await this.imageCompressorService.compressImage(
+            file,
+            compressedWidth,
+        );
+        const bucketCompressed = await this.s3BucketServiceCompressed.upload(
+            compressed,
+            key,
+        );
+
+        await this.photoRepository
+            .update(photoId, {
+                ...photo,
+                compressed: { ...bucketCompressed, width: compressedWidth },
+                preview: {
+                    ...bucketPreview,
+                    width: previewWidth,
+                    height: previewHeight,
+                },
+            })
+            .catch((err) => {
                 this.logger.error(err);
                 throw new InternalServerError(err);
             });
-
-        bucketPreview = null;
     }
 
-    async createPhotoObject(folderId: string, userId: string, data: Partial<Photo>, file: any) {
-        const bucket = await this.s3BucketServiceOriginal.upload(file.buffer, `${userId}/${folderId}/${file.originalname}`);
-        return this.photoRepository.create<PhotoData>({
-            folderId,
-            userId,
-            bucket: bucket,
-            camera: data.camera ?? 'no info',
-            sortOrder: data.sortOrder ?? 0,
-            ...data,
-        }).then((data: Photo) => {
-            this.resizeImage(file.buffer, data.id, `${userId}/${folderId}/${file.originalname}`);
-            return data;
-        });
+    async createPhotoObject(
+        folderId: string,
+        userId: string,
+        data: Partial<Photo>,
+        file: any,
+    ) {
+        const bucket = await this.s3BucketServiceOriginal.upload(
+            file.buffer,
+            `${userId}/${folderId}/${file.originalname}`,
+        );
+        return this.photoRepository
+            .create<PhotoData>({
+                folderId,
+                userId,
+                bucket: bucket,
+                camera: data.camera ?? 'no info',
+                sortOrder: data.sortOrder ?? 0,
+                ...data,
+            })
+            .then((data: Photo) => {
+                this.resizeImage(
+                    file.buffer,
+                    data.id,
+                    `${userId}/${folderId}/${file.originalname}`,
+                );
+                return data;
+            });
     }
 
-    async getSpecificPhotoByIdByFolderId(folderId: string, userId: string, id: string): Promise<Photo & { url: string; }> {
+    async getSpecificPhotoByIdByFolderId(
+        folderId: string,
+        userId: string,
+        id: string,
+    ): Promise<Photo & { url: string; }> {
         const photo = await this.photoRepository.readByFilter<Photo>({
             match: {
                 folderId: folderId,
                 id: id,
-                userId: userId
-            }
+                userId: userId,
+            },
         });
 
         if (photo.length === 0) {
@@ -81,29 +127,59 @@ export class PhotoService {
         } else
             return {
                 ...photo[0],
-                url: await this.s3BucketServiceOriginal.generateSignedUrl(photo[0].bucket.key)
+                url: await this.s3BucketServiceOriginal.generateSignedUrl(
+                    photo[0].bucket.key,
+                ),
             };
     }
 
-    async getPhotosByFolderId(folderId: string, userId: string): Promise<Array<Photo & { url: string; }>> {
+    async getPhotosByFolderId(
+        folderId: string,
+        type: 'original' | 'preview' | 'compressed',
+        userId: string,
+    ): Promise<Array<Photo & { url: string; }>> {
         const photos = await this.photoRepository.readByFilter<Photo>({
             match: {
                 folderId: folderId,
-                userId: userId
-            }
+                userId: userId,
+            },
         });
 
         if (photos.length === 0) {
             return [];
         } else {
-
             const sighnedPhotos: Array<Photo & { url: string; }> = [];
 
             for await (const photo of photos) {
-                sighnedPhotos.push({
-                    ...photo,
-                    url: await this.s3BucketServiceOriginal.generateSignedUrl(photo.bucket.key)
-                });
+                switch (type) {
+                    case 'preview':
+                        if (photo.preview?.key)
+                            sighnedPhotos.push({
+                                ...photo,
+                                url: await this.s3BucketServicePreview.generateSignedUrl(
+                                    photo.preview.key,
+                                ),
+                            });
+                        break;
+                    case 'compressed':
+                        if (photo.compressed?.key)
+                            sighnedPhotos.push({
+                                ...photo,
+                                url: await this.s3BucketServiceCompressed.generateSignedUrl(
+                                    photo.compressed.key,
+                                ),
+                            });
+                        break;
+                    default:
+                        if (photo.bucket?.key)
+                            sighnedPhotos.push({
+                                ...photo,
+                                url: await this.s3BucketServiceOriginal.generateSignedUrl(
+                                    photo.bucket.key,
+                                ),
+                            });
+                        break;
+                }
             }
             return sighnedPhotos;
         }
@@ -114,16 +190,26 @@ export class PhotoService {
             match: {
                 id: id,
                 folderId: folderId,
-                userId: userId
-            }
+                userId: userId,
+            },
         });
         if (existingPhoto.length === 0) {
             throw new NotFoundException();
-        }
-        else {
-            await this.s3BucketServiceOriginal.deleteFile(existingPhoto[0].bucket.key);
-            return this.photoRepository.remove(id);
+        } else {
+            if (existingPhoto[0].bucket?.key)
+                await this.s3BucketServiceOriginal.deleteFile(
+                    existingPhoto[0].bucket?.key,
+                );
+            if (existingPhoto[0].preview?.key)
+                await this.s3BucketServicePreview.deleteFile(
+                    existingPhoto[0].preview?.key,
+                );
+            if (existingPhoto[0].compressed?.key)
+                await this.s3BucketServiceCompressed.deleteFile(
+                    existingPhoto[0].compressed?.key,
+                );
 
+            return this.photoRepository.remove(id);
         }
     }
 
@@ -131,8 +217,8 @@ export class PhotoService {
         const photos = await this.photoRepository.readByFilter<Photo>({
             match: {
                 folderId: folderId,
-                userId: userId
-            }
+                userId: userId,
+            },
         });
 
         for await (const photo of photos) {

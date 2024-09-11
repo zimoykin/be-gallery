@@ -21,12 +21,19 @@ async function bootstrap() {
   const pkg = require('../package.json');
   const config = new DocumentBuilder()
     .setTitle(pkg.name ?? 'Service Api')
-    .setDescription(pkg.description ?? 'This service based on nestjs-template-9')
+    .setDescription(
+      pkg.description ?? 'This service based on nestjs-template-9',
+    )
     .setVersion('1.0')
-    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'Authorization')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'Authorization',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document, { swaggerOptions: { persistAuthorization: true } });
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: { persistAuthorization: true },
+  });
 
   await app.listen(port);
 }

@@ -1,5 +1,9 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { S3Client, CreateBucketCommand, ListBucketsCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  CreateBucketCommand,
+  ListBucketsCommand,
+} from '@aws-sdk/client-s3';
 import { S3BucketService } from './s3-bucket.service';
 import { getBucketToken } from './get-bucket-token.helper';
 
@@ -27,15 +31,14 @@ export class S3BucketModule {
         region: opts.region,
         credentials: {
           accessKeyId: opts.accessKeyId,
-          secretAccessKey: opts.secretAccessKey
+          secretAccessKey: opts.secretAccessKey,
         },
-
       });
 
       this.bucketName = opts.bucketName;
 
       const list = await this.client.send(new ListBucketsCommand({}));
-      if (!list.Buckets?.find(b => b.Name === opts.bucketName)) {
+      if (!list.Buckets?.find((b) => b.Name === opts.bucketName)) {
         await this.createBucket(opts);
       }
       return this.client;
@@ -58,7 +61,7 @@ export class S3BucketModule {
         },
       ],
       exports: ['S3_BUCKET_CONNECTION'],
-      global: true
+      global: true,
     };
   }
   static forRootAsync(opts: S3BucketModuleOptionsAsync) {
@@ -80,10 +83,10 @@ export class S3BucketModule {
             return config.bucketName;
           },
           inject: opts.inject,
-        }
+        },
       ],
       exports: ['S3_BUCKET_CONNECTION', 'S3_BUCKET_NAME'],
-      global: true
+      global: true,
     };
   }
   static forFeature(folderName: string): DynamicModule {
@@ -92,15 +95,14 @@ export class S3BucketModule {
       providers: [
         {
           provide: 'S3_FOLDER_NAME',
-          useValue: folderName
+          useValue: folderName,
         },
         {
           provide: getBucketToken(folderName),
-          useClass: S3BucketService
+          useClass: S3BucketService,
         },
       ],
-      exports: ['S3_FOLDER_NAME', getBucketToken(folderName)]
+      exports: ['S3_FOLDER_NAME', getBucketToken(folderName)],
     };
-
   }
 }
