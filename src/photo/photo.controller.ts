@@ -16,8 +16,9 @@ import { PhotoInputDto } from './dtos/photo-input.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { PhotoParamDto } from './dtos/photo-param.dto';
+import { PhotosParamDto } from './dtos/photos-param.dto';
 import { PhotoOutputDto } from './dtos/photo-output.dto';
+import { PhotoParamDto } from './dtos/photo-param.dto';
 
 @ApiBearerAuth('Authorization')
 @UserAccess()
@@ -28,7 +29,7 @@ export class PhotoController {
 
     @Get(':folderId/:type')
     async getPhotoByFolderId(
-        @Param() params: PhotoParamDto,
+        @Param() params: PhotosParamDto,
         @AuthUser() user: IAuthUser,
     ): Promise<PhotoOutputDto[]> {
         const photos = await this.photoService.getPhotosByFolderId(
@@ -39,18 +40,17 @@ export class PhotoController {
         return photos.map(photo => plainToInstance(PhotoOutputDto, photo));
     }
 
-    @Get(':folderId/:photoId')
-
+    @Get(':folderId/:photoId/:type')
     async getSpecificPhotoByIdByFolderId(
-        @Param('folderId') folderId: string,
-        @Param('photoId') photoId: string,
+        @Param() param: PhotoParamDto,
         @AuthUser() user: IAuthUser,
     ) {
         return this.photoService.getSpecificPhotoByIdByFolderId(
-            folderId,
+            param.folderId,
             user.id,
-            photoId,
-        );
+            param.photoId,
+            param.type,
+        ).then(photo => plainToInstance(PhotoOutputDto, photo));
     }
 
     @UseInterceptors(

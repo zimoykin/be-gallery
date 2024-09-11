@@ -1,13 +1,10 @@
 import { IsEnum, IsIn, IsString, IsUUID } from 'class-validator';
 import { PhotoType } from '../enums/photo-type.enum';
 
-export class PhotoParamDto {
+export class PhotosParamDto {
   @IsUUID()
   folderId: string;
-
-  @IsString()
-  photoId: string;
-
+  
   @IsString()
   @IsEnum(PhotoType)
   type: PhotoType;

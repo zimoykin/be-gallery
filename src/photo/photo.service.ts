@@ -6,6 +6,7 @@ import { S3BucketService } from 'src/s3-bucket/s3-bucket.service';
 import { InjectS3Bucket } from 'src/s3-bucket/inject-s3-bucket.decorator';
 import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
 import { InternalServerError } from '@aws-sdk/client-dynamodb';
+import { PhotoType } from './enums/photo-type.enum';
 
 @Injectable()
 export class PhotoService {
@@ -80,6 +81,23 @@ export class PhotoService {
             });
     }
 
+    private async getUrlByType(type: PhotoType, photo: Photo) {
+        switch (type) {
+            case 'preview':
+                if (photo.preview?.key)
+                    return this.s3BucketServicePreview.generateSignedUrl(photo.preview?.key);
+                break;
+            case 'compressed':
+                if (photo.compressed?.key)
+                    return this.s3BucketServiceCompressed.generateSignedUrl(photo.compressed?.key);
+                break;
+            default:
+                if (photo.bucket?.key)
+                    return this.s3BucketServiceOriginal.generateSignedUrl(photo.bucket?.key);
+                break;
+        }
+    }
+
     async createPhotoObject(
         folderId: string,
         userId: string,
@@ -113,6 +131,7 @@ export class PhotoService {
         folderId: string,
         userId: string,
         id: string,
+        type: PhotoType
     ): Promise<Photo & { url: string; }> {
         const photo = await this.photoRepository.readByFilter<Photo>({
             match: {
@@ -127,15 +146,13 @@ export class PhotoService {
         } else
             return {
                 ...photo[0],
-                url: await this.s3BucketServiceOriginal.generateSignedUrl(
-                    photo[0].bucket.key,
-                ),
+                url: await this.getUrlByType(type, photo[0]),
             };
     }
 
     async getPhotosByFolderId(
         folderId: string,
-        type: 'original' | 'preview' | 'compressed',
+        type: PhotoType,
         userId: string,
     ): Promise<Array<Photo & { url: string; }>> {
         const photos = await this.photoRepository.readByFilter<Photo>({
@@ -151,35 +168,9 @@ export class PhotoService {
             const sighnedPhotos: Array<Photo & { url: string; }> = [];
 
             for await (const photo of photos) {
-                switch (type) {
-                    case 'preview':
-                        if (photo.preview?.key)
-                            sighnedPhotos.push({
-                                ...photo,
-                                url: await this.s3BucketServicePreview.generateSignedUrl(
-                                    photo.preview.key,
-                                ),
-                            });
-                        break;
-                    case 'compressed':
-                        if (photo.compressed?.key)
-                            sighnedPhotos.push({
-                                ...photo,
-                                url: await this.s3BucketServiceCompressed.generateSignedUrl(
-                                    photo.compressed.key,
-                                ),
-                            });
-                        break;
-                    default:
-                        if (photo.bucket?.key)
-                            sighnedPhotos.push({
-                                ...photo,
-                                url: await this.s3BucketServiceOriginal.generateSignedUrl(
-                                    photo.bucket.key,
-                                ),
-                            });
-                        break;
-                }
+                const url = await this.getUrlByType(type, photo);
+                if (url)
+                    sighnedPhotos.push({ ...photo, url: url });
             }
             return sighnedPhotos;
         }
