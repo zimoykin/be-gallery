@@ -3,7 +3,7 @@ import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorato
 import { Folder } from './folder.model';
 import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
 import { FolderInputDto } from './dtos/folder-input.dto';
-import { PhotoService } from 'src/photo/photo.service';
+import { PhotoService } from 'src/photos/photo.service';
 
 @Injectable()
 export class FolderService {

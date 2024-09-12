@@ -3,10 +3,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ConfigVariables, serviceSchema } from './service-config';
-import { FolderModule } from './folder/folder.module';
+import { FolderModule } from './folders/folder.module';
 import { DynamodbModule } from './dynamo-db/dynamo-db.module';
 import { JwtModule } from '@zimoykin/auth';
-import { PhotoModule } from './photo/photo.module';
+import { PhotoModule } from './photos/photo.module';
 import { S3BucketModule } from './s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from './image-compressor/image-compressor.module';
 
