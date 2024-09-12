@@ -4,15 +4,15 @@ import {
   Delete,
   Get,
   Logger,
-  NotImplementedException,
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { FolderService } from './folder.service';
 import { FolderInputDto } from './dtos/folder-input.dto';
 import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { FolderOutputDto } from './dtos/folder-output.dto';
 
@@ -21,11 +21,15 @@ import { FolderOutputDto } from './dtos/folder-output.dto';
 @Controller('api/v1/folders')
 export class FolderController {
   private readonly logger = new Logger(FolderController.name);
-  constructor(private readonly folderService: FolderService) {}
+  constructor(private readonly folderService: FolderService) { }
 
   @Get()
-  async findAll(@AuthUser() user: IAuthUser) {
-    return this.folderService.findAllByUserId(user.id).then((data) => {
+  @ApiQuery({ name: 'userId', required: false })
+  async findAll(
+    @Query('userId') userId: string,
+    @AuthUser() user: IAuthUser
+  ) {
+    return this.folderService.findAllByUserId(userId ?? user.id).then((data) => {
       return plainToInstance(FolderOutputDto, data);
     });
   }
