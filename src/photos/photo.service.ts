@@ -104,6 +104,20 @@ export class PhotoService {
         data: Partial<Photo>,
         file: any,
     ) {
+
+        const photos = await this.photoRepository.readByFilter({
+            match: {
+                folderId: folderId,
+                userId: userId
+            }
+        });
+
+        if (photos.length >= 10) {
+            throw new Error(
+                `You can't create more than 10 photos for a folder. You have ${photos.length}`,
+            );
+        }
+
         const bucket = await this.s3BucketServiceOriginal.upload(
             file.buffer,
             `${userId}/${folderId}/${file.originalname}`,
@@ -114,7 +128,7 @@ export class PhotoService {
                 userId,
                 bucket: bucket,
                 camera: data.camera ?? 'no info',
-                sortOrder: data.sortOrder ?? 0,
+                sortOrder: data.sortOrder || (photos.length + 1),
                 ...data,
             })
             .then((data: Photo) => {
@@ -174,6 +188,17 @@ export class PhotoService {
             }
             return sighnedPhotos.sort((a, b) => a.sortOrder - b.sortOrder);
         }
+    }
+
+    async getTotalPhotosByFolderId(folderId: string, userId: string): Promise<number> {
+        const count = await this.photoRepository.countByFilter({
+            match: {
+                folderId: folderId,
+                userId: userId,
+            },
+        });
+
+        return count ?? 0;
     }
 
     async removePhoto(folderId: string, userId: string, id: string) {

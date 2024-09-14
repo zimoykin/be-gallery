@@ -13,15 +13,18 @@ export class FolderService {
     @InjectRepository(Folder.name)
     private readonly folderRepository: DynamoDbRepository,
     private readonly photoService: PhotoService,
-  ) {}
+  ) { }
 
   async findUserFolderById(id: string, userId: string) {
+
+    const count = await this.photoService
+      .getTotalPhotosByFolderId(id, userId);
+
     return this.folderRepository
-      .readByFilter({
-        match: { id, userId },
-        limit: 1,
+      .findOneByFilter<Folder>({
+        match: { id, userId }
       })
-      .then((data) => data[0])
+      .then((data) => ({ ...data, totalPhotos: count || 0 }))
       .catch((err) => {
         this.logger.error(err);
         throw err;
@@ -29,9 +32,20 @@ export class FolderService {
   }
 
   async findAllByUserId(userId: string) {
-    return this.folderRepository.readByFilter({ match: { userId } });
+    const folders = await this.folderRepository.readByFilter<Folder>({ match: { userId } });
+    return Promise.all(folders.map(async folder => {
+      const count = await this.photoService.getTotalPhotosByFolderId(folder.id, userId);
+      return { ...folder, totalPhotos: count };
+    }));
   }
+
   async createFolder(data: Partial<Folder>) {
+    const userFolders = await this.findAllByUserId(data.userId);
+    if (userFolders.length >= 10) {
+      throw new Error(
+        `You can't create more than 10 folders. You have ${userFolders.length}`,
+      );
+    }
     return this.folderRepository.create(data);
   }
 

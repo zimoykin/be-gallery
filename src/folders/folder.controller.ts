@@ -29,7 +29,7 @@ export class FolderController {
     @Query('userId') userId: string,
     @AuthUser() user: IAuthUser
   ) {
-    return this.folderService.findAllByUserId(userId ?? user.id).then((data) => {
+    return this.folderService.findAllByUserId(userId ?? user.id).then( (data) => {
       return plainToInstance(FolderOutputDto, data);
     });
   }
