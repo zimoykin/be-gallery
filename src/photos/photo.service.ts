@@ -172,7 +172,7 @@ export class PhotoService {
                 if (url)
                     sighnedPhotos.push({ ...photo, url: url });
             }
-            return sighnedPhotos;
+            return sighnedPhotos.sort((a, b) => a.sortOrder - b.sortOrder);
         }
     }
 
