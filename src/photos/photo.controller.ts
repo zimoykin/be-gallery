@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpCode,
     Logger,
     Param,
     Post,
@@ -10,7 +11,7 @@ import {
     UseInterceptors,
 } from '@nestjs/common';
 import { PhotoService } from './photo.service';
-import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
 import { PhotoInputDto } from './dtos/photo-input.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -53,9 +54,12 @@ export class PhotoController {
         ).then(photo => plainToInstance(PhotoOutputDto, photo));
     }
 
+
+    @ApiOperation({ summary: 'upload image' })
     @UseInterceptors(
         FileInterceptor('file', { limits: { fileSize: 1024 * 1024 * 10 } }),
     )
+    @HttpCode(200) @HttpCode(400)
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
