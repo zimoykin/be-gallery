@@ -14,6 +14,7 @@ import { getPrimaryKey } from './decorators/primary-key.decorator';
 import { getTable } from './decorators/table.decorator';
 import { createTable } from './helpers/create-table.helper';
 import { getRequired } from './decorators/required.decorator';
+import { AttributeValue } from '@aws-sdk/client-dynamodb';
 
 @Injectable()
 export class DynamoDbRepository implements OnModuleInit {
@@ -22,7 +23,7 @@ export class DynamoDbRepository implements OnModuleInit {
   constructor(
     @Inject('DYNAMO-DB-CONNECTION') private readonly connection: IConnection,
     @Inject('DYNAMO-DB-MODEL') private readonly modelCls: new () => any,
-  ) {}
+  ) { }
 
   private getTableName() {
     let tableName = getTable(this.modelCls);
@@ -58,18 +59,25 @@ export class DynamoDbRepository implements OnModuleInit {
     };
   }
 
-  async readByFilter<T>(
-    filter?: IScanFilter,
-    indexName?: string,
-  ): Promise<T[]> {
+  /**
+   * Builds a filter expression for a DynamoDB scan operation.
+   * @param filter An object with filter operations.
+   * @returns An object with the filter expression and its attribute values.
+   * The filter expression is a string that contains the operations joined by ' AND '.
+   * The attribute values is an object with the same keys as the filter operations,
+   * and the values are the values of the filter operations.
+   * The attribute values are marshalled to DynamoDB attribute values.
+   */
+  private buildFilterExpression(filter: IScanFilter): { filterExpression: string; expressionAttributeValues: Record<string, AttributeValue>; } {
+
+    const filterExpression = [];
+    const expressionAttributeValues = {};
+
     const index = [
       ...getIndexes(this.modelCls),
       getSortKey(this.modelCls)[0],
       getPrimaryKey(this.modelCls),
     ];
-
-    const filterExpression = [];
-    const expressionAttributeValues = {};
 
     if (filter) {
       for (const [key, value] of Object.entries(filter)) {
@@ -96,25 +104,77 @@ export class DynamoDbRepository implements OnModuleInit {
           //TODO: add more
         }
       }
-
-      return this.connection.db
-        .scan({
-          TableName: this.getTableName(),
-          FilterExpression: filterExpression.join(' AND '),
-          ExpressionAttributeValues: marshall(expressionAttributeValues),
-          // Limit: filter.limit || 100,
-        })
-        .then((data) => {
-          const result = data.Items?.map((item) =>
-            this.transfromDataToObject(item),
-          );
-          return result as any[];
-        })
-        .catch((err) => {
-          this.logger.debug(err);
-          throw err;
-        });
     }
+
+    return {
+      filterExpression: filterExpression.join(' AND '),
+      expressionAttributeValues: marshall(expressionAttributeValues)
+    };
+
+  }
+
+  /**
+   * Reads all records from the DynamoDB table that match the given filter.
+   *
+   * @param filter The filter to apply to the records. If not provided, it will return all records.
+   * @param indexName The name of the secondary index to query. If not provided, it will query the primary table.
+   * @returns A Promise resolving to an array of records.
+   */
+  async readByFilter<T>(
+    filter?: IScanFilter,
+    indexName?: string, //TODO: investigate
+  ): Promise<T[]> {
+
+    const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
+
+    return this.connection.db
+      .scan({
+        TableName: this.getTableName(),
+        FilterExpression: filterExpression,
+        ExpressionAttributeValues: expressionAttributeValues
+      })
+      .then((data) => {
+        const result = data.Items?.map((item) =>
+          this.transfromDataToObject(item),
+        );
+        return result as T[];
+      })
+      .catch((err) => {
+        this.logger.debug(err);
+        throw err;
+      });
+
+  }
+
+  /**
+   * Counts the number of records in the DynamoDB table that match the given filter.
+   *
+   * @param filter The filter to apply to the records. If not provided, it will count all records.
+   * @param indexName The name of the secondary index to query. If not provided, it will query the primary table.
+   * @returns A Promise resolving to the count.
+   */
+  async countByFilter(
+    filter?: IScanFilter,
+    indexName?: string, //TODO: investigate
+  ): Promise<number> {
+
+    const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
+
+    return this.connection.db
+      .scan({
+        TableName: this.getTableName(),
+        FilterExpression: filterExpression,
+        ExpressionAttributeValues: expressionAttributeValues,
+        Select: 'COUNT'
+      })
+      .then((data) => {
+        return data.Count ?? 0;
+      })
+      .catch((err) => {
+        this.logger.debug(err);
+        throw err;
+      });
+
   }
   /**
    * Finds a record by its id.
@@ -144,6 +204,17 @@ export class DynamoDbRepository implements OnModuleInit {
       .catch((err) => {
         this.logger.debug(err);
       });
+  }
+
+
+  async findOneByFilter<T>(filter: IScanFilter): Promise<T> {
+    return this.readByFilter(filter).then((data) => {
+      if (data.length === 0) {
+        throw new Error('not found');
+      } else {
+        return data[0] as T;
+      }
+    });
   }
 
   /**

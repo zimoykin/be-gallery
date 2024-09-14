@@ -1,3 +1,5 @@
+import { Select } from "@aws-sdk/client-dynamodb";
+
 export enum SCAN_FILTER_OPERATIONS {
   CONTAINS = 'contains',
   MATCH = 'match',
@@ -6,10 +8,10 @@ export enum SCAN_FILTER_OPERATIONS {
 }
 
 export interface IScanFilter {
-  contains?: { [key: string]: string };
-  match?: { [key: string]: any };
-  gte?: { [key: string]: number };
-  lte?: { [key: string]: number };
+  contains?: { [key: string]: string; };
+  match?: { [key: string]: any; };
+  gte?: { [key: string]: number; };
+  lte?: { [key: string]: number; };
   limit?: number;
   skip?: number;
 }

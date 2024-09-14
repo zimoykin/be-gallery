@@ -19,4 +19,7 @@ export class FolderOutputDto {
 
   @Expose()
   sortOrder: number;
+
+  @Expose()
+  totalPhotos: number;
 }

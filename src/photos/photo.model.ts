@@ -21,6 +21,7 @@ export class Photo {
 
   @Required()
   camera: string;
+  
   lens?: string;
   iso?: string;
   film?: string;
