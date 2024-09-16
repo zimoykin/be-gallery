@@ -17,7 +17,7 @@ import { getRequired } from './decorators/required.decorator';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 
 @Injectable()
-export class DynamoDbRepository implements OnModuleInit {
+export class DynamoDbRepository<T = unknown> implements OnModuleInit {
   private readonly logger: Logger = new Logger(DynamoDbRepository.name);
 
   constructor(
@@ -68,42 +68,65 @@ export class DynamoDbRepository implements OnModuleInit {
    * and the values are the values of the filter operations.
    * The attribute values are marshalled to DynamoDB attribute values.
    */
-  private buildFilterExpression(filter: IScanFilter): { filterExpression: string; expressionAttributeValues: Record<string, AttributeValue>; } {
+  private buildFilterExpression(filter: IScanFilter<T>): { filterExpression: string; expressionAttributeValues: Record<string, AttributeValue>; } {
 
     const filterExpression = [];
     const expressionAttributeValues = {};
 
     const index = [
-      ...getIndexes(this.modelCls),
+      ...getIndexes(this.modelCls).map(({ indexName }) => indexName),
       getSortKey(this.modelCls)[0],
       getPrimaryKey(this.modelCls),
     ];
 
     if (filter) {
-      for (const [key, value] of Object.entries(filter)) {
+      Object.entries(filter).forEach(([key, value], ind) => {
         switch (key) {
           case 'match': {
-            for (const [k, v] of Object.entries(value)) {
+
+            Object.entries(value).forEach(([k, v], indCond) => {
               if (index.includes(k)) {
-                filterExpression.push(`${k} = :${k}`);
-                expressionAttributeValues[`:${k}`] = v;
+                const key = `${ind}_${indCond}_${k}`;
+                filterExpression.push(`${k} = :${key}`);
+                expressionAttributeValues[`:${key}`] = v;
               }
-            }
+            });
             break;
           }
           //TODO: check
           case 'contains': {
-            for (const [k, v] of Object.entries(value)) {
+            Object.entries(value).forEach(([k, v], indCond) => {
               if (index.includes(k)) {
-                filterExpression.push(`contains(${k}, :${k})`);
-                expressionAttributeValues[`:${k}`] = v;
+                const key = `${ind}_${indCond}_${k}`;
+                filterExpression.push(`contains(${k}, :${key})`);
+                expressionAttributeValues[`:${key}`] = v;
               }
-            }
+            });
             break;
           }
-          //TODO: add more
+          case 'gte': {
+            Object.entries(value).forEach(([k, v], indCond) => {
+              if (index.includes(k)) {
+                const key = `${ind}_${indCond}_${k}`;
+                filterExpression.push(`${k} >= :${key}`);
+                expressionAttributeValues[`:${key}`] = v;
+              }
+            });
+            break;
+          }
+          case 'lte': {
+            Object.entries(value).forEach(([k, v], indCond) => {
+              if (index.includes(k)) {
+                const key = `${ind}_${indCond}_${k}`;
+                filterExpression.push(`${k} <= :${key}`);
+                expressionAttributeValues[`:${key}`] = v;
+              }
+            });
+            break;
+          }
         }
       }
+      );
     }
 
     return {
@@ -120,24 +143,24 @@ export class DynamoDbRepository implements OnModuleInit {
    * @param indexName The name of the secondary index to query. If not provided, it will query the primary table.
    * @returns A Promise resolving to an array of records.
    */
-  async readByFilter<T>(
-    filter?: IScanFilter,
+  async readByFilter<K = T>(
+    filter?: IScanFilter<T>,
     indexName?: string, //TODO: investigate
-  ): Promise<T[]> {
+  ): Promise<K[]> {
 
     const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
 
     return this.connection.db
       .scan({
         TableName: this.getTableName(),
-        FilterExpression: filterExpression,
-        ExpressionAttributeValues: expressionAttributeValues
+        FilterExpression: filterExpression?.length ? filterExpression : null,
+        ExpressionAttributeValues: filterExpression?.length ? expressionAttributeValues : null,
       })
       .then((data) => {
         const result = data.Items?.map((item) =>
           this.transfromDataToObject(item),
         );
-        return result as T[];
+        return result ?? [] as K[];
       })
       .catch((err) => {
         this.logger.debug(err);
@@ -154,7 +177,7 @@ export class DynamoDbRepository implements OnModuleInit {
    * @returns A Promise resolving to the count.
    */
   async countByFilter(
-    filter?: IScanFilter,
+    filter?: IScanFilter<T>,
     indexName?: string, //TODO: investigate
   ): Promise<number> {
 
@@ -184,36 +207,51 @@ export class DynamoDbRepository implements OnModuleInit {
    */
   async findById(id: string) {
     const primaryKey = getPrimaryKey(this.modelCls);
-    const filter = {};
-    const expression = `${primaryKey} = :${primaryKey}`;
-    filter[`:${primaryKey}`] = id;
+    // const filter = {};
+    // const expression = `${primaryKey} = :${primaryKey}`;
+    // filter[`:${primaryKey}`] = id;
 
-    return this.connection.db
-      .scan({
+    // return this.connection.db
+    //   .scan({
+    //     TableName: this.getTableName(),
+    //     FilterExpression: expression,
+    //     ExpressionAttributeValues: marshall(filter),
+    //   })
+    //   .then((data) => {
+    //     if (data.Items.length === 0) {
+    //       throw new Error('not found');
+    //     } else {
+    //       return this.transfromDataToObject(data.Items[0]);
+    //     }
+    //   })
+    //   .catch((err) => {
+    //     this.logger.debug(err);
+    //   });
+
+    try {
+      const result = await this.connection.db.query({
         TableName: this.getTableName(),
-        FilterExpression: expression,
-        ExpressionAttributeValues: marshall(filter),
-      })
-      .then((data) => {
-        if (data.Items.length === 0) {
-          throw new Error('not found');
-        } else {
-          return this.transfromDataToObject(data.Items[0]);
-        }
-      })
-      .catch((err) => {
-        this.logger.debug(err);
+        KeyConditionExpression: `${primaryKey} = :id`,
+        ExpressionAttributeValues: marshall({ ':id': id }),
+        Limit: 1,
       });
+
+      if (result.Items.length === 0) {
+        throw new Error('not found');
+      } else {
+        return this.transfromDataToObject(result.Items[0]);
+      }
+    } catch (err) {
+      this.logger.debug(err);
+      throw err; // Можно выбросить ошибку для обработки на более высоком уровне
+    }
   }
 
 
-  async findOneByFilter<T>(filter: IScanFilter): Promise<T> {
-    return this.readByFilter(filter).then((data) => {
-      if (data.length === 0) {
-        throw new Error('not found');
-      } else {
-        return data[0] as T;
-      }
+  async findOneByFilter<K=T>(filter: IScanFilter<T>): Promise<K> {
+    return this.readByFilter<K>(filter).then((data: K[]) => {
+      if (data?.length) return data[0];
+      return null;
     });
   }
 
@@ -224,7 +262,7 @@ export class DynamoDbRepository implements OnModuleInit {
    * @throws {Error} - If any required property is not exists in the data object.
    * @returns A Promise resolving to the created record.
    */
-  async create<T>(data: T): Promise<T> {
+  async create<K=T>(data: Partial<T>): Promise<K> {
     const indexes = getIndexes(this.modelCls);
     const [sortKey, typeSortKey] = getSortKey(this.modelCls);
     const primaryKey = getPrimaryKey(this.modelCls);

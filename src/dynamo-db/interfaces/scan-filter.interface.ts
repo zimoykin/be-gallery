@@ -7,11 +7,11 @@ export enum SCAN_FILTER_OPERATIONS {
   LTE = 'lte',
 }
 
-export interface IScanFilter {
+export interface IScanFilter<T = unknown, K extends keyof T = keyof T> {
   contains?: { [key: string]: string; };
   match?: { [key: string]: any; };
-  gte?: { [key: string]: number; };
-  lte?: { [key: string]: number; };
+  gte?: { [P in K]?: number; };
+  lte?: { [P in K]?: number; };
   limit?: number;
   skip?: number;
 }
