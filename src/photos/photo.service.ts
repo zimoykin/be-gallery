@@ -1,19 +1,20 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
-import { Photo, PhotoData } from './photo.model';
+import { Photo, PhotoData } from './models/photo.model';
 import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
 import { S3BucketService } from 'src/s3-bucket/s3-bucket.service';
 import { InjectS3Bucket } from 'src/s3-bucket/inject-s3-bucket.decorator';
 import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
 import { InternalServerError } from '@aws-sdk/client-dynamodb';
 import { PhotoType } from './enums/photo-type.enum';
+import { PhotoOfTheDay } from './models/photo-of-the-day.model';
 
 @Injectable()
 export class PhotoService {
     private readonly logger = new Logger(PhotoService.name);
     constructor(
         @InjectRepository(Photo.name)
-        private readonly photoRepository: DynamoDbRepository,
+        private readonly photoRepository: DynamoDbRepository<Photo>,
         @InjectS3Bucket('photos')
         private readonly s3BucketServiceOriginal: S3BucketService,
         @InjectS3Bucket('preview')
@@ -164,6 +165,18 @@ export class PhotoService {
             };
     }
 
+    async findPhotoById(id: string): Promise<Photo & { url: string; }> {
+        const photo = await this.photoRepository.findById(id);
+        if (!photo) {
+            throw new NotFoundException();
+        }
+
+        return {
+            ...photo,
+            url: await this.getUrlByType(PhotoType.PREVIEW, photo),
+        };
+    }
+
     async getPhotosByFolderId(
         folderId: string,
         type: PhotoType,
@@ -241,5 +254,14 @@ export class PhotoService {
             await this.s3BucketServiceOriginal.deleteFile(photo.bucket.key);
             await this.photoRepository.remove(photo.id);
         }
+    }
+
+    async getTheLastPhoto(): Promise<Photo | null> {
+        const photos = await this.photoRepository.readByFilter({});
+        if (photos.length === 0) {
+            return null;
+        }
+        return photos[photos.length - 1];
+
     }
 }
