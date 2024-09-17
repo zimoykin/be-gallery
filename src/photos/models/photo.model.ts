@@ -21,7 +21,7 @@ export class Photo {
 
   @Required()
   camera: string;
-  
+
   lens?: string;
   iso?: string;
   film?: string;
@@ -51,6 +51,11 @@ export class Photo {
     previewWidth: number;
     previewHeight: number;
   };
+
+  likes: number = 0;
+
+  @Required()
+  privateAccess: boolean = false;
 }
 
 export type PhotoData = Omit<Photo, 'id'>;

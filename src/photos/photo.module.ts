@@ -6,7 +6,7 @@ import { Photo } from './models/photo.model';
 import { S3BucketModule } from 'src/s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from 'src/image-compressor/image-compressor.module';
 import { PhotoOfTheDay } from './models/photo-of-the-day.model';
-import { PhotoOfTheDayService } from './photo-of-the-day.service';
+import { PublicPhotoService } from './public-photo.service';
 import { PhotoPublicController } from './photo-public.controller';
 
 @Module({
@@ -19,7 +19,7 @@ import { PhotoPublicController } from './photo-public.controller';
     ImageCompressorModule,
   ],
   controllers: [PhotoController, PhotoPublicController],
-  providers: [PhotoService, PhotoOfTheDayService],
+  providers: [PhotoService, PublicPhotoService],
   exports: [PhotoService],
 })
 export class PhotoModule { }

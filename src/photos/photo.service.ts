@@ -181,11 +181,13 @@ export class PhotoService {
         folderId: string,
         type: PhotoType,
         userId: string,
+        privateAccess?: boolean
     ): Promise<Array<Photo & { url: string; }>> {
         const photos = await this.photoRepository.readByFilter<Photo>({
             match: {
                 folderId: folderId,
                 userId: userId,
+                privateAccess
             },
         });
 

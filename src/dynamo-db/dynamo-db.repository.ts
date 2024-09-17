@@ -15,6 +15,7 @@ import { getTable } from './decorators/table.decorator';
 import { createTable } from './helpers/create-table.helper';
 import { getRequired } from './decorators/required.decorator';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
+import { factoryConstructor } from './interfaces/factory.type';
 
 @Injectable()
 export class DynamoDbRepository<T = unknown> implements OnModuleInit {
@@ -22,9 +23,17 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
 
   constructor(
     @Inject('DYNAMO-DB-CONNECTION') private readonly connection: IConnection,
-    @Inject('DYNAMO-DB-MODEL') private readonly modelCls: new () => any,
+    @Inject('DYNAMO-DB-MODEL') private readonly modelCls: new (...args: any[]) => T,
   ) { }
 
+  /**
+   * Returns the name of the DynamoDB table associated with this repository.
+   * The name is derived from the table name decorator on the model class,
+   * and is modified if the connection object has a prefixCollection property.
+   * The table name is converted to lower case and trimmed.
+   * If the table name is not defined, an error is thrown.
+   * @returns The name of the DynamoDB table
+   */
   private getTableName() {
     let tableName = getTable(this.modelCls);
     if (!tableName) {
@@ -136,6 +145,56 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
 
   }
 
+
+  /**
+   * Scans the DynamoDB table and applies the given filter expression to the records.
+   * It uses the `ExclusiveStartKey` property to paginate through the records.
+   * If a limit is provided, it will stop scanning and return the accumulated records once the limit is reached.
+   * If no limit is provided, it will return all the records in the table.
+   * @param filterExpression - The filter expression to apply to the records.
+   * @param expressionAttributeValues - The values for the filter expression.
+   * @param accumulator - The accumulated records. Defaults to an empty array.
+   * @param lastKey - The last key to start the scan from. Defaults to an empty object.
+   * @param limit - The maximum number of records to return. Defaults to `undefined`.
+   * @returns A Promise resolving to an array of records.
+   */
+  private async scan(
+    filterExpression: string,
+    expressionAttributeValues: Record<string, AttributeValue>,
+    accumulator: T[] = [],
+    lastKey?: Record<string, AttributeValue>,
+    limit?: number
+  ) {
+    const result = await this.connection.db
+      .scan({
+        TableName: this.getTableName(),
+        FilterExpression: filterExpression?.length ? filterExpression : null,
+        ExpressionAttributeValues: filterExpression?.length ? expressionAttributeValues : null,
+        ExclusiveStartKey: lastKey || null,
+      });
+
+    const acc = [...accumulator, ...result.Items?.map((item) =>
+      this.transfromDataToObject(item),
+    )];
+    if (limit && acc.length >= limit) {
+      return acc.splice(0, limit);
+    }
+
+    if (result.LastEvaluatedKey) {
+      return this.scan(
+        filterExpression,
+        expressionAttributeValues,
+        acc,
+        result.LastEvaluatedKey,
+        limit
+      );
+    } else {
+      return acc;
+    }
+
+  }
+
+
   /**
    * Reads all records from the DynamoDB table that match the given filter.
    *
@@ -149,23 +208,24 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
   ): Promise<K[]> {
 
     const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
+    return this.scan(filterExpression, expressionAttributeValues, [], undefined, filter?.limit);
 
-    return this.connection.db
-      .scan({
-        TableName: this.getTableName(),
-        FilterExpression: filterExpression?.length ? filterExpression : null,
-        ExpressionAttributeValues: filterExpression?.length ? expressionAttributeValues : null,
-      })
-      .then((data) => {
-        const result = data.Items?.map((item) =>
-          this.transfromDataToObject(item),
-        );
-        return result ?? [] as K[];
-      })
-      .catch((err) => {
-        this.logger.debug(err);
-        throw err;
-      });
+    // return this.connection.db
+    //   .scan({
+    //     TableName: this.getTableName(),
+    //     FilterExpression: filterExpression?.length ? filterExpression : null,
+    //     ExpressionAttributeValues: filterExpression?.length ? expressionAttributeValues : null,
+    //   })
+    //   .then((data) => {
+    //     const result = data.Items?.map((item) =>
+    //       this.transfromDataToObject(item),
+    //     );
+    //     return result ?? [] as K[];
+    //   })
+    //   .catch((err) => {
+    //     this.logger.debug(err);
+    //     throw err;
+    //   });
 
   }
 
@@ -207,27 +267,6 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
    */
   async findById(id: string) {
     const primaryKey = getPrimaryKey(this.modelCls);
-    // const filter = {};
-    // const expression = `${primaryKey} = :${primaryKey}`;
-    // filter[`:${primaryKey}`] = id;
-
-    // return this.connection.db
-    //   .scan({
-    //     TableName: this.getTableName(),
-    //     FilterExpression: expression,
-    //     ExpressionAttributeValues: marshall(filter),
-    //   })
-    //   .then((data) => {
-    //     if (data.Items.length === 0) {
-    //       throw new Error('not found');
-    //     } else {
-    //       return this.transfromDataToObject(data.Items[0]);
-    //     }
-    //   })
-    //   .catch((err) => {
-    //     this.logger.debug(err);
-    //   });
-
     try {
       const result = await this.connection.db.query({
         TableName: this.getTableName(),
@@ -248,8 +287,8 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
   }
 
 
-  async findOneByFilter<K=T>(filter: IScanFilter<T>): Promise<K> {
-    return this.readByFilter<K>(filter).then((data: K[]) => {
+  async findOneByFilter<K = T>(filter: IScanFilter<T>): Promise<K> {
+    return this.readByFilter<K>({ ...filter, limit: 1 }).then((data: K[]) => {
       if (data?.length) return data[0];
       return null;
     });
@@ -262,36 +301,39 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
    * @throws {Error} - If any required property is not exists in the data object.
    * @returns A Promise resolving to the created record.
    */
-  async create<K=T>(data: Partial<T>): Promise<K> {
+  async create<K = T>(data: Partial<T>): Promise<K> {
+    const newModel = factoryConstructor(this.modelCls)() as T;
+    Object.assign(newModel, data);
+
     const indexes = getIndexes(this.modelCls);
     const [sortKey, typeSortKey] = getSortKey(this.modelCls);
     const primaryKey = getPrimaryKey(this.modelCls);
     const required = getRequired(this.modelCls) || [];
 
-    if (data[String(sortKey)] === undefined) {
+    if (newModel[String(sortKey)] === undefined) {
       throw new Error(`Sort key ${sortKey} is not exists`);
     }
 
     //check required properties
     for (const index of required) {
-      if (data[index] === undefined) {
+      if (newModel[index] === undefined) {
         throw new Error(`${index} is required`);
       }
     }
 
     const primaryId = uuidv4();
-    const sortKeyValue = data[String(sortKey)]
-      ? data[String(sortKey)]
+    const sortKeyValue = newModel[String(sortKey)]
+      ? newModel[String(sortKey)]
       : Date.now();
     const record = {
       [primaryKey]: primaryId,
       [String(sortKey)]: sortKeyValue,
-      data: data,
+      data: { ...newModel },
     };
 
     for (const { indexName, type } of indexes) {
-      if (data[indexName]) {
-        record[String(indexName)] = data[indexName];
+      if (newModel[indexName]) {
+        record[String(indexName)] = newModel[indexName];
       }
     }
     await this.connection.db.send(
