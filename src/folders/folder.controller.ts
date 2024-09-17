@@ -42,7 +42,7 @@ export class FolderController {
   @Post()
   async create(@AuthUser() user: IAuthUser, @Body() data: FolderInputDto) {
     return this.folderService
-      .createFolder({ ...data, userId: user.id })
+      .createFolder({ ...data, userId: user.id }, user.id)
       .then((data) => {
         return plainToInstance(FolderOutputDto, data);
       });

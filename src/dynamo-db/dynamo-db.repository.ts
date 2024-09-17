@@ -16,6 +16,7 @@ import { createTable } from './helpers/create-table.helper';
 import { getRequired } from './decorators/required.decorator';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { factoryConstructor } from './interfaces/factory.type';
+import { toPlainObject } from 'lodash';
 
 @Injectable()
 export class DynamoDbRepository<T = unknown> implements OnModuleInit {
@@ -287,6 +288,20 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
   }
 
 
+  private plainObjectNested(data: any) {
+    for (const [key, value] of Object.entries(data)) {
+      if (Array.isArray(value)) {
+        data[key] = value.map((item: any) => ({ ...this.plainObjectNested(item) }));
+      } else if (typeof value === 'object') {
+        data[key] = { ...this.plainObjectNested(value) };
+      } else {
+        data[key] = value;
+      }
+    }
+
+    return data;
+  }
+
   async findOneByFilter<K = T>(filter: IScanFilter<T>): Promise<K> {
     return this.readByFilter<K>({ ...filter, limit: 1 }).then((data: K[]) => {
       if (data?.length) return data[0];
@@ -301,9 +316,9 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
    * @throws {Error} - If any required property is not exists in the data object.
    * @returns A Promise resolving to the created record.
    */
-  async create<K = T>(data: Partial<T>): Promise<K> {
-    const newModel = factoryConstructor(this.modelCls)() as T;
-    Object.assign(newModel, data);
+  async create<K = T>(_data: Partial<T>): Promise<K> {
+    let newModel = factoryConstructor(this.modelCls)() as T;
+    newModel = this.plainObjectNested(toPlainObject(Object.assign(newModel, _data))) as T;
 
     const indexes = getIndexes(this.modelCls);
     const [sortKey, typeSortKey] = getSortKey(this.modelCls);
@@ -345,12 +360,14 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
     return this.findById(primaryId);
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, _data: any) {
     const existingRecord = await this.findById(id);
 
     if (!existingRecord) {
       throw new Error('not found');
     }
+
+    const data = this.plainObjectNested(toPlainObject(Object.assign(existingRecord, _data))) as T;
 
     const indexes = getIndexes(this.modelCls);
     const [sortKey, type] = getSortKey(this.modelCls);

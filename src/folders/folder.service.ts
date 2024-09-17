@@ -4,6 +4,7 @@ import { Folder } from './folder.model';
 import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
 import { FolderInputDto } from './dtos/folder-input.dto';
 import { PhotoService } from 'src/photos/photo.service';
+import { ProfileService } from 'src/profile/profile.service';
 
 @Injectable()
 export class FolderService {
@@ -13,6 +14,7 @@ export class FolderService {
     @InjectRepository(Folder.name)
     private readonly folderRepository: DynamoDbRepository,
     private readonly photoService: PhotoService,
+    private readonly profileService: ProfileService
   ) { }
 
   async findUserFolderById(id: string, userId: string) {
@@ -39,7 +41,12 @@ export class FolderService {
     }));
   }
 
-  async createFolder(data: Partial<Folder>) {
+  async createFolder(data: Partial<Folder>, userName: string) {
+    const profile = await this.profileService.findProfileByUserId(data.userId);
+    if (!profile) {
+      await this.profileService.createProfile(data.userId, userName);
+    }
+
     const userFolders = await this.findAllByUserId(data.userId);
     if (userFolders.length >= 10) {
       throw new Error(

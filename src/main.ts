@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ConfigVariables } from './service-config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,14 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization',
   });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      stopAtFirstError: true,
+      forbidUnknownValues: true,
+    }),
+  );
 
   const conf = app.get(ConfigService<ConfigVariables>);
   const port = conf.get<number>('PORT') ?? 3000;
