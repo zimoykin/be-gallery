@@ -211,23 +211,6 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
     const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
     return this.scan(filterExpression, expressionAttributeValues, [], undefined, filter?.limit);
 
-    // return this.connection.db
-    //   .scan({
-    //     TableName: this.getTableName(),
-    //     FilterExpression: filterExpression?.length ? filterExpression : null,
-    //     ExpressionAttributeValues: filterExpression?.length ? expressionAttributeValues : null,
-    //   })
-    //   .then((data) => {
-    //     const result = data.Items?.map((item) =>
-    //       this.transfromDataToObject(item),
-    //     );
-    //     return result ?? [] as K[];
-    //   })
-    //   .catch((err) => {
-    //     this.logger.debug(err);
-    //     throw err;
-    //   });
-
   }
 
   /**

@@ -18,7 +18,7 @@ export class PublicFolderService {
 
   async findFoldersByUserId(profileId: string) {
     return this.folderRepository
-      .findOneByFilter<Folder>({
+      .readByFilter<Folder>({
         match: { profileId, private: false }
       });
   }
