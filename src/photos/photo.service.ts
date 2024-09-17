@@ -7,7 +7,7 @@ import { InjectS3Bucket } from 'src/s3-bucket/inject-s3-bucket.decorator';
 import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
 import { InternalServerError } from '@aws-sdk/client-dynamodb';
 import { PhotoType } from './enums/photo-type.enum';
-import { PhotoOfTheDay } from './models/photo-of-the-day.model';
+import { ProfileService } from 'src/profile/profile.service';
 
 @Injectable()
 export class PhotoService {
@@ -22,6 +22,7 @@ export class PhotoService {
         @InjectS3Bucket('compressed')
         private readonly s3BucketServiceCompressed: S3BucketService,
         private readonly imageCompressorService: ImageCompressorService,
+        private readonly profileService: ProfileService
     ) { }
 
     /**
@@ -106,10 +107,15 @@ export class PhotoService {
         file: any,
     ) {
 
+        const profile = await this.profileService.findProfileByUserId(userId);
+        if (!profile) {
+            throw new Error('Profile not found');
+        }
+
         const photos = await this.photoRepository.readByFilter({
             match: {
                 folderId: folderId,
-                userId: userId
+                profileId: profile.id
             }
         });
 
@@ -121,12 +127,12 @@ export class PhotoService {
 
         const bucket = await this.s3BucketServiceOriginal.upload(
             file.buffer,
-            `${userId}/${folderId}/${file.originalname}`,
+            `${profile.id}/${folderId}/${file.originalname}`,
         );
         return this.photoRepository
             .create<PhotoData>({
                 folderId,
-                userId,
+                profileId: profile.id,
                 bucket: bucket,
                 camera: data.camera ?? 'no info',
                 sortOrder: data.sortOrder || (photos.length + 1),
@@ -136,7 +142,7 @@ export class PhotoService {
                 this.resizeImage(
                     file.buffer,
                     data.id,
-                    `${userId}/${folderId}/${file.originalname}`,
+                    `${profile.id}/${folderId}/${file.originalname}`,
                 );
                 return data;
             });
@@ -148,11 +154,17 @@ export class PhotoService {
         id: string,
         type: PhotoType
     ): Promise<Photo & { url: string; }> {
+
+        const profile = await this.profileService.findProfileByUserId(userId);
+        if (!profile) {
+            throw new Error('Profile not found');
+        }
+
         const photo = await this.photoRepository.readByFilter<Photo>({
             match: {
                 folderId: folderId,
                 id: id,
-                userId: userId,
+                profileId: profile.id,
             },
         });
 
@@ -177,16 +189,17 @@ export class PhotoService {
         };
     }
 
-    async getPhotosByFolderId(
+    async getPhotosByFolderIdAndProfileId(
         folderId: string,
         type: PhotoType,
-        userId: string,
+        profileId: string,
         privateAccess?: boolean
     ): Promise<Array<Photo & { url: string; }>> {
+
         const photos = await this.photoRepository.readByFilter<Photo>({
             match: {
                 folderId: folderId,
-                userId: userId,
+                profileId: profileId,
                 privateAccess
             },
         });
@@ -205,23 +218,44 @@ export class PhotoService {
         }
     }
 
-    async getTotalPhotosByFolderId(folderId: string, userId: string): Promise<number> {
+
+    async getPhotosByFolderIdAndUserId(
+        folderId: string,
+        type: PhotoType,
+        userId: string,
+        privateAccess?: boolean
+    ): Promise<Array<Photo & { url: string; }>> {
+
+        const profile = await this.profileService.findProfileByUserId(userId);
+        if (!profile) {
+            throw new Error('Profile not found');
+        }
+
+        return this.getPhotosByFolderIdAndProfileId(folderId, type, profile.id, privateAccess);
+    }
+
+    async getTotalPhotosByFolderId(folderId: string, profileId: string): Promise<number> {
         const count = await this.photoRepository.countByFilter({
             match: {
                 folderId: folderId,
-                userId: userId,
+                profileId: profileId,
             },
         });
 
         return count ?? 0;
     }
 
-    async removePhoto(folderId: string, userId: string, id: string) {
+    async removePhoto(folderId: string, userID: string, id: string) {
+        const profile = await this.profileService.findProfileByUserId(userID);
+        if (!profile) {
+            throw new Error('Profile not found');
+        }
+
         const existingPhoto = await this.photoRepository.readByFilter<Photo>({
             match: {
                 id: id,
                 folderId: folderId,
-                userId: userId,
+                profileId: profile.id,
             },
         });
         if (existingPhoto.length === 0) {
@@ -244,11 +278,11 @@ export class PhotoService {
         }
     }
 
-    async removePhotosByFolderId(folderId: string, userId: string) {
+    async removePhotosByFolderId(folderId: string, profileId: string) {
         const photos = await this.photoRepository.readByFilter<Photo>({
             match: {
                 folderId: folderId,
-                userId: userId,
+                profileId: profileId,
             },
         });
 

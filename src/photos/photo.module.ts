@@ -8,6 +8,8 @@ import { ImageCompressorModule } from 'src/image-compressor/image-compressor.mod
 import { PhotoOfTheDay } from './models/photo-of-the-day.model';
 import { PublicPhotoService } from './public-photo.service';
 import { PhotoPublicController } from './photo-public.controller';
+import { ProfileService } from 'src/profile/profile.service';
+import { ProfileModule } from 'src/profile/profile.module';
 
 @Module({
   imports: [
@@ -17,6 +19,7 @@ import { PhotoPublicController } from './photo-public.controller';
     S3BucketModule.forFeature('preview'),
     S3BucketModule.forFeature('compressed'),
     ImageCompressorModule,
+    ProfileModule
   ],
   controllers: [PhotoController, PhotoPublicController],
   providers: [PhotoService, PublicPhotoService],

@@ -14,7 +14,7 @@ export class Photo {
 
   @Index('S')
   @Required()
-  userId: string;
+  profileId: string;
 
   @SortKey('S')
   folderId: string;

@@ -33,7 +33,7 @@ export class PhotoController {
         @Param() params: PhotosParamDto,
         @AuthUser() user: IAuthUser,
     ): Promise<PhotoOutputDto[]> {
-        const photos = await this.photoService.getPhotosByFolderId(
+        const photos = await this.photoService.getPhotosByFolderIdAndUserId(
             params.folderId,
             params.type,
             user.id,

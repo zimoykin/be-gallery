@@ -66,13 +66,13 @@ export class PublicPhotoService {
                 url: photo.url,
                 film: photo.film,
                 lens: photo.lens,
-                likes: 0,
-                userId: photo.userId
+                likes: photo.likes,
+                profileId: photo.profileId,
             };
         }
     }
 
-    async getUsersPhotosByFolderId(userId: string, folderId: string) {
-        return this.photoService.getPhotosByFolderId(folderId, PhotoType.PREVIEW, userId);
+    async getUsersPhotosByFolderId(profileId: string, folderId: string) {
+        return this.photoService.getPhotosByFolderIdAndProfileId(folderId, PhotoType.PREVIEW, profileId);
     }
 }

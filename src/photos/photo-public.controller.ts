@@ -21,12 +21,12 @@ export class PhotoPublicController {
             });
     }
 
-    @Get(':userId/:folderId')
+    @Get(':profileId/:folderId')
     async getUsersPhotosByFolderId(
-        @Param('userId') userId: string,
+        @Param('profileId') profileId: string,
         @Param('folderId') folderId: string
     ): Promise<PublicPhotoOutputDto[]> {
-        return this.photoOfTheDayService.getUsersPhotosByFolderId(userId, folderId)
+        return this.photoOfTheDayService.getUsersPhotosByFolderId(profileId, folderId)
             .then(
                 photos => photos.map(photo => plainToInstance(PublicPhotoOutputDto, photo))
             ).catch(err => {

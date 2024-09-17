@@ -6,6 +6,9 @@ export class FolderOutputDto {
   id: string;
 
   @Expose()
+  profileId: string;
+
+  @Expose()
   title: string;
 
   @Expose()

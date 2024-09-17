@@ -10,7 +10,7 @@ export class Folder {
   id: string;
 
   @SortKey('S')
-  userId: string;
+  profileId: string;
 
   @Index('N')
   sortOrder: number;
@@ -28,4 +28,5 @@ export class Folder {
 
   @Required()
   privateAccess: boolean = false;
+
 }

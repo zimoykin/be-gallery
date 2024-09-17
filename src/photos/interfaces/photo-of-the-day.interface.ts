@@ -1,6 +1,6 @@
 export interface IPhotoOfTheDay {
     id: string;
-    userId: string;
+    profileId: string;
     camera: string;
     lens: string;
     film: string;
