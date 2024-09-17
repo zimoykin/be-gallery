@@ -64,7 +64,7 @@ export class FolderService {
   }
 
   async createFolder(data: Partial<Folder>, userId: string) {
-    const profile = await this.profileService.findProfileByUserId(userId) || await this.profileService.createProfile(userId, 'unknown');
+    const profile = await this.profileService.findProfileByUserId(userId);
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }

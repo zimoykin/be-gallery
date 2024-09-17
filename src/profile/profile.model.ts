@@ -19,6 +19,6 @@ export class Profile {
     website?: string;
 
     privateAccess: boolean = false;
-
+    bucket?: { url: string; key: string; bucketName: string; folder: string; };
     equipment?: IEquipment;
 }

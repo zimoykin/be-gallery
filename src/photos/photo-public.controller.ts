@@ -1,6 +1,6 @@
 import { Controller, Get, Logger, Param } from "@nestjs/common";
 import { PublicPhotoService } from "./public-photo.service";
-import { PublicPhotoOutputDto } from "./dtos/publick-photo-output-dto";
+import { PublicPhotoOutputDto } from "./dtos/public-photo-output-dto";
 import { plainToInstance } from "class-transformer";
 import { ApiTags } from "@nestjs/swagger";
 

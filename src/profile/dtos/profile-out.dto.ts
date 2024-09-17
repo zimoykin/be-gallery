@@ -20,4 +20,7 @@ export class ProfileOutputDto {
     @Expose()
     @Type(() => Equipments)
     equipment?: IEquipment;
+
+    @Expose()
+    url: string;
 }
