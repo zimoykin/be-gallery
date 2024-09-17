@@ -15,21 +15,21 @@ export class PublicFolderController {
   private readonly logger = new Logger(PublicFolderController.name);
   constructor(private readonly folderService: PublicFolderService) { }
 
-  @Get('/:userId')
+  @Get('/:profileId')
   async findAll(
-    @Param('userId') userId: string
+    @Param('profileId') profileId: string
   ) {
-    return this.folderService.findFoldersByUserId(userId).then((data) => {
+    return this.folderService.findFoldersByUserId(profileId).then((data) => {
       return plainToInstance(FolderOutputDto, data);
     });
   }
 
-  @Get('/:userId/:folderId')
+  @Get('/:profileId/:folderId')
   async findOneById(
-    @Param('userId') userId: string,
+    @Param('profileId') profileId: string,
     @Param('folderId') folderId: string,
   ) {
-    return this.folderService.findFolderById(userId, folderId);
+    return this.folderService.findFolderByIdAndProfileId(profileId, folderId);
   }
 
 }

@@ -36,13 +36,13 @@ export class FolderController {
 
   @Get(':id')
   async findOneById(@AuthUser() user: IAuthUser, @Param('id') id: string) {
-    return this.folderService.findUserFolderById(id, user.id);
+    return this.folderService.findUserFolderByIdAndUserId(id, user.id);
   }
 
   @Post()
   async create(@AuthUser() user: IAuthUser, @Body() data: FolderInputDto) {
     return this.folderService
-      .createFolder({ ...data, userId: user.id }, user.id)
+      .createFolder({ ...data }, user.id)
       .then((data) => {
         return plainToInstance(FolderOutputDto, data);
       });

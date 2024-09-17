@@ -7,7 +7,7 @@ export class PhotoOutputDto {
   @Expose()
   sortOrder: number;
   @Expose()
-  userId: string;
+  profileId: string;
   @Expose()
   folderId: string;
   @Expose()
