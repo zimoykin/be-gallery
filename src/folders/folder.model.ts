@@ -18,7 +18,6 @@ export class Folder {
   @Required()
   title: string;
 
-  @Required()
   description: string;
 
   @Required()
@@ -26,4 +25,7 @@ export class Folder {
 
   @Required()
   bgColor: string;
+
+  @Required()
+  privateAccess: boolean = false;
 }

@@ -8,8 +8,8 @@ export enum SCAN_FILTER_OPERATIONS {
 }
 
 export interface IScanFilter<T = unknown, K extends keyof T = keyof T> {
-  contains?: { [key: string]: string; };
-  match?: { [key: string]: any; };
+  contains?: { [P in K]?: string; };
+  match?: { [P in K]?: any; };
   gte?: { [P in K]?: number; };
   lte?: { [P in K]?: number; };
   limit?: number;

@@ -5,10 +5,11 @@ import { PhotoOfTheDay } from "./models/photo-of-the-day.model";
 import { DateTime } from 'luxon';
 import { PhotoService } from "./photo.service";
 import { IPhotoOfTheDay } from "./interfaces/photo-of-the-day.interface";
+import { PhotoType } from "./enums/photo-type.enum";
 
 @Injectable()
-export class PhotoOfTheDayService {
-    private readonly logger = new Logger(PhotoOfTheDayService.name);
+export class PublicPhotoService {
+    private readonly logger = new Logger(PublicPhotoService.name);
 
     constructor(
         @InjectRepository(PhotoOfTheDay.name) private readonly photoOfTheDayRepository: DynamoDbRepository<PhotoOfTheDay>,
@@ -69,5 +70,9 @@ export class PhotoOfTheDayService {
                 userId: photo.userId
             };
         }
+    }
+
+    async getUsersPhotosByFolderId(userId: string, folderId: string) {
+        return this.photoService.getPhotosByFolderId(folderId, PhotoType.PREVIEW, userId);
     }
 }

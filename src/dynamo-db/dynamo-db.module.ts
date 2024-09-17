@@ -81,7 +81,7 @@ export class DynamodbModule {
   }
 
   static forFeature(
-    cls: new () => any,
+    cls: new (...args: any) => any,
     connectionName?: string,
   ): DynamicModule {
     const providers: Provider[] = [
