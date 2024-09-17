@@ -9,6 +9,7 @@ import { JwtModule } from '@zimoykin/auth';
 import { PhotoModule } from './photos/photo.module';
 import { S3BucketModule } from './s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from './image-compressor/image-compressor.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { ImageCompressorModule } from './image-compressor/image-compressor.modul
     PhotoModule,
     S3BucketModule,
     ImageCompressorModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
