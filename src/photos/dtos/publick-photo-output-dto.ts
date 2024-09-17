@@ -6,7 +6,7 @@ export class PublicPhotoOutputDto {
     id: string;
 
     @Expose()
-    userId: string;
+    profileId: string;
 
     @Expose()
     camera: string;
