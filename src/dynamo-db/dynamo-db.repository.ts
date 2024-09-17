@@ -273,13 +273,16 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
 
   private plainObjectNested(data: any) {
     for (const [key, value] of Object.entries(data)) {
-      if (Array.isArray(value)) {
-        data[key] = value.map((item: any) => ({ ...this.plainObjectNested(item) }));
-      } else if (typeof value === 'object') {
-        data[key] = { ...this.plainObjectNested(value) };
-      } else {
-        data[key] = value;
-      }
+      if (value == undefined) {
+        delete data[key];
+      } else
+        if (Array.isArray(value)) {
+          data[key] = value.map((item: any) => ({ ...this.plainObjectNested(item) }));
+        } else if (typeof value === 'object') {
+          data[key] = { ...this.plainObjectNested(value) };
+        } else {
+          data[key] = value;
+        }
     }
 
     return data;
