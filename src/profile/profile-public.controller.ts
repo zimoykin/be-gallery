@@ -2,7 +2,7 @@ import { Controller, Get, Logger, Param, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { ProfileService } from "./profile.service";
 import { plainToInstance } from "class-transformer";
-import { ProfileOutputDto } from "./dtos/profile-out.dto";
+import { ProfileOutputDto } from "./dtos/profile-output.dto";
 
 
 @ApiTags('Public')

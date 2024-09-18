@@ -1,7 +1,7 @@
 import { Expose, Type } from "class-transformer";
-import { IsBoolean, IsString, ValidateNested } from "class-validator";
+import { IsBoolean, IsIn, IsString, ValidateNested } from "class-validator";
 
-class Equipment {
+export class Equipment {
     @Expose()
     @IsString()
     name: string;
@@ -9,16 +9,21 @@ class Equipment {
     @Expose()
     @IsBoolean()
     favorite: boolean;
-}
-
-export class Equipments {
-    @Expose()
-    @Type(() => Equipment)
-    @ValidateNested({ each: true })
-    cameras: Equipment[];
 
     @Expose()
-    @Type(() => Equipment)
-    @ValidateNested({ each: true })
-    lenses: Equipment[];
+    @IsString()
+    @IsIn(['camera', 'lens', 'other'])
+    type: 'camera' | 'lens' | 'other';
 }
+
+// export class Equipments {
+//     @Expose()
+//     @Type(() => Equipment)
+//     @ValidateNested({ each: true })
+//     cameras: Equipment[];
+
+//     @Expose()
+//     @Type(() => Equipment)
+//     @ValidateNested({ each: true })
+//     lenses: Equipment[];
+// }
