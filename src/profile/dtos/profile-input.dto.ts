@@ -1,7 +1,6 @@
 import { IsBoolean, IsNotEmptyObject, IsOptional, IsString, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import { Equipments } from "./equipment.dto";
-import { IEquipment } from "../interfaces/eqiupment.interface";
+import { Equipment } from "./equipment.dto";
 
 export class ProfileInDto {
     @IsString()
@@ -19,10 +18,9 @@ export class ProfileInDto {
     @IsOptional()
     location?: string;
 
-    @IsNotEmptyObject()
     @IsOptional()
-    @Type(() => Equipments)
-    @ValidateNested()
-    equipment?: IEquipment;
+    @Type(() => Array<Equipment>)
+    @ValidateNested({ each: true })
+    equipment?: Equipment[];
 
 }

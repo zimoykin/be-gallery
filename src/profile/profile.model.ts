@@ -1,7 +1,7 @@
 import { PrimaryKey } from "src/dynamo-db/decorators/primary-key.decorator";
 import { SortKey } from "src/dynamo-db/decorators/sort-key.decorator";
 import { Table } from "src/dynamo-db/decorators/table.decorator";
-import { IEquipment } from "./interfaces/eqiupment.interface";
+import { Equipment } from "./dtos/equipment.dto";
 
 
 @Table(Profile.name)
@@ -20,5 +20,5 @@ export class Profile {
 
     privateAccess: boolean = false;
     bucket?: { url: string; key: string; bucketName: string; folder: string; };
-    equipment?: IEquipment;
+    equipment?: Equipment[];
 }

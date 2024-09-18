@@ -2,8 +2,8 @@ import { Body, Controller, Get, Logger, Post, Put, Query, UploadedFile, UseInter
 import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
 import { ProfileService } from './profile.service';
-import { ProfileInDto } from './dtos/profile-in.dto';
-import { ProfileOutputDto } from './dtos/profile-out.dto';
+import { ProfileInDto } from './dtos/profile-input.dto';
+import { ProfileOutputDto } from './dtos/profile-output.dto';
 import { plainToInstance } from 'class-transformer';
 import { FileInterceptor } from '@nestjs/platform-express';
 
