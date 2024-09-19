@@ -17,6 +17,7 @@ export class ProfileService {
 
 
     async createProfile(userId: string, userName: string) {
+        this.logger.log(`creating profile for user ${userId}`);
         const profile = await this.profileRepository.create({
             userId: userId,
             name: userName ?? 'unknown'
@@ -30,7 +31,7 @@ export class ProfileService {
 
     async findProfileByUserId(userId: string) {
         const profile = await this.profileRepository.findOneByFilter<Profile>({
-            match: { userId }
+            match: { userId: userId }
         }) || await this.createProfile(userId, 'unknown');
 
 
