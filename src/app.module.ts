@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -10,6 +10,8 @@ import { PhotoModule } from './photos/photo.module';
 import { S3BucketModule } from './s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from './image-compressor/image-compressor.module';
 import { ProfileModule } from './profile/profile.module';
+import { ProfileAuthMiddleware } from './middlewares/profile-auth.middleware';
+import { NestApplication } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -67,9 +69,16 @@ import { ProfileModule } from './profile/profile.module';
     PhotoModule,
     S3BucketModule,
     ImageCompressorModule,
-    ProfileModule,
+    ProfileModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(ProfileAuthMiddleware)
+      .exclude('/public/*')
+      .forRoutes('*');
+  }
+}

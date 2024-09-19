@@ -25,4 +25,7 @@ export class FolderOutputDto {
 
   @Expose()
   totalPhotos: number;
+
+  @Expose()
+  favoriteFotoId: string;
 }

@@ -4,16 +4,21 @@ import { ConfigService } from '@nestjs/config';
 import { ConfigVariables } from './service-config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import * as cookie from 'cookie-parser';
+import { cookieProfileAuth } from './middlewares/profile-auth.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: '*',
-    credentials: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type, Accept, Authorization',
-  });
+  app.use(cookie('secret'));
+
+  console.log(process.env.NODE_ENV);
+  if (process.env.NODE_ENV === 'development')
+    app.enableCors({
+      origin: 'http://localhost:3000',
+      credentials: true
+    });
+
 
   app.useGlobalPipes(
     new ValidationPipe({

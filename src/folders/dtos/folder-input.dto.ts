@@ -4,7 +4,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  isString,
+  IsUUID,
 } from 'class-validator';
 
 export class FolderInputDto {
@@ -41,4 +41,9 @@ export class FolderInputDto {
     example: 1,
   })
   sortOrder: number;
+
+
+  @IsUUID()
+  @IsOptional()
+  favoriteFotoId?: string;
 }
