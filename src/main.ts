@@ -5,17 +5,17 @@ import { ConfigVariables } from './service-config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookie from 'cookie-parser';
-import { cookieProfileAuth } from './middlewares/profile-auth.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookie('secret'));
 
-
   app.enableCors({
     origin: process.env.CROSS_ORIGIN ?? '*',
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Access-Control-Allow-Origin'],
   });
 
 
