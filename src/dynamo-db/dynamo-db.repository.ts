@@ -141,7 +141,7 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
 
     return {
       filterExpression: filterExpression.join(' AND '),
-      expressionAttributeValues: marshall(expressionAttributeValues)
+      expressionAttributeValues: marshall(expressionAttributeValues, { removeUndefinedValues: true }),
     };
 
   }
