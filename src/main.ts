@@ -12,12 +12,11 @@ async function bootstrap() {
 
   app.use(cookie('secret'));
 
-  console.log(process.env.NODE_ENV);
-  if (process.env.NODE_ENV === 'development')
-    app.enableCors({
-      origin: 'http://localhost:3000',
-      credentials: true
-    });
+
+  app.enableCors({
+    origin: process.env.CROSS_ORIGIN ?? '*',
+    credentials: true
+  });
 
 
   app.useGlobalPipes(
