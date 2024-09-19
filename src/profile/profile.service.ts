@@ -93,6 +93,9 @@ export class ProfileService {
     }
 
     async findProfileById(id: string) {
+        if (!id) {
+            throw new Error('Profile id not found');
+        }
         const profile = await this.profileRepository.findOneByFilter({ match: { id } });
 
         if (!profile) {
