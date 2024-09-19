@@ -209,6 +209,7 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
   ): Promise<K[]> {
 
     const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
+    this.logger.log(filterExpression, expressionAttributeValues);
     return this.scan(filterExpression, expressionAttributeValues, [], undefined, filter?.limit);
 
   }

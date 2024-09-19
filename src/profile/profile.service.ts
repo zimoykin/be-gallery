@@ -30,6 +30,7 @@ export class ProfileService {
     }
 
     async findProfileByUserId(userId: string) {
+        this.logger.debug(`finding profile for user ${userId}`);
         const profile = await this.profileRepository.findOneByFilter<Profile>({
             match: { userId: userId }
         }) || await this.createProfile(userId, 'unknown');
