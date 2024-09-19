@@ -6,6 +6,7 @@ import { ProfileInDto } from './dtos/profile-input.dto';
 import { ProfileOutputDto } from './dtos/profile-output.dto';
 import { plainToInstance } from 'class-transformer';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Profile } from 'src/middlewares/decorators/cookie.decorator';
 
 @ApiBearerAuth('Authorization')
 @UserAccess()
@@ -20,8 +21,9 @@ export class ProfileController {
     @Get('me')
     async getProfileByUserId(
         @AuthUser() user: IAuthUser,
+        @Profile() profileId: string,
     ) {
-        return this.profileService.findProfileByUserId(user.id).then((data) => {
+        return this.profileService.findProfileById(profileId).then((data) => {
             return plainToInstance(ProfileOutputDto, data);
         });
     }

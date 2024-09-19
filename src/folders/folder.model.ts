@@ -29,4 +29,5 @@ export class Folder {
   @Required()
   privateAccess: boolean = false;
 
+  favoriteFotoId?: string;
 }
