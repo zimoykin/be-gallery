@@ -35,6 +35,12 @@ export class ProfileAuthMiddleware implements NestMiddleware {
     }
 
     async use(req: Request, res: Response, next: NextFunction) {
+        if (req.method === 'OPTIONS') {
+            next();
+            return;
+        }
+
+
         if (!this.getCookie(req)) {
             if (req.headers.authorization) {
                 const [_, base64Url] = req.headers.authorization.split('.');
