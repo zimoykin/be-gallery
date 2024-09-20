@@ -25,9 +25,14 @@ export class ProfileController {
     @HttpCode(200)
     async getProfileByUserId(
         @Profile() profile: IProfileCookie,
+        @Res() res: Response
     ) {
         return this.profileService.findProfileById(profile.profileId).then((data) => {
             return plainToInstance(ProfileOutputDto, data);
+        }).catch((error) => {
+            this.logger.error(error);
+            // just a case clear cookie
+            res.clearCookie(cookieProfileAuth);
         });
     }
 

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
 import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
 import { Profile } from './profile.model';
@@ -24,7 +24,7 @@ export class ProfileService {
         });
 
         if (!profile) {
-            throw new Error('could not create profile');
+            throw new BadRequestException('could not create profile');
         }
         return profile;
     }
@@ -66,7 +66,7 @@ export class ProfileService {
     async updateProfile(id: string, dto: Partial<Profile>) {
         const profile = await this.profileRepository.findById(id);
         if (!profile) {
-            throw new Error('Profile not found');
+            throw new NotFoundException('Profile not found');
         }
         else {
             const updatedProfile = Object.assign(profile, dto);
@@ -78,7 +78,7 @@ export class ProfileService {
     async createProfilePhoto(profileId: string, file: any) {
         const profile = await this.profileRepository.findById(profileId);
         if (!profile) {
-            throw new Error('Profile not found');
+            throw new NotFoundException('Profile not found');
         }
         const resized = await this.imageCompressorService.compressImage(file.buffer, 320, 320);
         const bucket = await this.s3BucketService.upload(
@@ -90,12 +90,12 @@ export class ProfileService {
 
     async findProfileById(id: string) {
         if (!id) {
-            throw new Error('Profile id not found');
+            throw new NotFoundException('Profile id not found');
         }
         const profile = await this.profileRepository.findOneByFilter({ match: { id } });
 
         if (!profile) {
-            throw new Error('Profile not found');
+            throw new NotFoundException('Profile not found');
         }
         if (profile.bucket?.key) {
             const url = await this.s3BucketService.generateSignedUrl(profile.bucket.key);
