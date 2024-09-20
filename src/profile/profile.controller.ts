@@ -33,6 +33,7 @@ export class ProfileController {
             this.logger.error(error);
             // just a case clear cookie
             res.clearCookie(cookieProfileAuth);
+            throw error;
         });
     }
 
