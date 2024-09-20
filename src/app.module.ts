@@ -12,6 +12,7 @@ import { ImageCompressorModule } from './image-compressor/image-compressor.modul
 import { ProfileModule } from './profile/profile.module';
 import { ProfileAuthMiddleware } from './middlewares/profile-auth.middleware';
 import { NestApplication } from '@nestjs/core';
+import { PublicFolderController } from './folders/folder-public.controller';
 
 @Module({
   imports: [
@@ -78,7 +79,7 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(ProfileAuthMiddleware)
-      .exclude('/public/*')
+      .exclude('/api/v1/public/(.*)')
       .forRoutes('*');
   }
 }

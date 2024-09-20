@@ -14,7 +14,7 @@ export class ProfileAuthMiddleware implements NestMiddleware {
 
     private getCookie(req: Request) {
         try {
-            return req.cookies[cookieProfileAuth];
+            return req.signedCookies[cookieProfileAuth];
         } catch (error) {
             return undefined;
         }
@@ -26,7 +26,7 @@ export class ProfileAuthMiddleware implements NestMiddleware {
                 httpOnly: true,
                 signed: true,
                 sameSite: 'none',
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 maxAge: 1000 * 60 * 60 * 24 * 30,  // 30 days
             });
         } catch (error) {
@@ -40,8 +40,8 @@ export class ProfileAuthMiddleware implements NestMiddleware {
             return;
         }
 
-
         if (!this.getCookie(req)) {
+            this.logger.debug('No cookie found');
             if (req.headers.authorization) {
                 const [_, base64Url] = req.headers.authorization.split('.');
                 let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -51,7 +51,9 @@ export class ProfileAuthMiddleware implements NestMiddleware {
                 if (userData.id) {
                     this.profileService.findProfileByUserId(userData.id).then(async profile => {
                         if (profile) {
-                            this.setCookie(res, profile.id);
+                            const profileCookie = JSON.stringify({ profileId: profile.id, userId: userData.id });
+                            this.setCookie(res, profileCookie);
+                            req['signedCookies'][cookieProfileAuth] = profileCookie;
                             next();
                         }
                         else {

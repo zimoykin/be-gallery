@@ -13,6 +13,7 @@ export class Profile {
     userId: string;
 
     name?: string;
+    email?: string;
 
     location?: string;
     bio?: string;

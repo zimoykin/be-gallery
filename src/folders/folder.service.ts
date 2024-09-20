@@ -55,7 +55,7 @@ export class FolderService {
     }));
   }
 
-  async findAllByProfileId(profileId: string) {
+  async findAllFolderByProfileIdAndTotalPhotos(profileId: string) {
     const folders = await this.folderRepository.readByFilter<Folder>({ match: { profileId: profileId } });
     return Promise.all(folders.map(async folder => {
       const count = await this.photoService.getTotalPhotosByFolderId(folder.id, profileId);
@@ -69,7 +69,7 @@ export class FolderService {
       throw new NotFoundException('Profile not found');
     }
 
-    const userFolders = await this.findAllByProfileId(profile.id);
+    const userFolders = await this.findAllFolderByProfileIdAndTotalPhotos(profile.id);
     if (userFolders.length >= 10) {
       throw new BadGatewayException(
         `You can't create more than 10 folders. You have ${userFolders.length}`,

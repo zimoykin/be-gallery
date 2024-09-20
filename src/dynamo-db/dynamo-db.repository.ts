@@ -209,7 +209,6 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
   ): Promise<K[]> {
 
     const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
-    this.logger.log(filterExpression, expressionAttributeValues);
     return this.scan(filterExpression, expressionAttributeValues, [], undefined, filter?.limit);
 
   }
@@ -239,7 +238,7 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
         return data.Count ?? 0;
       })
       .catch((err) => {
-        this.logger.debug(err);
+        this.logger.error(err);
         throw err;
       });
 
@@ -266,7 +265,7 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
         return this.transfromDataToObject(result.Items[0]);
       }
     } catch (err) {
-      this.logger.debug(err);
+      this.logger.error(err);
       throw err; // Можно выбросить ошибку для обработки на более высоком уровне
     }
   }

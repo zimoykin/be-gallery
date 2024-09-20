@@ -19,9 +19,10 @@ export class PublicFolderController {
   async findAll(
     @Param('profileId') profileId: string
   ) {
-    return this.folderService.findFoldersByUserId(profileId).then((data) => {
-      return plainToInstance(FolderOutputDto, data);
-    });
+    return this.folderService.findFoldersByProfileId(profileId)
+      .then((data) => {
+        return plainToInstance(FolderOutputDto, data);
+      });
   }
 
   @Get('/:profileId/:folderId')

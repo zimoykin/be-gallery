@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Post, Put, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Logger, Post, Put, Query, Redirect, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
 import { ProfileService } from './profile.service';
@@ -6,7 +6,10 @@ import { ProfileInDto } from './dtos/profile-input.dto';
 import { ProfileOutputDto } from './dtos/profile-output.dto';
 import { plainToInstance } from 'class-transformer';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Profile } from 'src/middlewares/decorators/cookie.decorator';
+import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
+import { Response } from 'express';
+import { cookieProfileAuth } from 'src/middlewares/profile-auth.middleware';
+import { Profile } from 'src/decorators/cookie.decorator';
 
 @ApiBearerAuth('Authorization')
 @UserAccess()
@@ -19,16 +22,17 @@ export class ProfileController {
 
 
     @Get('me')
+    @HttpCode(200)
     async getProfileByUserId(
-        @AuthUser() user: IAuthUser,
-        @Profile() profileId: string,
+        @Profile() profile: IProfileCookie,
     ) {
-        return this.profileService.findProfileById(profileId).then((data) => {
+        return this.profileService.findProfileById(profile.profileId).then((data) => {
             return plainToInstance(ProfileOutputDto, data);
         });
     }
 
     @Get()
+    @HttpCode(200)
     async getProfile() {
         return this.profileService.readAllPublicProfiles().then((data) => {
             return plainToInstance(ProfileOutputDto, data);
@@ -36,6 +40,7 @@ export class ProfileController {
     }
 
     @Post('/photo/upload')
+    @HttpCode(200)
     @ApiConsumes('multipart/form-data')
     @UseInterceptors(
         FileInterceptor('file', { limits: { fileSize: 1024 * 1024 * 10 } }),
@@ -52,20 +57,42 @@ export class ProfileController {
         },
     })
     async createProfilePhoto(
-        @AuthUser() user: IAuthUser,
+        @Profile() profile: IProfileCookie,
         @UploadedFile() file: File,
     ) {
         return this.profileService.createProfilePhoto(
-            user.id,
+            profile.profileId,
             file,
         );
     }
 
     @Put()
+    @HttpCode(200)
     async updateProfile(
-        @AuthUser() user: IAuthUser,
+        @Profile() profile: IProfileCookie,
         @Body() dto: ProfileInDto
     ) {
-        return this.profileService.updateProfile(user.id, dto);
+        return this.profileService.updateProfile(profile.profileId, dto);
     }
+
+
+    @Post('/logout')
+    @HttpCode(200)
+    async logout(
+        @Res() res: Response
+    ) {
+        res.clearCookie(cookieProfileAuth);
+        return res.send('ok');
+    }
+
+    @Post('/login')
+    @HttpCode(200)
+    async login(
+        @AuthUser() authUser: IAuthUser,
+        @Res() res: Response
+    ) {
+        res.clearCookie(cookieProfileAuth);
+        return res.redirect('/api/v1/profiles/me');
+    }
+
 }

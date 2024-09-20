@@ -1,9 +1,7 @@
+import { IProfile } from "src/profile/interfaces/profile.interface";
+import { IPhoto } from "./photo.interface";
+
 export interface IPhotoOfTheDay {
-    id: string;
-    profileId: string;
-    camera: string;
-    lens: string;
-    film: string;
-    likes: number;
-    url: string;
+    photo: IPhoto,
+    profile: IProfile
 }

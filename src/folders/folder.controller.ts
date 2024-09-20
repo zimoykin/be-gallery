@@ -6,15 +6,17 @@ import {
   Logger,
   Param,
   Post,
-  Put,
-  Query,
+  Put
 } from '@nestjs/common';
 import { FolderService } from './folder.service';
 import { FolderInputDto } from './dtos/folder-input.dto';
 import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
-import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { FolderOutputDto } from './dtos/folder-output.dto';
+import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
+import { Profile } from 'src/decorators/cookie.decorator';
+import { FoldeWithTotalOutputDto } from './dtos/folder-with-total-output.dto';
 
 @UserAccess()
 @ApiBearerAuth('Authorization')
@@ -24,14 +26,16 @@ export class FolderController {
   constructor(private readonly folderService: FolderService) { }
 
   @Get()
-  @ApiQuery({ name: 'userId', required: false })
   async findAll(
-    @Query('userId') userId: string,
-    @AuthUser() user: IAuthUser
+    @Profile() profile: IProfileCookie,
   ) {
-    return this.folderService.findAllByUserId(userId ?? user.id).then( (data) => {
-      return plainToInstance(FolderOutputDto, data);
-    });
+    return this.folderService.findAllFolderByProfileIdAndTotalPhotos(profile.profileId)
+      .then((data) => {
+        return plainToInstance(FoldeWithTotalOutputDto, data);
+      }).catch((error) => {
+        this.logger.error(error);
+        return [];
+      });
   }
 
   @Get(':id')

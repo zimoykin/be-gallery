@@ -6,6 +6,8 @@ import { DateTime } from 'luxon';
 import { PhotoService } from "./photo.service";
 import { IPhotoOfTheDay } from "./interfaces/photo-of-the-day.interface";
 import { PhotoType } from "./enums/photo-type.enum";
+import { Profile } from "src/profile/profile.model";
+import { ProfileService } from "src/profile/profile.service";
 
 @Injectable()
 export class PublicPhotoService {
@@ -13,7 +15,8 @@ export class PublicPhotoService {
 
     constructor(
         @InjectRepository(PhotoOfTheDay.name) private readonly photoOfTheDayRepository: DynamoDbRepository<PhotoOfTheDay>,
-        private readonly photoService: PhotoService
+        private readonly photoService: PhotoService,
+        private readonly profileService: ProfileService
     ) { }
 
     private async determinePhotoOfTheDay(): Promise<PhotoOfTheDay> {
@@ -60,14 +63,10 @@ export class PublicPhotoService {
                 throw new InternalServerErrorException('could not find photo of the day');
             }
 
+            const profile = await this.profileService.findProfileById(photo.profileId);
             return {
-                camera: photo.camera,
-                id: photo.id,
-                url: photo.url,
-                film: photo.film,
-                lens: photo.lens,
-                likes: photo.likes,
-                profileId: photo.profileId,
+                photo,
+                profile
             };
         }
     }

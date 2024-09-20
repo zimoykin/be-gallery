@@ -30,7 +30,6 @@ export class ProfileService {
     }
 
     async findProfileByUserId(userId: string) {
-        this.logger.debug(`finding profile for user ${userId}`);
         const profile = await this.profileRepository.findOneByFilter<Profile>({
             match: { userId: userId }
         }) || await this.createProfile(userId, 'unknown');
@@ -65,7 +64,7 @@ export class ProfileService {
     }
 
     async updateProfile(id: string, dto: Partial<Profile>) {
-        const profile = await this.profileRepository.findOneByFilter({ match: { userId: id } });
+        const profile = await this.profileRepository.findById(id);
         if (!profile) {
             throw new Error('Profile not found');
         }
@@ -76,23 +75,23 @@ export class ProfileService {
     }
 
 
-    async createProfilePhoto(userId: string, file: any) {
-        const profile = await this.profileRepository.findOneByFilter({ match: { userId: userId } });
+    async createProfilePhoto(profileId: string, file: any) {
+        const profile = await this.profileRepository.findById(profileId);
         if (!profile) {
             throw new Error('Profile not found');
         }
-
         const resized = await this.imageCompressorService.compressImage(file.buffer, 320, 320);
-
         const bucket = await this.s3BucketService.upload(
             resized,
             `${profile.id}/${file.originalname}`,
         );
-
         return this.profileRepository.update(profile.id, { bucket });
     }
 
     async findProfileById(id: string) {
+        if (!id) {
+            throw new Error('Profile id not found');
+        }
         const profile = await this.profileRepository.findOneByFilter({ match: { id } });
 
         if (!profile) {

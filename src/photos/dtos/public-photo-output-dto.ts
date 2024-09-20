@@ -1,25 +1,18 @@
-import { Exclude, Expose } from "class-transformer";
+import { Exclude, Expose, Type } from "class-transformer";
+import { PhotoOutputDto } from "./photo-output.dto";
+import { ValidateNested } from "class-validator";
+import { ProfileOutputDto } from "src/profile/dtos/profile-output.dto";
+
 
 @Exclude()
 export class PublicPhotoOutputDto {
     @Expose()
-    id: string;
+    @ValidateNested()
+    @Type(() => PhotoOutputDto)
+    photo: PhotoOutputDto;
 
     @Expose()
-    profileId: string;
-
-    @Expose()
-    camera: string;
-
-    @Expose()
-    lens: string;
-
-    @Expose()
-    film: string;
-
-    @Expose()
-    likes: number;
-
-    @Expose()
-    url: string;
+    @ValidateNested()
+    @Type(() => ProfileOutputDto)
+    profile: ProfileOutputDto;
 }
