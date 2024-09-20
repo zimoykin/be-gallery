@@ -28,7 +28,8 @@ export class ProfileController {
         @Res() res: Response
     ) {
         return this.profileService.findProfileById(profile.profileId).then((data) => {
-            return plainToInstance(ProfileOutputDto, data);
+            const profile = plainToInstance(ProfileOutputDto, data);
+            return res.send(profile);
         }).catch((error) => {
             this.logger.error(error);
             // just a case clear cookie
