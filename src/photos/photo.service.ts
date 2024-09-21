@@ -131,15 +131,15 @@ export class PhotoService {
         );
         return this.photoRepository
             .create<PhotoData>({
+                ...data,
                 folderId,
                 profileId: profile.id,
                 bucket: bucket,
                 camera: data.camera ?? 'no info',
                 sortOrder: data.sortOrder || (photos.length + 1),
-                ...data,
             })
-            .then((data: Photo) => {
-                this.resizeImage(
+            .then(async (data: Photo) => {
+                await this.resizeImage(
                     file.buffer,
                     data.id,
                     `${profile.id}/${folderId}/${file.originalname}`,
@@ -222,16 +222,10 @@ export class PhotoService {
     async getPhotosByFolderIdAndUserId(
         folderId: string,
         type: PhotoType,
-        userId: string,
+        profileId: string,
         privateAccess?: boolean
     ): Promise<Array<Photo & { url: string; }>> {
-
-        const profile = await this.profileService.findProfileByUserId(userId);
-        if (!profile) {
-            throw new Error('Profile not found');
-        }
-
-        return this.getPhotosByFolderIdAndProfileId(folderId, type, profile.id, privateAccess);
+        return this.getPhotosByFolderIdAndProfileId(folderId, type, profileId, privateAccess);
     }
 
     async getTotalPhotosByFolderId(folderId: string, profileId: string): Promise<number> {
@@ -245,37 +239,62 @@ export class PhotoService {
         return count ?? 0;
     }
 
-    async removePhoto(folderId: string, userID: string, id: string) {
-        const profile = await this.profileService.findProfileByUserId(userID);
-        if (!profile) {
-            throw new Error('Profile not found');
+    async updatePhoto(
+        profileId: string, folderId: string, id: string, data: Partial<Photo>
+    ) {
+        const photo = await this.photoRepository.findOneByFilter({
+            match: {
+                profileId: profileId,
+                folderId: folderId,
+                id: id
+            }
+        });
+        if (!photo) {
+            throw new NotFoundException();
         }
 
-        const existingPhoto = await this.photoRepository.readByFilter<Photo>({
+        if (photo.favorite === false && data.favorite) {
+            //set to all other photos in the folder to false
+            await this.photoRepository.updateByFilter({
+                match: {
+                    folderId: folderId,
+                    profileId: profileId,
+                }
+            }, { favorite: false });
+        }
+
+        return this.photoRepository.update(id, data);
+
+    }
+
+    async removePhoto(folderId: string, profileId: string, id: string) {
+        const existingPhoto = await this.photoRepository.findOneByFilter<Photo>({
             match: {
                 id: id,
                 folderId: folderId,
-                profileId: profile.id,
+                profileId: profileId
             },
         });
-        if (existingPhoto.length === 0) {
-            throw new NotFoundException();
-        } else {
-            if (existingPhoto[0].bucket?.key)
-                await this.s3BucketServiceOriginal.deleteFile(
-                    existingPhoto[0].bucket?.key,
-                );
-            if (existingPhoto[0].preview?.key)
-                await this.s3BucketServicePreview.deleteFile(
-                    existingPhoto[0].preview?.key,
-                );
-            if (existingPhoto[0].compressed?.key)
-                await this.s3BucketServiceCompressed.deleteFile(
-                    existingPhoto[0].compressed?.key,
-                );
 
-            return this.photoRepository.remove(id);
+        if(!existingPhoto) {
+            throw new NotFoundException();
         }
+
+        if (existingPhoto.bucket?.key)
+            await this.s3BucketServiceOriginal.deleteFile(
+                existingPhoto.bucket?.key,
+            );
+        if (existingPhoto.preview?.key)
+            await this.s3BucketServicePreview.deleteFile(
+                existingPhoto.preview?.key,
+            );
+        if (existingPhoto.compressed?.key)
+            await this.s3BucketServiceCompressed.deleteFile(
+                existingPhoto.compressed?.key,
+            );
+
+        return this.photoRepository.remove(id);
+
     }
 
     async removePhotosByFolderId(folderId: string, profileId: string) {
@@ -298,6 +317,27 @@ export class PhotoService {
             return null;
         }
         return photos[photos.length - 1];
+    }
 
+    async getFavoritePhotoUrlByFolderId (folderId: string) {
+        const favorite = await this.photoRepository.findOneByFilter({
+            match: {
+                folderId: folderId,
+                favorite: true
+            }
+        });
+        if (favorite) {
+            return await this.getUrlByType(PhotoType.PREVIEW, favorite);
+        } else {
+            const photo = await this.photoRepository.findOneByFilter({
+                match: {
+                    folderId: folderId
+                }
+            });
+            if (photo) {
+                return await this.getUrlByType(PhotoType.PREVIEW, photo);
+            }
+            return null;
+        }
     }
 }

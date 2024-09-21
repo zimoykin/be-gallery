@@ -17,10 +17,18 @@ export class PublicFolderService {
   ) { }
 
   async findFoldersByProfileId(profileId: string) {
-    return this.folderRepository
+    const folders = await this.folderRepository
       .readByFilter<Folder>({
         match: { profileId, privateAccess: false }
       });
+
+    const result = [];
+    for await (const folder of folders) {
+      const url = await this.photoService.getFavoritePhotoUrlByFolderId(folder.id);
+      result.push({ ...folder, url });
+    }
+
+    return result;
   }
 
   async findFolderByIdAndProfileId(profileId: string, folderId: string) {

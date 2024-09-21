@@ -7,6 +7,7 @@ import {
     Logger,
     Param,
     Post,
+    Put,
     UploadedFile,
     UseInterceptors,
 } from '@nestjs/common';
@@ -20,6 +21,9 @@ import { validate } from 'class-validator';
 import { PhotosParamDto } from './dtos/photos-param.dto';
 import { PhotoOutputDto } from './dtos/photo-output.dto';
 import { PhotoParamDto } from './dtos/photo-param.dto';
+import { Profile } from 'src/decorators/cookie.decorator';
+import { IProfile } from 'src/profile/interfaces/profile.interface';
+import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
 
 @ApiBearerAuth('Authorization')
 @UserAccess()
@@ -31,12 +35,12 @@ export class PhotoController {
     @Get(':folderId/:type')
     async getPhotoByFolderId(
         @Param() params: PhotosParamDto,
-        @AuthUser() user: IAuthUser,
+        @Profile() profile: IProfileCookie,
     ): Promise<PhotoOutputDto[]> {
         const photos = await this.photoService.getPhotosByFolderIdAndUserId(
             params.folderId,
             params.type,
-            user.id,
+            profile.profileId,
         );
         return photos.map(photo => plainToInstance(PhotoOutputDto, photo));
     }
@@ -86,27 +90,41 @@ export class PhotoController {
         @AuthUser() user: IAuthUser,
         @UploadedFile() file: File,
     ) {
-        try {
-            const photoData = plainToInstance(PhotoInputDto, data);
-            await validate(photoData);
-            return this.photoService.createPhotoObject(
-                folderId,
-                user.id,
-                photoData,
-                file,
-            );
-        } catch (error) {
-            this.logger.debug(error);
-            throw error;
-        }
+        return this.photoService.createPhotoObject(
+            folderId,
+            user.id,
+            data,
+            file,
+        ).then(photo => plainToInstance(PhotoOutputDto, photo))
+            .catch(err => {
+                this.logger.error(err);
+                throw err;
+            });
+    }
+
+    @Put(':folderId/:photoId')
+    async updatePhoto(
+        @Param('folderId') folderId: string,
+        @Param('photoId') photoId: string,
+        @Body() data: PhotoInputDto,
+        @Profile() profile: IProfileCookie,
+    ) {
+
+        return this.photoService.updatePhoto(
+            profile.profileId,
+            folderId,
+            photoId,
+            data
+        ).then(photo => plainToInstance(PhotoOutputDto, photo));
+
     }
 
     @Delete(':folderId/:photoId')
     async removePhoto(
         @Param('folderId') folderId: string,
         @Param('photoId') photoId: string,
-        @AuthUser() user: IAuthUser,
+        @Profile() profile: IProfileCookie,
     ) {
-        return this.photoService.removePhoto(folderId, user.id, photoId);
+        return this.photoService.removePhoto(folderId, profile.profileId, photoId);
     }
 }

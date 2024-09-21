@@ -24,4 +24,10 @@ export class PhotoOutputDto {
   description?: string;
   @Expose()
   url: string;
+
+  @Expose()
+  likes: number;
+
+  @Expose()
+  favorite: boolean;
 }

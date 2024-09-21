@@ -146,6 +146,29 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
 
   }
 
+  /**
+   * Recursively removes undefined values from the given object.
+   * It also supports arrays and nested objects.
+   * @param data The object to remove undefined values from.
+   * @returns The object with undefined values removed.
+   */
+  private plainObjectNested(data: any) {
+    for (const [key, value] of Object.entries(data)) {
+      if (value == undefined) {
+        delete data[key];
+      } else
+        if (Array.isArray(value)) {
+          data[key] = value.map((item: any) => ({ ...this.plainObjectNested(item) }));
+        } else if (typeof value === 'object') {
+          data[key] = { ...this.plainObjectNested(value) };
+        } else {
+          data[key] = value;
+        }
+    }
+
+    return data;
+  }
+
 
   /**
    * Scans the DynamoDB table and applies the given filter expression to the records.
@@ -210,7 +233,6 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
 
     const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
     return this.scan(filterExpression, expressionAttributeValues, [], undefined, filter?.limit);
-
   }
 
   /**
@@ -268,24 +290,6 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
       this.logger.error(err);
       throw err; // Можно выбросить ошибку для обработки на более высоком уровне
     }
-  }
-
-
-  private plainObjectNested(data: any) {
-    for (const [key, value] of Object.entries(data)) {
-      if (value == undefined) {
-        delete data[key];
-      } else
-        if (Array.isArray(value)) {
-          data[key] = value.map((item: any) => ({ ...this.plainObjectNested(item) }));
-        } else if (typeof value === 'object') {
-          data[key] = { ...this.plainObjectNested(value) };
-        } else {
-          data[key] = value;
-        }
-    }
-
-    return data;
   }
 
   async findOneByFilter<K = T>(filter: IScanFilter<T>): Promise<K> {
@@ -411,6 +415,71 @@ export class DynamoDbRepository<T = unknown> implements OnModuleInit {
     await this.connection.db.send(update);
 
     return this.findById(id);
+  }
+
+  //TODO: to be checked
+  async updateByFilter<K = T>(filter: IScanFilter<T>, _data: any) {
+    const records = await this.readByFilter(filter);
+    const data = records.map(record => this.plainObjectNested(toPlainObject(Object.assign(record, _data)))) as K[];
+    const indexes = getIndexes(this.modelCls);
+    const [sortKey, type] = getSortKey(this.modelCls);
+    const primaryKey = getPrimaryKey(this.modelCls);
+    const required = getRequired(this.modelCls) || [];
+
+    for await (const model of data) {
+      if (model[String(sortKey)] === undefined) {
+        throw new Error(`Sort key ${sortKey} is not exists`);
+      }
+
+      const record = {
+        [primaryKey]: model[primaryKey],
+        [String(sortKey)]: model[String(sortKey)],
+        data: model,
+      };
+
+      for (const { indexName, type } of indexes) {
+        if (model[indexName] == undefined) {
+          throw new Error(`${indexName} is required`);
+        }
+        record[String(indexName)] = model[indexName];
+      }
+
+      for (const index of required) {
+        if (model[index] === undefined) {
+          throw new Error(`${index} is required`);
+        }
+      }
+
+      const expressionAttributeNames = {};
+      const expressionAttributeValues = {};
+      const updateExpression = [];
+
+      for (const [k, v] of Object.entries(record)) {
+        if (k === primaryKey || k === String(sortKey)) {
+          continue;
+        }
+        expressionAttributeNames[`#${k}`] = k;
+        expressionAttributeValues[`:${k}`] = v;
+        updateExpression.push(`#${k} = :${k}`);
+      }
+
+      const update = new UpdateCommand({
+        TableName: this.getTableName(),
+        Key: {
+          [primaryKey]: record[primaryKey],
+          [String(sortKey)]: record[String(sortKey)],
+        },
+        ExpressionAttributeNames: expressionAttributeNames,
+        ReturnValues: 'NONE',
+        ExpressionAttributeValues: expressionAttributeValues,
+        UpdateExpression: 'SET ' + updateExpression.join(', '),
+      });
+
+      await this.connection.db.send(update);
+    }
+
+
+    return true;
   }
 
   async remove(id: string) {

@@ -27,7 +27,8 @@ export class Photo {
   film?: string;
   location?: string;
   description?: string;
-
+  favorite: boolean = false;
+  
   @Required()
   bucket: {
     bucketName: string;

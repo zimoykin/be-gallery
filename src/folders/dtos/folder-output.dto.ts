@@ -28,4 +28,7 @@ export class FolderOutputDto {
 
   @Expose()
   favoriteFotoId: string;
+
+  @Expose()
+  url?: string;
 }
