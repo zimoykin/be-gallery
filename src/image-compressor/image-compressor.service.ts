@@ -11,6 +11,7 @@ export class ImageCompressorService {
   ): Promise<Buffer> {
     try {
       const compressedImage = await sharp(file.buffer)
+        .jpeg({ quality: 80 })
         .resize(width, height, { fit: 'cover' })
         .toBuffer();
       return compressedImage;
@@ -22,7 +23,7 @@ export class ImageCompressorService {
 
   async getImageSize(
     buffer: Buffer,
-  ): Promise<{ width: number; height: number }> {
+  ): Promise<{ width: number; height: number; }> {
     const metadata = await sharp(buffer).metadata();
     return {
       width: metadata.width,

@@ -84,6 +84,7 @@ export class PhotoService {
     }
 
     private async getUrlByType(type: PhotoType, photo: Photo) {
+    
         switch (type) {
             case 'preview':
                 if (photo.preview?.key)

@@ -83,7 +83,7 @@ export class ProfileService {
         const resized = await this.imageCompressorService.compressImage(file.buffer, 320, 320);
         const bucket = await this.s3BucketService.upload(
             resized,
-            `${profile.id}/${file.originalname}`,
+            `${profile.id}/${profile.id}${'.jpeg'}`,
         );
         return this.profileRepository.update(profile.id, { bucket });
     }

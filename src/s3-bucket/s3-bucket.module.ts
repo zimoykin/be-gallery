@@ -6,6 +6,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { S3BucketService } from './s3-bucket.service';
 import { getBucketToken } from './get-bucket-token.helper';
+import { CacheModule } from '@nestjs/cache-manager';
 
 interface S3BucketModuleOptions {
   region: string;
@@ -20,7 +21,9 @@ interface S3BucketModuleOptionsAsync {
   imports: any[];
 }
 
-@Module({})
+@Module({
+  imports: [CacheModule.register({ isGlobal: true })],
+})
 export class S3BucketModule {
   private static client: S3Client;
   private static bucketName: string;
