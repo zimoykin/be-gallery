@@ -10,6 +10,7 @@ import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
 import { Response } from 'express';
 import { cookieProfileAuth } from 'src/middlewares/profile-auth.middleware';
 import { Profile } from 'src/decorators/cookie.decorator';
+import { IProfile } from './interfaces/profile.interface';
 
 @ApiBearerAuth('Authorization')
 @UserAccess()
@@ -96,10 +97,33 @@ export class ProfileController {
     @HttpCode(200)
     async login(
         @AuthUser() authUser: IAuthUser,
+        @Profile() profileCookie: IProfileCookie,
         @Res() res: Response
     ) {
         res.clearCookie(cookieProfileAuth);
-        return res.redirect('/api/v1/profiles/me');
+        let profile: IProfile;
+        try {
+            profile = await this.profileService.findProfileByUserId(authUser.id) || await this.profileService.createProfile(
+                authUser.id, authUser.email?.split('@')[0] ?? 'unknown');
+        } catch (error) {
+            profile = await this.profileService.createProfile(authUser.id, authUser.email ?? 'unknown');
+        }
+
+        if (!profile) {
+            this.logger.error('Profile not found and can not be created');
+            return res.sendStatus(400);
+        }
+
+        const profileCookieData = JSON.stringify({ profileId: profile.id, userId: authUser.id });
+        this.logger.debug('Profile cookie data:', profileCookieData);
+        res.cookie(cookieProfileAuth, profileCookieData, {
+            httpOnly: true,
+            signed: true,
+            sameSite: 'none',
+            secure: true,
+            maxAge: 1000 * 60 * 60 * 24 * 30,  // 30 days
+        });
+        return res.send('ok');
     }
 
 }

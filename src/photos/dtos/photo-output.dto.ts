@@ -30,4 +30,7 @@ export class PhotoOutputDto {
 
   @Expose()
   favorite: boolean;
+
+  @Expose()
+  privateAccess: number; // 0 = public, 1 = private
 }

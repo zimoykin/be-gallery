@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmptyObject, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsBoolean, IsNotEmptyObject, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import { Equipment } from "./equipment.dto";
 
@@ -6,9 +6,9 @@ export class ProfileInDto {
     @IsString()
     name: string;
 
-    @IsBoolean()
+    @IsNumber()
     @IsOptional()
-    privateAccess?: boolean;
+    privateAccess?: number;
 
     @IsString()
     @IsOptional()

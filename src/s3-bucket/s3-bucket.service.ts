@@ -13,9 +13,13 @@ import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 export class S3BucketService {
   private readonly logger = new Logger(S3BucketService.name);
   constructor(
+    // @ts-ignore //
     @Inject('S3_BUCKET_NAME') private readonly bucketName: string,
+    // @ts-ignore //
     @Inject('S3_FOLDER_NAME') private readonly folderName: string,
+    // @ts-ignore //
     @Inject('S3_BUCKET_CONNECTION') private readonly s3: S3Client,
+    // @ts-ignore //
     @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) { }
 
@@ -35,14 +39,10 @@ export class S3BucketService {
     });
 
     return new Promise((resolve, reject) => {
-      upload.on('httpUploadProgress', (progress) => {
-        this.logger.log({
-          progress: progress.loaded / progress.total,
-        });
-      });
       upload
         .done()
         .then(() => {
+          this.cacheManager.del(key);
           resolve({
             url: `https://${this.bucketName}.s3.amazonaws.com/${key}`,
             key: key,
@@ -80,7 +80,7 @@ export class S3BucketService {
 
     // set url in cache
     await this.cacheManager.set(key, url, 3600 * 1000);
-    
+
     // return url
     return url;
   }

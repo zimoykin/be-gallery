@@ -1,4 +1,4 @@
-import { CacheModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -11,8 +11,6 @@ import { S3BucketModule } from './s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from './image-compressor/image-compressor.module';
 import { ProfileModule } from './profile/profile.module';
 import { ProfileAuthMiddleware } from './middlewares/profile-auth.middleware';
-import { NestApplication } from '@nestjs/core';
-import { PublicFolderController } from './folders/folder-public.controller';
 
 @Module({
   imports: [
@@ -20,17 +18,17 @@ import { PublicFolderController } from './folders/folder-public.controller';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService<ConfigVariables>) => ({
-        secret: configService.get('JWT_SECRET'),
+        secret: configService.get('JWT_SECRET')!,
       }),
     }),
     DynamodbModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService<ConfigVariables>) => {
-        const AWS_REGION = config.get<string>('AWS_REGION');
-        const AWS_ACCESS_KEY_ID = config.get<string>('AWS_ACCESS_KEY_ID');
+        const AWS_REGION = config.get<string>('AWS_REGION')!;
+        const AWS_ACCESS_KEY_ID = config.get<string>('AWS_ACCESS_KEY_ID')!;
         const AWS_SECRET_ACCESS_KEY = config.get<string>(
           'AWS_SECRET_ACCESS_KEY',
-        );
+        )!;
 
         return {
           region: AWS_REGION,
@@ -47,12 +45,12 @@ import { PublicFolderController } from './folders/folder-public.controller';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService<ConfigVariables>) => {
-        const AWS_REGION = config.get<string>('AWS_REGION');
-        const AWS_ACCESS_KEY_ID = config.get<string>('AWS_ACCESS_KEY_ID');
+        const AWS_REGION = config.get<string>('AWS_REGION')!;
+        const AWS_ACCESS_KEY_ID = config.get<string>('AWS_ACCESS_KEY_ID')!;
         const AWS_SECRET_ACCESS_KEY = config.get<string>(
           'AWS_SECRET_ACCESS_KEY',
-        );
-        const AWS_BUCKET_NAME = config.get<string>('S3_BUCKET_NAME');
+        )!;
+        const AWS_BUCKET_NAME = config.get<string>('S3_BUCKET_NAME')!;
 
         return {
           region: AWS_REGION,

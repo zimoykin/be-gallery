@@ -26,8 +26,8 @@ export class Folder {
   @Required()
   bgColor: string;
 
-  @Required()
-  privateAccess: boolean = false;
+  @Index('N')
+  privateAccess: number = 1; // 0: public, 1: private
 
   favoriteFotoId?: string;
 }

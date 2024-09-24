@@ -8,7 +8,7 @@ export interface IProfile {
     location?: string;
     bio?: string;
     website?: string;
-    privateAccess: boolean;
+    privateAccess: number;
     bucket?: { url: string; key: string; bucketName: string; folder: string; };
     equipment?: IEquipment[];
     url?: string;

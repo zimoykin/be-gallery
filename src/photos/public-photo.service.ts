@@ -14,6 +14,7 @@ export class PublicPhotoService {
     private readonly logger = new Logger(PublicPhotoService.name);
 
     constructor(
+        //@ts-ignore//
         @InjectRepository(PhotoOfTheDay.name) private readonly photoOfTheDayRepository: DynamoDbRepository<PhotoOfTheDay>,
         private readonly photoService: PhotoService,
         private readonly profileService: ProfileService
@@ -71,7 +72,15 @@ export class PublicPhotoService {
         }
     }
 
-    async getUsersPhotosByFolderId(profileId: string, folderId: string) {
-        return this.photoService.getPhotosByFolderIdAndProfileId(folderId, PhotoType.PREVIEW, profileId);
+    async getUsersPhotosByFolderIdAndProfileId(profileId: string, folderId: string) {
+        const photos = await this.photoService.getPhotosByFolderIdAndProfileId(folderId, PhotoType.PREVIEW, profileId, 0);
+        const profile = await this.profileService.findProfileById(profileId);
+
+        return photos.map(photo => {
+            return {
+                photo,
+                profile
+            };
+        });
     }
 }

@@ -10,17 +10,21 @@ import { ImageCompressorService } from 'src/image-compressor/image-compressor.se
 export class ProfileService {
     private readonly logger = new Logger(ProfileService.name);
     constructor(
+        // @ts-ignore //
         @InjectRepository('Profile') private readonly profileRepository: DynamoDbRepository<Profile>,
+
+        // @ts-ignore //
         @InjectS3Bucket('profile') private readonly s3BucketService: S3BucketService,
         private readonly imageCompressorService: ImageCompressorService
     ) { }
 
 
-    async createProfile(userId: string, userName: string) {
+    async createProfile(userId: string, userName: string, email?: string) {
         this.logger.log(`creating profile for user ${userId}`);
         const profile = await this.profileRepository.create({
             userId: userId,
-            name: userName ?? 'unknown'
+            name: userName ?? 'unknown',
+            email: email ?? 'unknown',
         });
 
         if (!profile) {
@@ -32,7 +36,11 @@ export class ProfileService {
     async findProfileByUserId(userId: string) {
         const profile = await this.profileRepository.findOneByFilter<Profile>({
             match: { userId: userId }
-        }) || await this.createProfile(userId, 'unknown');
+        });
+
+        // if (!profile) {
+        //     throw new NotFoundException('Profile not found');
+        // }
 
 
         if (profile?.bucket?.key) {
@@ -48,9 +56,9 @@ export class ProfileService {
 
     async readAllPublicProfiles() {
         const profiles = await this.profileRepository.readByFilter({
-            match: { privateAccess: false }
-        });
-        const result = [];
+            match: { privateAccess: 0 }
+        }, 'privateAccess');
+        const result: Profile[] = [];
         for await (const profile of profiles) {
             if (profile.bucket?.key) {
                 const url = await this.s3BucketService.generateSignedUrl(profile.bucket.key);

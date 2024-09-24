@@ -26,8 +26,8 @@ export class ImageCompressorService {
   ): Promise<{ width: number; height: number; }> {
     const metadata = await sharp(buffer).metadata();
     return {
-      width: metadata.width,
-      height: metadata.height,
+      width: metadata.width ?? 0,
+      height: metadata.height ?? 0,
     };
   }
 }

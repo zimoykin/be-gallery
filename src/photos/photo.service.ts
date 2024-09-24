@@ -13,12 +13,16 @@ import { ProfileService } from 'src/profile/profile.service';
 export class PhotoService {
     private readonly logger = new Logger(PhotoService.name);
     constructor(
+        // @ts-ignore //
         @InjectRepository(Photo.name)
         private readonly photoRepository: DynamoDbRepository<Photo>,
+        // @ts-ignore //
         @InjectS3Bucket('photos')
         private readonly s3BucketServiceOriginal: S3BucketService,
+        // @ts-ignore //
         @InjectS3Bucket('preview')
         private readonly s3BucketServicePreview: S3BucketService,
+        // @ts-ignore //
         @InjectS3Bucket('compressed')
         private readonly s3BucketServiceCompressed: S3BucketService,
         private readonly imageCompressorService: ImageCompressorService,
@@ -84,7 +88,7 @@ export class PhotoService {
     }
 
     private async getUrlByType(type: PhotoType, photo: Photo) {
-    
+
         switch (type) {
             case 'preview':
                 if (photo.preview?.key)
@@ -154,7 +158,7 @@ export class PhotoService {
         userId: string,
         id: string,
         type: PhotoType
-    ): Promise<Photo & { url: string; }> {
+    ): Promise<Photo & { url?: string; }> {
 
         const profile = await this.profileService.findProfileByUserId(userId);
         if (!profile) {
@@ -190,20 +194,36 @@ export class PhotoService {
         };
     }
 
+    /**
+     * @description
+     * Returns a list of photos by folder id and profile id, sorted by sortOrder.
+     * If the privateAccess parameter is provided, it will be used as a filter.
+     *
+     * @param folderId The id of the folder
+     * @param type The type of photo to retrieve (preview, compressed or original)
+     * @param profileId The id of the profile
+     * @param privateAccess The private access level of the photos - 0 = public, 1 = private
+     * @returns A list of photos, with their url property set to the signed url of the photo
+     */
     async getPhotosByFolderIdAndProfileId(
         folderId: string,
         type: PhotoType,
         profileId: string,
-        privateAccess?: boolean
+        privateAccess?: number
     ): Promise<Array<Photo & { url: string; }>> {
 
-        const photos = await this.photoRepository.readByFilter<Photo>({
+        const filter = {
             match: {
                 folderId: folderId,
                 profileId: profileId,
-                privateAccess
             },
-        });
+        };
+
+        if (privateAccess !== undefined) {
+            filter.match['privateAccess'] = privateAccess;
+        }
+
+        const photos = await this.photoRepository.readByFilter<Photo>(filter);
 
         if (photos.length === 0) {
             return [];
@@ -224,9 +244,8 @@ export class PhotoService {
         folderId: string,
         type: PhotoType,
         profileId: string,
-        privateAccess?: boolean
     ): Promise<Array<Photo & { url: string; }>> {
-        return this.getPhotosByFolderIdAndProfileId(folderId, type, profileId, privateAccess);
+        return this.getPhotosByFolderIdAndProfileId(folderId, type, profileId);
     }
 
     async getTotalPhotosByFolderId(folderId: string, profileId: string): Promise<number> {
@@ -277,7 +296,7 @@ export class PhotoService {
             },
         });
 
-        if(!existingPhoto) {
+        if (!existingPhoto) {
             throw new NotFoundException();
         }
 
@@ -320,7 +339,7 @@ export class PhotoService {
         return photos[photos.length - 1];
     }
 
-    async getFavoritePhotoUrlByFolderId (folderId: string) {
+    async getFavoritePhotoUrlByFolderId(folderId: string) {
         const favorite = await this.photoRepository.findOneByFilter({
             match: {
                 folderId: folderId,
@@ -332,7 +351,8 @@ export class PhotoService {
         } else {
             const photo = await this.photoRepository.findOneByFilter({
                 match: {
-                    folderId: folderId
+                    folderId: folderId,
+                    privateAccess: 0
                 }
             });
             if (photo) {

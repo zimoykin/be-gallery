@@ -34,7 +34,7 @@ export class ProfileAuthMiddleware implements NestMiddleware {
         }
     }
 
-    async use(req: Request, res: Response, next: NextFunction) {
+    use(req: Request, res: Response, next: NextFunction) {
         if (req.method === 'OPTIONS') {
             next();
             return;
@@ -49,17 +49,22 @@ export class ProfileAuthMiddleware implements NestMiddleware {
                     Buffer.from(base64, 'base64').toString('utf8'),
                 );
                 if (userData.id) {
-                    this.profileService.findProfileByUserId(userData.id).then(async profile => {
-                        if (profile) {
-                            const profileCookie = JSON.stringify({ profileId: profile.id, userId: userData.id });
-                            this.setCookie(res, profileCookie);
-                            req['signedCookies'][cookieProfileAuth] = profileCookie;
+                    this.profileService.findProfileByUserId(userData.id)
+                        .catch((err) => {
+                            this.logger.error(err);
                             next();
-                        }
-                        else {
-                            next();
-                        }
-                    });
+                        })
+                        .then(async profile => {
+                            if (profile) {
+                                const profileCookie = JSON.stringify({ profileId: profile.id, userId: userData.id });
+                                this.setCookie(res, profileCookie);
+                                req['signedCookies'][cookieProfileAuth] = profileCookie;
+                                next();
+                            }
+                            else {
+                                next();
+                            }
+                        });
                 } else {
                     next();
                 }

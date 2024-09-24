@@ -55,8 +55,8 @@ export class Photo {
 
   likes: number = 0;
 
-  @Required()
-  privateAccess: boolean = false;
+  @Index('N')
+  privateAccess: number = 1; // 0: public, 1: private
 }
 
 export type PhotoData = Omit<Photo, 'id'>;

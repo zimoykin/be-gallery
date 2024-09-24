@@ -11,6 +11,7 @@ export class FolderService {
   private readonly logger = new Logger(FolderService.name);
 
   constructor(
+    // @ts-ignore //
     @InjectRepository(Folder.name)
     private readonly folderRepository: DynamoDbRepository,
     private readonly photoService: PhotoService,
@@ -63,19 +64,14 @@ export class FolderService {
     }));
   }
 
-  async createFolder(data: Partial<Folder>, userId: string) {
-    const profile = await this.profileService.findProfileByUserId(userId);
-    if (!profile) {
-      throw new NotFoundException('Profile not found');
-    }
-
-    const userFolders = await this.findAllFolderByProfileIdAndTotalPhotos(profile.id);
+  async createFolder(data: Partial<Folder>, profileId: string) {
+    const userFolders = await this.findAllFolderByProfileIdAndTotalPhotos(profileId);
     if (userFolders.length >= 10) {
       throw new BadGatewayException(
         `You can't create more than 10 folders. You have ${userFolders.length}`,
       );
     }
-    return this.folderRepository.create({ ...data, profileId: profile.id });
+    return this.folderRepository.create({ ...data, profileId: profileId });
   }
 
   async updateFolder(id: string, data: FolderInputDto, userId: string) {

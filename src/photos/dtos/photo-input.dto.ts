@@ -51,4 +51,11 @@ export class PhotoInputDto {
     example: '2024',
   })
   description?: string;
+
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({
+    example: 0,
+  })
+  privateAccess?: number; // 0 = public, 1 = private
 }

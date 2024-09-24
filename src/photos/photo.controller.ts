@@ -109,7 +109,6 @@ export class PhotoController {
         @Body() data: PhotoInputDto,
         @Profile() profile: IProfileCookie,
     ) {
-
         return this.photoService.updatePhoto(
             profile.profileId,
             folderId,

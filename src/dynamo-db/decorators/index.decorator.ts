@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 
 const INDEX_METADATA_KEY = Symbol('dynamo_dv_index');
-const INDEX_TYPE_METADATA_KEY = Symbol('dynamo_dv_index_type');
 
 export function Index(type: 'N' | 'S'): PropertyDecorator {
   return (target: Object, propertyKey: string | symbol) => {
@@ -13,6 +12,6 @@ export function Index(type: 'N' | 'S'): PropertyDecorator {
 
 export function getIndexes(
   target: Object,
-): { indexName: string; type: 'N' | 'S' }[] {
+): { indexName: string; type: 'N' | 'S'}[] {
   return Reflect.getMetadata(INDEX_METADATA_KEY, target) || [];
 }

@@ -11,15 +11,15 @@ export async function createTable(
   connection: DynamoDB,
   tableName: string,
   primaryKey: string,
-  sortKey?: [string, 'N' | 'S'],
-  indexes?: { indexName: string; type: 'N' | 'S'; }[],
+  sortKey?: [string, 'N' | 'S' | 'B'],
+  indexes?: { indexName: string; type: 'N' | 'S' | 'B'; }[],
 ) {
   if (!tableName) {
     throw new Error('Table name is not defined');
   }
 
   const tables = await connection.listTables();
-  if (tables.TableNames.includes(tableName)) {
+  if (tables.TableNames?.includes(tableName)) {
     return;
   }
 
@@ -49,7 +49,7 @@ export async function createTable(
     });
   }
 
-  for (const { indexName, type } of indexes) {
+  for (const { indexName, type } of indexes ?? []) {
     _AttributeDefinitions.push({
       AttributeName: String(indexName),
       AttributeType: type,
@@ -58,7 +58,7 @@ export async function createTable(
 
   const _LocalSecondaryIndexes: LocalSecondaryIndex[] = [];
 
-  for (const { indexName, type } of indexes) {
+  for (const { indexName, type } of indexes ?? []) {
     _LocalSecondaryIndexes.push({
       IndexName: `${String(indexName)}_Index`,
       KeySchema: [
@@ -101,7 +101,7 @@ export async function createTable(
     TableName: tableName,
     AttributeDefinitions: _AttributeDefinitions,
     KeySchema: keySchema,
-    LocalSecondaryIndexes: _LocalSecondaryIndexes?.length ? _LocalSecondaryIndexes : null,
+    LocalSecondaryIndexes: _LocalSecondaryIndexes?.length ? _LocalSecondaryIndexes : undefined,
     ProvisionedThroughput: {
       ReadCapacityUnits: 1,
       WriteCapacityUnits: 1,

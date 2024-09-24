@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Logger,
   Param,
   Post,
@@ -26,6 +27,7 @@ export class FolderController {
   constructor(private readonly folderService: FolderService) { }
 
   @Get()
+  @HttpCode(200)
   async findAll(
     @Profile() profile: IProfileCookie,
   ) {
@@ -39,20 +41,23 @@ export class FolderController {
   }
 
   @Get(':id')
+  @HttpCode(200)
   async findOneById(@AuthUser() user: IAuthUser, @Param('id') id: string) {
     return this.folderService.findUserFolderByIdAndUserId(id, user.id);
   }
 
   @Post()
-  async create(@AuthUser() user: IAuthUser, @Body() data: FolderInputDto) {
+  @HttpCode(200)
+  async create(@Profile() profile: IProfileCookie, @Body() data: FolderInputDto) {
     return this.folderService
-      .createFolder({ ...data }, user.id)
+      .createFolder({ ...data }, profile.profileId)
       .then((data) => {
         return plainToInstance(FolderOutputDto, data);
       });
   }
 
   @Put(':id')
+  @HttpCode(200)
   async update(
     @Param('id') id: string,
     @AuthUser() user: IAuthUser,
@@ -64,6 +69,7 @@ export class FolderController {
   }
 
   @Delete(':id')
+  @HttpCode(200)
   async delete(@Param('id') id: string, @AuthUser() user: IAuthUser) {
     return this.folderService.removeFolder(id, user.id).then((data) => {
       return plainToInstance(FolderOutputDto, data);
