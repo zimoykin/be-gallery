@@ -9,8 +9,12 @@ import { JwtModule } from '@zimoykin/auth';
 import { PhotoModule } from './photos/photo.module';
 import { S3BucketModule } from './s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from './image-compressor/image-compressor.module';
-import { ProfileModule } from './profile/profile.module';
+import { ProfileModule } from './profiles/profile.module';
 import { ProfileAuthMiddleware } from './middlewares/profile-auth.middleware';
+import { DbSeedingModule } from './db-seeding/db-seeding.module';
+import { OffersModule } from './offers/offers.module';
+import { TopicModule } from './topic/topic.module';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
   imports: [
@@ -68,7 +72,11 @@ import { ProfileAuthMiddleware } from './middlewares/profile-auth.middleware';
     PhotoModule,
     S3BucketModule,
     ImageCompressorModule,
-    ProfileModule
+    ProfileModule,
+    DbSeedingModule,
+    OffersModule,
+    TopicModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

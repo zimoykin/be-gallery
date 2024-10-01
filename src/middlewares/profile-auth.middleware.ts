@@ -1,6 +1,6 @@
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { ProfileService } from '../profile/profile.service';
+import { ProfileService } from '../profiles/profile.service';
 
 export const cookieProfileAuth = 'ProfileAuth';
 

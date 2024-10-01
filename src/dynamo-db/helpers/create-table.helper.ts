@@ -110,6 +110,7 @@ export async function createTable(
       StreamEnabled: false,
     },
   });
+  
 
   logger.debug(`Table ${tableName} is created`);
 }

@@ -57,6 +57,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
       getSortKey(this.modelCls),
       getIndexes(this.modelCls),
     );
+
   }
 
   private transfromDataToObject(marschalledData: any) {
@@ -83,6 +84,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
   private buildFilterExpression(filter?: IScanFilter<T>): { filterExpression: string; expressionAttributeValues: Record<string, AttributeValue>; } {
 
     const filterExpression: string[] = [];
+    const filterORExpression: string[] = [];
     const expressionAttributeValues = {};
 
     const index = [
@@ -95,12 +97,29 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
       Object.entries(filter).forEach(([key, value], ind) => {
         switch (key) {
           case 'match': {
-
             Object.entries(value).forEach(([k, v], indCond) => {
               if (index.includes(k)) {
                 const key = `${ind}_${indCond}_${k}`;
                 filterExpression.push(`${k} = :${key}`);
                 expressionAttributeValues[`:${key}`] = v;
+              }
+            });
+            break;
+          }
+          case 'or': {
+            Object.entries(value).forEach(([k, v], indCond) => {
+              if (index.includes(k)) {
+                if (Array.isArray(v)) {
+                  v?.forEach((val, index) => {
+                    const key = `${ind}_${indCond}_${k}_${index}`;
+                    filterORExpression.push(`(${k} = :${key})`);
+                    expressionAttributeValues[`:${key}`] = val;
+                  });
+                } else {
+                  const key = `${ind}_${indCond}_${k}`;
+                  filterORExpression.push(`(${k} = :${key})`);
+                  expressionAttributeValues[`:${key}`] = v;
+                }
               }
             });
             break;
@@ -140,6 +159,11 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
       }
       );
     }
+    //merge filters or 
+    if (filterORExpression.length > 0)
+      filterExpression.push(
+        `( ${filterORExpression.join(' OR ')} )`
+      );
 
     return {
       filterExpression: filterExpression.join(' AND '),
@@ -252,7 +276,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
    */
   async countByFilter(
     filter?: IScanFilter<T>,
-    indexName?: string, //TODO: investigate
+    indexName?: string,
   ): Promise<number> {
 
     const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
@@ -260,6 +284,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     return this.connection.db
       .scan({
         TableName: this.getTableName(),
+        IndexName: indexName ? `${indexName}_Index` : undefined,
         FilterExpression: filterExpression,
         ExpressionAttributeValues: expressionAttributeValues,
         Select: 'COUNT'
@@ -331,7 +356,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     data = this.plainObjectNested(
       toPlainObject(Object.assign(data, _data))
     ) as T;
-    
+
     const record = {
       [primaryKey]: primaryId,
       [String(sortKey)]: sortKeyValue,

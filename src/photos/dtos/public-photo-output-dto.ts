@@ -1,7 +1,7 @@
 import { Exclude, Expose, Type } from "class-transformer";
 import { PhotoOutputDto } from "./photo-output.dto";
 import { ValidateNested } from "class-validator";
-import { ProfileOutputDto } from "src/profile/dtos/profile-output.dto";
+import { ProfileOutputDto } from "src/profiles/dtos/profile-output.dto";
 
 
 @Exclude()

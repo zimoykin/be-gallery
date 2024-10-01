@@ -21,6 +21,18 @@ export class ImageCompressorService {
     }
   }
 
+  async convertSvgToJpg(svgBuffer: any) {
+    try {
+      const jpgBuffer = await sharp(svgBuffer)
+        .jpeg()
+        .toBuffer();
+
+      return jpgBuffer;
+    } catch (error) {
+      console.error('Error converting SVG to JPG:', error);
+    }
+  }
+
   async getImageSize(
     buffer: Buffer,
   ): Promise<{ width: number; height: number; }> {

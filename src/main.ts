@@ -5,7 +5,6 @@ import { ConfigVariables } from './service-config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookie from 'cookie-parser';
-import { cookieProfileAuth } from './middlewares/profile-auth.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +13,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: process.env.CROSS_ORIGIN ?? '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true
   });
 
@@ -24,6 +23,7 @@ async function bootstrap() {
       transform: true,
       stopAtFirstError: true,
       forbidUnknownValues: true,
+      whitelist: true,
     }),
   );
 

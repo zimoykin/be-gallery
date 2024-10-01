@@ -6,7 +6,7 @@ import { Folder } from './folder.model';
 import { PhotoModule } from '../photos/photo.module';
 import { PublicFolderController } from './folder-public.controller';
 import { PublicFolderService } from './folder-public.service';
-import { ProfileModule } from 'src/profile/profile.module';
+import { ProfileModule } from 'src/profiles/profile.module';
 
 @Module({
   imports: [DynamodbModule.forFeature(Folder), PhotoModule, ProfileModule],
