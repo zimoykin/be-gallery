@@ -6,8 +6,7 @@ import { DateTime } from 'luxon';
 import { PhotoService } from "./photo.service";
 import { IPhotoOfTheDay } from "./interfaces/photo-of-the-day.interface";
 import { PhotoType } from "./enums/photo-type.enum";
-import { Profile } from "src/profile/profile.model";
-import { ProfileService } from "src/profile/profile.service";
+import { ProfileService } from "src/profiles/profile.service";
 
 @Injectable()
 export class PublicPhotoService {

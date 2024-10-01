@@ -3,10 +3,11 @@ import { SortKey } from "src/dynamo-db/decorators/sort-key.decorator";
 import { Table } from "src/dynamo-db/decorators/table.decorator";
 import { Equipment } from "./dtos/equipment.dto";
 import { Index } from "src/dynamo-db/decorators/index.decorator";
+import { Required } from "src/dynamo-db/decorators/required.decorator";
 
 
 @Table(Profile.name)
-export class Profile {
+export class Profile  {
     @PrimaryKey()
     id: string;
 
@@ -21,8 +22,10 @@ export class Profile {
     website?: string;
 
     @Index('N')
-    privateAccess: number = 1; // 0: public, 1: private
+    @Required()
+    privateAccess: number = 0; // 0: public, 1: private
 
     bucket?: { url: string; key: string; bucketName: string; folder: string; };
     equipment?: Equipment[];
+
 }

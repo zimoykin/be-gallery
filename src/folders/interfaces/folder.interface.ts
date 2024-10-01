@@ -6,7 +6,7 @@ export interface IFolder {
     description: string;
     color: string;
     bgColor: string;
-    privateAccess: boolean;
+    privateAccess: number;
     url?: string;
     favoriteFotoId?: string;
 }

@@ -1,10 +1,9 @@
-import { Select } from "@aws-sdk/client-dynamodb";
-
 export enum SCAN_FILTER_OPERATIONS {
   CONTAINS = 'contains',
   MATCH = 'match',
   GTE = 'gte',
   LTE = 'lte',
+  OR = 'or',
 }
 
 export interface IScanFilter<T = unknown, K extends keyof T = keyof T> {
@@ -12,6 +11,7 @@ export interface IScanFilter<T = unknown, K extends keyof T = keyof T> {
   match?: { [P in K]?: any; };
   gte?: { [P in K]?: number; };
   lte?: { [P in K]?: number; };
+  or?: { [P in K]?: string[]; };
   limit?: number;
   skip?: number;
 }

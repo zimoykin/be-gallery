@@ -8,8 +8,7 @@ import { ImageCompressorModule } from 'src/image-compressor/image-compressor.mod
 import { PhotoOfTheDay } from './models/photo-of-the-day.model';
 import { PublicPhotoService } from './public-photo.service';
 import { PhotoPublicController } from './photo-public.controller';
-import { ProfileService } from 'src/profile/profile.service';
-import { ProfileModule } from 'src/profile/profile.module';
+import { ProfileModule } from 'src/profiles/profile.module';
 
 @Module({
   imports: [

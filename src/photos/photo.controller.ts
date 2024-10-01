@@ -22,7 +22,7 @@ import { PhotosParamDto } from './dtos/photos-param.dto';
 import { PhotoOutputDto } from './dtos/photo-output.dto';
 import { PhotoParamDto } from './dtos/photo-param.dto';
 import { Profile } from 'src/decorators/cookie.decorator';
-import { IProfile } from 'src/profile/interfaces/profile.interface';
+import { IProfile } from 'src/profiles/interfaces/profile.interface';
 import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
 
 @ApiBearerAuth('Authorization')
@@ -48,11 +48,11 @@ export class PhotoController {
     @Get(':folderId/:photoId/:type')
     async getSpecificPhotoByIdByFolderId(
         @Param() param: PhotoParamDto,
-        @AuthUser() user: IAuthUser,
+        @Profile() profile: IProfileCookie,
     ) {
         return this.photoService.getSpecificPhotoByIdByFolderId(
             param.folderId,
-            user.id,
+            profile.profileId,
             param.photoId,
             param.type,
         ).then(photo => plainToInstance(PhotoOutputDto, photo));
