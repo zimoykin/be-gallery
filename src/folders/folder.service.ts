@@ -49,7 +49,7 @@ export class FolderService {
       throw new NotFoundException('Profile not found');
     }
 
-    const folders = await this.folderRepository.readByFilter<Folder>({ match: { profileId: profile.id } });
+    const folders = await this.folderRepository.find<Folder>({ match: { profileId: profile.id } });
     return Promise.all(folders.map(async folder => {
       const count = await this.photoService.getTotalPhotosByFolderId(folder.id, profile.id);
       return { ...folder, totalPhotos: count };
@@ -57,7 +57,7 @@ export class FolderService {
   }
 
   async findAllFolderByProfileIdAndTotalPhotos(profileId: string) {
-    const folders = await this.folderRepository.readByFilter<Folder>({ match: { profileId: profileId } });
+    const folders = await this.folderRepository.find<Folder>({ match: { profileId: profileId } });
     return Promise.all(folders.map(async folder => {
       const count = await this.photoService.getTotalPhotosByFolderId(folder.id, profileId);
       return { ...folder, totalPhotos: count };

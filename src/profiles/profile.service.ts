@@ -56,7 +56,7 @@ export class ProfileService {
     }
 
     async readAllPublicProfiles() {
-        const profiles = await this.profileRepository.readByFilter({
+        const profiles = await this.profileRepository.find({
             match: { privateAccess: 0 }
         }, 'privateAccess');
         const result: Profile[] = [];

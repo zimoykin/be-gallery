@@ -291,7 +291,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
    * @param indexName The name of the secondary index to query. If not provided, it will query the primary table.
    * @returns A Promise resolving to an array of records.
    */
-  async readByFilter<K = T>(
+  async find<K = T>(
     filter?: IScanFilter<T>,
     indexName?: string, //TODO: investigate
   ): Promise<K[]> {
@@ -360,7 +360,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
   }
 
   async findOneByFilter<K = T>(filter: IScanFilter<T>): Promise<K | null> {
-    return this.readByFilter<K>({ ...filter, limit: 1 }).then((data: K[]) => {
+    return this.find<K>({ ...filter, limit: 1 }).then((data: K[]) => {
       if (data?.length) return data[0];
       return null;
     });
@@ -601,7 +601,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
 
   //TODO: to be checked
   async updateByFilter<K = T>(filter: IScanFilter<T>, _data: any) {
-    const records = await this.readByFilter(filter);
+    const records = await this.find(filter);
     const data = records.map(record => this.plainObjectNested(toPlainObject(Object.assign(record, _data)))) as K[];
     const indexes = getIndexes(this.modelCls);
     const [sortKey, type] = getSortKey(this.modelCls);

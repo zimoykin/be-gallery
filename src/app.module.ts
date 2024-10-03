@@ -15,6 +15,7 @@ import { OffersModule } from './offers/offers.module';
 import { TopicModule } from './topics/topic.module';
 import { MessagesModule } from './messages/messages.module';
 import { AmqpModule } from '@zimoykin/amqp';
+import { EquipmentModule } from './equipment/equipment.module';
 
 @Module({
   imports: [
@@ -83,7 +84,8 @@ import { AmqpModule } from '@zimoykin/amqp';
     ProfileModule,
     OffersModule,
     TopicModule,
-    MessagesModule
+    MessagesModule,
+    EquipmentModule
   ],
   controllers: [AppController],
   providers: [AppService],

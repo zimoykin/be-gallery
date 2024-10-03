@@ -17,7 +17,7 @@ export class PublicFolderService {
 
   async findFoldersByProfileId(profileId: string) {
     const folders = await this.folderRepository
-      .readByFilter<Folder>({
+      .find<Folder>({
         match: { profileId, privateAccess: 0 }
       });
 
@@ -36,7 +36,7 @@ export class PublicFolderService {
     };
 
     const [data, count] = await Promise.all([
-      this.folderRepository.readByFilter<Folder>(filter),
+      this.folderRepository.find<Folder>(filter),
       this.photoService.getTotalPhotosByFolderId(folderId, profileId)
     ]);
 
