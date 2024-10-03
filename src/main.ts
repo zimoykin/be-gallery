@@ -5,7 +5,6 @@ import { ConfigVariables } from './service-config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import cookie from 'cookie-parser';
-import pkg from '../package.json';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -33,9 +32,9 @@ async function bootstrap() {
 
   // swagger config
   const config = new DocumentBuilder()
-    .setTitle(pkg.name ?? 'Service Api')
+    .setTitle('Gallery Service')
     .setDescription(
-      pkg.description ?? 'This service based on nestjs-template-9',
+      'This service based on nestjs-template-9',
     )
     .setVersion('1.0')
     .addBearerAuth(

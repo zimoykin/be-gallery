@@ -5,19 +5,17 @@ import { Profile } from './models/profile.model';
 import { S3BucketService } from '../s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
 import { InjectS3Bucket } from '../s3-bucket/inject-s3-bucket.decorator';
-import { IEquipment } from './interfaces/eqiupment.interface';
 
 @Injectable()
-export class ProfileService {
+export class ProfileService{
     private readonly logger = new Logger(ProfileService.name);
     constructor(
         // @ts-ignore //
         @InjectRepository('Profile') private readonly profileRepository: DynamoDbRepository<Profile>,
         // @ts-ignore //
         @InjectS3Bucket('profile') private readonly s3BucketService: S3BucketService,
-        private readonly imageCompressorService: ImageCompressorService,
+        private readonly imageCompressorService: ImageCompressorService
     ) { }
-
 
     async createProfile(userId: string, userName: string, email?: string) {
         this.logger.log(`creating profile for user ${userId}`);
