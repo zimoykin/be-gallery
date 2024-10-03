@@ -7,6 +7,7 @@ const schema = {
   AWS_ACCESS_KEY_ID: Joi.string().required(),
   AWS_SECRET_ACCESS_KEY: Joi.string().required(),
   S3_BUCKET_NAME: Joi.string().required(),
+  CLOUD_RMQ_URL: Joi.string().required(),
   ...auth_schema,
 };
 export const serviceSchema = Joi.object(schema);

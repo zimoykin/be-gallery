@@ -20,7 +20,7 @@ export async function createTable(
 
   const tables = await connection.listTables();
   if (tables.TableNames?.includes(tableName)) {
-    return;
+    return false;
   }
 
   if (!primaryKey) {
@@ -113,4 +113,6 @@ export async function createTable(
   
 
   logger.debug(`Table ${tableName} is created`);
+
+  return true;
 }

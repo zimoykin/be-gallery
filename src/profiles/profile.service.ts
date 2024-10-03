@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
-import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
-import { Profile } from './profile.model';
-import { InjectS3Bucket } from 'src/s3-bucket/inject-s3-bucket.decorator';
-import { S3BucketService } from 'src/s3-bucket/s3-bucket.service';
+import { InjectRepository } from '../dynamo-db/decorators/inject-model.decorator';
+import { DynamoDbRepository } from '../dynamo-db/dynamo-db.repository';
+import { Profile } from './models/profile.model';
+import { S3BucketService } from '../s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
+import { InjectS3Bucket } from '../s3-bucket/inject-s3-bucket.decorator';
 
 @Injectable()
 export class ProfileService {
@@ -12,10 +12,9 @@ export class ProfileService {
     constructor(
         // @ts-ignore //
         @InjectRepository('Profile') private readonly profileRepository: DynamoDbRepository<Profile>,
-
         // @ts-ignore //
         @InjectS3Bucket('profile') private readonly s3BucketService: S3BucketService,
-        private readonly imageCompressorService: ImageCompressorService
+        private readonly imageCompressorService: ImageCompressorService,
     ) { }
 
 
@@ -30,6 +29,7 @@ export class ProfileService {
         if (!profile) {
             throw new BadRequestException('could not create profile');
         }
+
         return profile;
     }
 

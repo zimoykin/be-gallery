@@ -11,13 +11,21 @@ import { S3BucketModule } from './s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from './image-compressor/image-compressor.module';
 import { ProfileModule } from './profiles/profile.module';
 import { ProfileAuthMiddleware } from './middlewares/profile-auth.middleware';
-import { DbSeedingModule } from './db-seeding/db-seeding.module';
 import { OffersModule } from './offers/offers.module';
-import { TopicModule } from './topic/topic.module';
+import { TopicModule } from './topics/topic.module';
 import { MessagesModule } from './messages/messages.module';
+import { AmqpModule } from '@zimoykin/amqp';
 
 @Module({
   imports: [
+    AmqpModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<ConfigVariables>) => {
+        const url = config.get('CLOUD_RMQ_URL')!;
+        return { url };
+      }
+    }),
     JwtModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -73,10 +81,9 @@ import { MessagesModule } from './messages/messages.module';
     S3BucketModule,
     ImageCompressorModule,
     ProfileModule,
-    DbSeedingModule,
     OffersModule,
     TopicModule,
-    MessagesModule,
+    MessagesModule
   ],
   controllers: [AppController],
   providers: [AppService],

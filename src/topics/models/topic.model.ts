@@ -24,4 +24,6 @@ export class Topic {
 
     @Required()
     text: string;
+
+    url?: string
 }

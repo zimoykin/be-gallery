@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '../dynamo-db/decorators/inject-model.decorator';
-import { Folder } from './folder.model';
+import { Folder } from './models/folder.model';
 import { DynamoDbRepository } from '../dynamo-db/dynamo-db.repository';
 import { PhotoService } from 'src/photos/photo.service';
 
