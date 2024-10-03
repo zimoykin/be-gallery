@@ -1,4 +1,4 @@
-import { DynamicModule, Module, Provider } from '@nestjs/common';
+import { DynamicModule, Logger, Module, OnApplicationBootstrap, Provider } from '@nestjs/common';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DynamoDbRepository } from './dynamo-db.repository';
 import { getModelToken } from './decorators/model-token.helper';
@@ -9,9 +9,10 @@ import {
 } from './dynamo-db.interfaces';
 
 @Module({})
-export class DynamodbModule {
+export class DynamodbModule implements OnApplicationBootstrap {
+  private readonly logger = new Logger(DynamodbModule.name);
   private static client: IConnection;
-
+  private static seedingQueeue: Map<string, any> = new Map();
   /**
    * Creates a DynamoDB client if it doesn't exist, and returns it. If the
    * `prefixCollection` option is provided, it will be stored for use by the
@@ -30,6 +31,24 @@ export class DynamodbModule {
       };
     }
     return this.client;
+  }
+
+  async onApplicationBootstrap() {
+    if (DynamodbModule.seedingQueeue.size > 0) {
+      this.logger.debug(JSON.stringify(DynamodbModule.seedingQueeue));
+
+      DynamodbModule.seedingQueeue.forEach(async (val, table) => {
+        this.logger.debug(table);
+        await val.instance.batchWrite(val.data);
+        this.logger.debug(`Table ${table} seeded`);
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      });
+      DynamodbModule.seedingQueeue.clear();
+    }
+  }
+
+  static appendSeedingQueue(table: string, instance: DynamoDbRepository, data: any) {
+    this.seedingQueeue.set(table, { data, instance });
   }
 
   /**
@@ -80,9 +99,12 @@ export class DynamodbModule {
     };
   }
 
-  static forFeature(
-    cls: new (...args: any) => any,
-    connectionName?: string,
+  static forFeature<T>(
+    cls: new (...args: any) => T,
+    opts?: {
+      connectionName?: string,
+      seeding?: T[] | (() => T[]);
+    }
   ): DynamicModule {
     const providers: Provider[] = [
       {
@@ -90,10 +112,18 @@ export class DynamodbModule {
         useClass: cls,
       },
       {
-        provide: getModelToken(cls.name.toLowerCase(), connectionName),
+        provide: getModelToken(cls.name.toLowerCase(), opts?.connectionName),
         useClass: DynamoDbRepository,
       },
     ];
+
+    if (opts?.seeding) {
+      providers.push({
+        provide: `DYNAMO-DB-SEEDING`,
+        useValue: Array.isArray(opts.seeding) ? opts.seeding : opts.seeding(),
+      });
+    }
+
     return {
       module: DynamodbModule,
       providers: providers,

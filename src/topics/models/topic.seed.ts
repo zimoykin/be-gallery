@@ -1,136 +1,11 @@
-import { Offer } from "src/offers/models/offer.model";
-import { IFolder } from "../folders/interfaces/folder.interface";
-import { IProfile } from "../profiles/interfaces/profile.interface";
+import { Topic } from "./topic.model";
 
-export const profiles: Omit<IProfile, 'id'>[] = [
+export const topics:Topic[] = [
     {
-        name: "John Doe",
-        email: "john.doe@me.com",
-        location: "Regensburg, Germany",
-        website: "https://github.com/zimoykin",
-        url: "https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/24/24feebb92301fb4efeb3d0956024e33293b78c57_full.jpg",
-        privateAccess: 0,
-        userId: "1",
-        equipment: [
-            {
-                favorite: false,
-                name: "kodak 35",
-                type: "camera",
-            }, {
-                favorite: true,
-                name: "Canon 70D",
-                type: "camera",
-            }, {
-                favorite: true,
-                name: "Canon 35-80mm F/4-5.6 IS II USM",
-                type: "lens",
-            }
-        ],
-    },
-    {
-
-        name: "Alessandra Bohne",
-        email: "jane.bohne@me.com",
-        location: "Milan, Italy",
-        website: "https://github.com/zimoykin",
-        url: "https://avataaars.io/?avatarStyle=Circle&topType=LongHairStraightStrand&accessoriesType=Blank&hairColor=Black&facialHairType=Blank&clotheType=Hoodie&clotheColor=Blue02&eyeType=Happy&eyebrowType=AngryNatural&mouthType=Default&skinColor=Brown",
-        privateAccess: 0,
-        userId: "2",
-        equipment: [],
-    },
-    {
-
-        name: "Alberta De Nou",
-        email: "albert.nou@me.com",
-        location: "Paris, France",
-        website: "https://github.com/zimoykin",
-        url: "https://avataaars.io/?avatarStyle=Circle&topType=LongHairCurvy&accessoriesType=Sunglasses&hairColor=BrownDark&facialHairType=Blank&facialHairColor=Brown&clotheType=ShirtScoopNeck&clotheColor=Blue02&eyeType=Default&eyebrowType=Angry&mouthType=Sad&skinColor=Yellow",
-        privateAccess: 0,
-        userId: "3",
-        equipment: [],
-    },
-    {
-
-        name: "Freddy Kowalski",
-        email: "fred.kowalski@me.com",
-        location: "London, UK",
-        website: "https://github.com/zimoykin",
-        url: "https://avataaars.io/?avatarStyle=Circle&topType=ShortHairShaggyMullet&accessoriesType=Wayfarers&hairColor=Black&facialHairType=MoustacheFancy&facialHairColor=Red&clotheType=CollarSweater&clotheColor=PastelYellow&eyeType=Cry&eyebrowType=Angry&mouthType=Serious&skinColor=Tanned",
-        privateAccess: 0,
-        userId: "4",
-        equipment: [],
-    },
-    {
-
-        name: "Mary Smith",
-        email: "mary.smith@me.com",
-        location: "New York, USA",
-        website: "https://avatar.iran.liara.run/public/24",
-        url: "https://avataaars.io/?avatarStyle=Circle&topType=LongHairStraight&accessoriesType=Blank&hairColor=BrownDark&facialHairType=Blank&clotheType=BlazerShirt&eyeType=Default&eyebrowType=Default&mouthType=Default&skinColor=Light",
-        privateAccess: 0,
-        userId: "5",
-        equipment: [],
-    },
-    {
-
-        name: "Marty Brodkowski",
-        email: "marty.smith@me.com",
-        location: "Texas Area, USA",
-        website: "https://github.com/zimoykin",
-        url: "https://avataaars.io/?avatarStyle=Circle&topType=ShortHairSides&accessoriesType=Blank&hairColor=SilverGray&facialHairType=Blank&facialHairColor=Blonde&clotheType=Hoodie&clotheColor=Heather&graphicType=Hola&eyeType=Squint&eyebrowType=UnibrowNatural&mouthType=Default&skinColor=Light",
-        privateAccess: 0,
-        userId: "6",
-        equipment: [],
-    },
-];
-
-export const offers = (profileId: string): Omit<Offer, 'id'>[] => [
-    {
-        title: "Would you like to see the best photo and gastro trip in Spain?",
-        location: "Sevilla, Malaga, Ronda and Marbello",
-        description:
-            "Our tour: Hiking in the Pyrenees 10.9km, yachting, gastronomy, wine tasting, 3 beautiful beaches, 7 nights in a 5 star hotel, free breakfast, all flying tickets included",
-        price: 300,
-        image: "https://picsum.photos/id/28/1200/800",
-        preview: "https://picsum.photos/id/28/400/300",
-        category: "trip",
-        profileId: profileId,
-        url: "https://www.google.com",
-    },
-    {
-
-        title: "Italian city tour with Guide",
-        location: "Rome, Naples, Milan and Venice",
-        description:
-            "Bust tour: we will visit the city of Rome, free breakfast, all flying tickets included",
-        price: 200,
-        image: "https://picsum.photos/id/16/1200/800",
-        preview: "https://picsum.photos/id/16/400/300",
-        category: "trip",
-        profileId: profileId,
-        url: "https://www.google.com",
-    },
-    {
-
-        title: "Canon EOS 90D DSLR",
-        location: "Regensburg, Germany",
-        description:
-            "Canon EOS 90D DSLR, in perfect condition, like new. Will be shipped to you in 5 days.",
-        price: 750,
-        image: "https://picsum.photos/id/77/1200/800",
-        preview: "https://picsum.photos/id/77/400/300",
-        category: "camera",
-        profileId: profileId,
-        url: "https://www.google.com",
-    },
-];
-
-export const topics = (profileId: string) => [
-    {
-
+        id: 'eda5aa95-0da8-404f-abe9-6a8932614c61',
         title: "How to choose your first camera wisely?",
         url: "bg/topic-1.jpeg",
-        profileId: profileId,
+        profileId: '',
         text: `
           Choosing the right camera lens depends on what you’re trying to capture and the effect you want to achieve. Here's a guide on different types of lenses and their uses:
   
@@ -171,9 +46,9 @@ export const topics = (profileId: string) => [
   `,
     },
     {
-
+        id: '9273935c-1f61-4b47-90dc-87924f4d0fce',
         title: "What is your best lens?",
-        profileId: profileId,
+        profileId: '',
         url: "bg/topic-2.jpeg",
         text: `
       Choosing your first camera can be exciting but also overwhelming with so many options on the market. Here’s a guide on what to consider when buying your first camera:
@@ -240,9 +115,9 @@ export const topics = (profileId: string) => [
     },
 
     {
-
+        id: 'a6c75276-6430-4a8d-bb64-69bf076f80d0',
         title: "How to choose the right film for your photos?",
-        profileId: profileId,
+        profileId: '',
         url: "bg/topic-3.jpeg",
         text: `
           Choosing the right film for your photos depends on the aesthetic you want to achieve and the shooting conditions. Here are key factors to consider:
@@ -277,147 +152,5 @@ export const topics = (profileId: string) => [
   
   By experimenting with different film stocks, you can find the one that best suits your style and needs.
           `,
-    },
-];
-
-export const getMessages = (
-    profileId1: string,
-    profileId2: string,
-) => [
-        {
-
-            senderId: profileId2,
-            receiverId: profileId1,
-            text: "hello",
-            date: new Date().toISOString(),
-            type: "text",
-        },
-        {
-
-            senderId: profileId1,
-            receiverId: profileId2,
-            text: "Good morning, How are You?",
-            date: new Date().toISOString(),
-            type: "text",
-        },
-        {
-
-            senderId: profileId2,
-            receiverId: profileId1,
-            text: "I am fine. Thanks!",
-            date: new Date().toISOString(),
-            type: "text",
-        },
-        {
-
-            senderId: profileId1,
-            receiverId: profileId2,
-            text: "What about tomorrow?",
-            date: new Date().toISOString(),
-            type: "text",
-        },
-    ];
-
-
-
-export const getFolders = (profileId: string): Omit<IFolder, "id">[] => [
-    {
-
-        profileId: profileId,
-        title: "Spain 2024 | MALAGA AND RONDA",
-        bgColor: "#ffffff",
-        color: "#000000",
-        description: "Folder 1 Description",
-        sortOrder: 1,
-        url: "https://picsum.photos/id/28/400/300",
-        privateAccess: 0,
-    },
-    {
-
-        profileId: profileId,
-        title: "PORTUGAL 2024 | PORTO",
-        bgColor: "#ffffff",
-        color: "#000000",
-        description: "Folder 2 Description",
-        sortOrder: 2,
-        url: "https://picsum.photos/id/17/400/300",
-        privateAccess: 0,
-    },
-    {
-
-        profileId: profileId,
-        title: "FRANCE 2024 | PARIS",
-        bgColor: "#ffffff",
-        color: "#000000",
-        description: "Folder 3 Description",
-        sortOrder: 3,
-        url: "https://picsum.photos/id/10/400/300",
-        privateAccess: 0,
-    },
-    {
-
-        profileId: profileId,
-        title: "GERMANY 2024 | FRANKFURT",
-        bgColor: "#ffffff",
-        color: "#000000",
-        description: "Folder 4 Description",
-        sortOrder: 4,
-        url: "https://picsum.photos/id/22/400/300",
-        privateAccess: 0,
-    },
-    {
-
-        profileId: profileId,
-        title: "USA 2024 | HOUSTON",
-        bgColor: "#ffffff",
-        color: "#000000",
-        description: "Folder 5 Description",
-        sortOrder: 5,
-        url: "https://picsum.photos/id/21/400/300",
-        privateAccess: 0,
-    },
-    {
-
-        profileId: profileId,
-        title: "ITALY 2024 | ROMA",
-        bgColor: "#ffffff",
-        color: "#000000",
-        description: "Folder 6 Description",
-        sortOrder: 6,
-        url: "https://picsum.photos/id/15/400/300",
-        privateAccess: 0,
-    },
-    {
-
-        profileId: profileId,
-        title: "JAPAN 2024 | TOKYO",
-        bgColor: "#ffffff",
-        color: "#000000",
-        description: "Folder 7 Description",
-        sortOrder: 7,
-        url: "https://picsum.photos/id/12/400/300",
-        privateAccess: 0,
-    },
-    {
-
-        profileId: profileId,
-        title: "CHINA 2024 | BEIJING",
-        bgColor: "#ffffff",
-        color: "#000000",
-        description: "Folder 8 Description",
-        sortOrder: 8,
-        url: "https://picsum.photos/id/23/400/300",
-        privateAccess: 0,
-    },
-    {
-
-        profileId: profileId,
-        title: "New Zealand 2024 | AUCKLAND",
-        bgColor: "#ffffff",
-        color: "#000000",
-        description: "Folder 9 Description",
-        sortOrder: 9,
-        url: "https://picsum.photos/id/11/400/300",
-        privateAccess: 0,
     },
 ];

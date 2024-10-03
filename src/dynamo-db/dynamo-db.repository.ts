@@ -1,7 +1,8 @@
-import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
 import { IConnection } from './dynamo-db.interfaces';
 import { getIndexes } from './decorators/index.decorator';
 import {
+  BatchWriteCommand,
   DeleteCommand,
   PutCommand,
   UpdateCommand,
@@ -17,6 +18,7 @@ import { getRequired } from './decorators/required.decorator';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { factoryConstructor } from './interfaces/factory.type';
 import { toPlainObject } from 'lodash';
+import { DynamodbModule } from './dynamo-db.module';
 
 @Injectable()
 export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
@@ -27,6 +29,8 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     @Inject('DYNAMO-DB-CONNECTION') private readonly connection: IConnection,
     //@ts-ignore//
     @Inject('DYNAMO-DB-MODEL') private readonly modelCls: new (...args: any[]) => T,
+    // @ts-ignore
+    @Optional() @Inject('DYNAMO-DB-SEEDING') private readonly seeding?: T[],
   ) { }
 
   /**
@@ -50,13 +54,42 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     return tableName;
   }
   async onModuleInit() {
-    await createTable(
+    const isCreated = await createTable(
       this.connection.db,
       this.getTableName(),
       getPrimaryKey(this.modelCls),
       getSortKey(this.modelCls),
       getIndexes(this.modelCls),
     );
+
+    //if table is created, seed data
+    if (
+      isCreated &&
+      this.seeding?.length) {
+      let status = 'CREATING';
+      let incr = 0;
+
+      while (status === 'CREATING' && incr < 10) {
+        incr++;
+        const tableInfo = await this.connection.db.describeTable({ TableName: this.getTableName() });
+        status = tableInfo.Table?.TableStatus ?? status;
+
+        if (status === 'ACTIVE') {
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      if (status == 'ACTIVE') {
+        DynamodbModule.appendSeedingQueue(
+          this.getTableName(),
+          this,
+          this.seeding
+        );
+      } else {
+        this.logger.error(`Table ${this.getTableName()} is not created, seeding data failed`);
+      }
+    }
 
   }
 
@@ -333,6 +366,82 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     });
   }
 
+
+  /**
+   * Generate a list of records from the given inputs for the given table.
+   *
+   * It will create a primary key if it is not present in the input,
+   * and it will create a sort key if it is not present in the input.
+   * create a record with the data from the input.
+     create a record with the data from the input and the primary key and sort key.
+     create a record with the data from the input and the primary key and sort key and the required properties.
+   * return an array of records.
+   *
+   * @param inputs - The inputs to generate the records from.
+   * @returns A Promise resolving to the generated records.
+   */
+  private async generateRecordDbByChunk(...inputs: T[]): Promise<Array<Array<Record<string, any>>>> {
+
+    const indexes = getIndexes(this.modelCls);
+    const [sortKey,] = getSortKey(this.modelCls);
+    const primaryKey = getPrimaryKey(this.modelCls);
+    const required = getRequired(this.modelCls) || [];
+
+    const records: {
+      [x: string]: any;
+      data: T;
+    }[] = [];
+
+    for (const item of inputs) {
+      const primaryId = item[primaryKey] ?? uuidv4();
+      const sortKeyValue = item[String(sortKey)]
+        ? item[String(sortKey)]
+        : Date.now();
+      item[primaryKey] = primaryId;
+
+      let data = factoryConstructor(this.modelCls)() as unknown as T;
+      data = this.plainObjectNested(
+        toPlainObject(Object.assign(data, item))
+      ) as T;
+
+      const record = {
+        [primaryKey]: primaryId,
+        [String(sortKey)]: sortKeyValue,
+        data: { ...data },
+      };
+
+      for (const { indexName } of indexes) {
+        if (item[indexName] !== undefined) {
+          record[String(indexName)] = item[indexName];
+        }
+      }
+
+      if (record[String(sortKey)] === undefined) {
+        throw new Error(`Sort key ${sortKey} is not exists`);
+      }
+
+      //check required properties
+      for (const index of required) {
+        if (data[index] === undefined) {
+          throw new Error(`${index} is required`);
+        }
+      }
+      records.push(record);
+    }
+
+    if (records?.length > 25) {
+      let init = 0; let step = 25;
+      const result: Array<Array<Record<string, any>>> = [];
+      for (let i = init; i < records.length; i += step) {
+        const chunk = records.slice(i, i + step);
+        result.push(chunk);
+      }
+
+      return result;
+    }
+    else
+      return [records];
+  }
   /**
    * Creates a new record in DynamoDB.
    * @param data - The data to save.
@@ -346,7 +455,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     const primaryKey = getPrimaryKey(this.modelCls);
     const required = getRequired(this.modelCls) || [];
 
-    const primaryId = uuidv4();
+    const primaryId = _data[primaryKey] ?? uuidv4();
     const sortKeyValue = _data[String(sortKey)]
       ? _data[String(sortKey)]
       : Date.now();
@@ -364,7 +473,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     };
 
     for (const { indexName, type } of indexes) {
-      if (data[indexName]) {
+      if (data[indexName] !== undefined) {
         record[String(indexName)] = data[indexName];
       }
     }
@@ -388,6 +497,39 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
       }),
     );
     return this.findById(primaryId);
+  }
+  async batchWrite(records: T[]) {
+    const chunks = await this.generateRecordDbByChunk(...records);
+    const tableName = this.getTableName();
+
+
+    chunks.forEach(async (chunk) => {
+      const batch: any[] = [];
+      chunk.forEach((record) => {
+        batch.push({
+          PutRequest: {
+            Item: record,
+          },
+        });
+      });
+
+      await this.connection.db.send(new BatchWriteCommand({
+        ReturnConsumedCapacity: 'TOTAL',
+        RequestItems: {
+          [tableName]: batch
+        }
+      }))
+        .then(() => {
+          this.logger.log(`Batch write: ${JSON.stringify(chunk)}`);
+        })
+        .catch(err => {
+          this.logger.error(err);
+          throw err;
+        });
+      //we have to wait aws limit 25 records per second
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+    });
   }
 
   async update(id: string, _data: any) {
@@ -477,7 +619,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
         data: model,
       };
 
-      for (const { indexName, type } of indexes) {
+      for (const { indexName } of indexes) {
         if (model[indexName] == undefined) {
           throw new Error(`${indexName} is required`);
         }
@@ -521,6 +663,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
 
     return true;
   }
+
 
   async remove(id: string) {
     const primaryKey = getPrimaryKey(this.modelCls);

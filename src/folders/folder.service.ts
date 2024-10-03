@@ -1,6 +1,6 @@
 import { BadGatewayException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
-import { Folder } from './folder.model';
+import { Folder } from './models/folder.model';
 import { DynamoDbRepository } from '../dynamo-db/dynamo-db.repository';
 import { FolderInputDto } from './dtos/folder-input.dto';
 import { PhotoService } from '../photos/photo.service';
