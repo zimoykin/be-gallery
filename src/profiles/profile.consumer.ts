@@ -16,6 +16,7 @@ export class ProfileConsumer implements OnModuleInit {
 
     constructor(
         private readonly profileService: ProfileService,
+        // @ts-ignore
         @InjectConsumer(Profile.name) private readonly consumer: AmqpConsumer
     ) { }
 

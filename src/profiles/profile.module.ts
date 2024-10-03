@@ -8,6 +8,7 @@ import { PublicProfileController } from './profile-public.controller';
 import { S3BucketModule } from '../s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from '../image-compressor/image-compressor.module';
 import { profiles } from './models/profile.seed';
+import { ProfileConsumer } from './profile.consumer';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { profiles } from './models/profile.seed';
     AmqpModule.forFeature(Profile.name)
   ],
   controllers: [ProfileController, PublicProfileController],
-  providers: [ProfileService],
+  providers: [ProfileService, ProfileConsumer],
   exports: [ProfileService]
 })
 export class ProfileModule { }
