@@ -19,7 +19,7 @@ export class PublicPhotoService {
         private readonly profileService: ProfileService
     ) { }
 
-    private async determinePhotoOfTheDay(): Promise<PhotoOfTheDay> {
+    private async determinePhotoOfTheDay(): Promise<PhotoOfTheDay | null> {
 
         const from = DateTime.local().startOf('day').toMillis();
         const to = DateTime.local().endOf('day').toMillis();

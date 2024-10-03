@@ -4,7 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { ConfigVariables } from './service-config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import * as cookie from 'cookie-parser';
+import cookie from 'cookie-parser';
+import pkg from '../package.json';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -31,7 +32,6 @@ async function bootstrap() {
   const port = conf.get<number>('PORT') ?? 3000;
 
   // swagger config
-  const pkg = require('../package.json');
   const config = new DocumentBuilder()
     .setTitle(pkg.name ?? 'Service Api')
     .setDescription(

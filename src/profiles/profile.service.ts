@@ -5,6 +5,7 @@ import { Profile } from './models/profile.model';
 import { S3BucketService } from '../s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
 import { InjectS3Bucket } from '../s3-bucket/inject-s3-bucket.decorator';
+import { IEquipment } from './interfaces/eqiupment.interface';
 
 @Injectable()
 export class ProfileService {
@@ -62,7 +63,7 @@ export class ProfileService {
         for await (const profile of profiles) {
             if (profile.bucket?.key) {
                 const url = await this.s3BucketService.generateSignedUrl(profile.bucket.key);
-                profile.bucket.url = url;
+                profile.url = url;
                 result.push({ ...profile, });
             } else {
                 result.push(profile);

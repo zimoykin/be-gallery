@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Logger, Post, Put, Query, Redirect, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Logger, Patch, Post, Put, Query, Redirect, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
 import { ProfileService } from './profile.service';
@@ -80,9 +80,13 @@ export class ProfileController {
         @Profile() profile: IProfileCookie,
         @Body() dto: ProfileInDto
     ) {
-        return this.profileService.updateProfile(profile.profileId, dto);
+        return this.profileService.updateProfile(profile.profileId, dto).then((data) => {
+            return plainToInstance(ProfileOutputDto, data);
+        }).catch((error) => {
+            this.logger.error(error);
+            throw error;
+        });
     }
-
 
     @Post('/logout')
     @HttpCode(200)

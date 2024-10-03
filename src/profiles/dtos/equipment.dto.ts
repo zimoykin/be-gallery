@@ -1,7 +1,9 @@
-import { Expose, Type } from "class-transformer";
-import { IsBoolean, IsIn, IsString, ValidateNested } from "class-validator";
+import { Exclude, Expose} from "class-transformer";
+import { IsBoolean, IsIn, IsString } from "class-validator";
 
-export class Equipment {
+@Exclude()
+export class EquipmentDto {
+
     @Expose()
     @IsString()
     name: string;
@@ -15,15 +17,3 @@ export class Equipment {
     @IsIn(['camera', 'lens', 'other'])
     type: 'camera' | 'lens' | 'other';
 }
-
-// export class Equipments {
-//     @Expose()
-//     @Type(() => Equipment)
-//     @ValidateNested({ each: true })
-//     cameras: Equipment[];
-
-//     @Expose()
-//     @Type(() => Equipment)
-//     @ValidateNested({ each: true })
-//     lenses: Equipment[];
-// }

@@ -22,7 +22,7 @@ import { AmqpModule } from '@zimoykin/amqp';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService<ConfigVariables>) => {
-        const url = config.get('CLOUD_RMQ_URL')!;
+        const url = config.get('RMQ_URL')!;
         return { url };
       }
     }),

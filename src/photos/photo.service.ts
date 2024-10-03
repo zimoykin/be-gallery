@@ -179,7 +179,7 @@ export class PhotoService {
 
         return {
             ...photo,
-            url: await this.getUrlByType(PhotoType.PREVIEW, photo),
+            url: await this.getUrlByType(PhotoType.PREVIEW, photo) ?? '',
         };
     }
 

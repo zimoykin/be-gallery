@@ -337,7 +337,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
    * @throws {Error} - If no record is found.
    * @returns A Promise resolving to the found record.
    */
-  async findById(id: string) {
+  async findById<K = T>(id: string): Promise<K | null> {
     const primaryKey = getPrimaryKey(this.modelCls);
     try {
       const result = await this.connection.db.query({
@@ -449,7 +449,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
    * @throws {Error} - If any required property is not exists in the data object.
    * @returns A Promise resolving to the created record.
    */
-  async create<K = T>(_data: Partial<T>): Promise<K> {
+  async create<K = T>(_data: Partial<T>): Promise<K | null> {
     const indexes = getIndexes(this.modelCls);
     const [sortKey,] = getSortKey(this.modelCls);
     const primaryKey = getPrimaryKey(this.modelCls);
@@ -496,7 +496,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
         Item: record,
       }),
     );
-    return this.findById(primaryId);
+    return this.findById<K>(primaryId);
   }
   async batchWrite(records: T[]) {
     const chunks = await this.generateRecordDbByChunk(...records);

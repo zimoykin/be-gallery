@@ -1,6 +1,5 @@
 import { Exclude, Expose, Type } from "class-transformer";
-import { IEquipment } from "../interfaces/eqiupment.interface";
-import { Equipment } from "./equipment.dto";
+import { EquipmentDto } from "./equipment.dto";
 import { ValidateNested } from "class-validator";
 
 @Exclude()
@@ -33,9 +32,9 @@ export class ProfileOutputDto {
     website?: string;
 
     @Expose()
-    @Type(() => Equipment)
+    @Type(() => EquipmentDto)
     @ValidateNested({ each: true })
-    equipment?: Equipment[];
+    equipment?: EquipmentDto[];
 
     @Expose()
     url: string;
