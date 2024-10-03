@@ -1,5 +1,4 @@
 import { Exclude, Expose, Type } from "class-transformer";
-import { EquipmentDto } from "./equipment.dto";
 import { ValidateNested } from "class-validator";
 
 @Exclude()
@@ -30,11 +29,6 @@ export class ProfileOutputDto {
 
     @Expose()
     website?: string;
-
-    @Expose()
-    @Type(() => EquipmentDto)
-    @ValidateNested({ each: true })
-    equipment?: EquipmentDto[];
 
     @Expose()
     url: string;

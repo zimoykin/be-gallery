@@ -112,7 +112,7 @@ export class PhotoService {
         file: any,
     ) {
 
-        const photos = await this.photoRepository.readByFilter({
+        const photos = await this.photoRepository.find({
             match: {
                 folderId: folderId,
                 profileId: profileId
@@ -154,7 +154,7 @@ export class PhotoService {
         id: string,
         type: PhotoType
     ): Promise<Photo & { url?: string; }> {
-        const photo = await this.photoRepository.readByFilter<Photo>({
+        const photo = await this.photoRepository.find<Photo>({
             match: {
                 folderId: folderId,
                 id: id,
@@ -212,7 +212,7 @@ export class PhotoService {
             filter.match['privateAccess'] = privateAccess;
         }
 
-        const photos = await this.photoRepository.readByFilter<Photo>(filter);
+        const photos = await this.photoRepository.find<Photo>(filter);
 
         if (photos.length === 0) {
             return [];
@@ -307,7 +307,7 @@ export class PhotoService {
     }
 
     async removePhotosByFolderId(folderId: string, profileId: string) {
-        const photos = await this.photoRepository.readByFilter<Photo>({
+        const photos = await this.photoRepository.find<Photo>({
             match: {
                 folderId: folderId,
                 profileId: profileId,
@@ -321,7 +321,7 @@ export class PhotoService {
     }
 
     async getTheLastPhoto(): Promise<Photo | null> {
-        const photos = await this.photoRepository.readByFilter({});
+        const photos = await this.photoRepository.find({});
         if (photos.length === 0) {
             return null;
         }

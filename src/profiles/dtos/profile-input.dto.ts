@@ -1,6 +1,5 @@
 import { IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import { EquipmentDto } from "./equipment.dto";
 
 export class ProfileInDto {
     @IsString()
@@ -17,12 +16,6 @@ export class ProfileInDto {
     @IsString()
     @IsOptional()
     location?: string;
-
-    @IsOptional()
-    @Type(() => Array<EquipmentDto>)
-    @ValidateNested({ each: true })
-    equipment?: EquipmentDto[];
-
 
     @IsString()
     @IsOptional()
