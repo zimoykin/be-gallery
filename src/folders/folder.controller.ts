@@ -42,8 +42,16 @@ export class FolderController {
 
   @Get(':id')
   @HttpCode(200)
-  async findOneById(@AuthUser() user: IAuthUser, @Param('id') id: string) {
-    return this.folderService.findUserFolderByIdAndUserId(id, user.id);
+  async findOneById(
+    @Profile() profile: IProfileCookie,
+    @Param('id') id: string
+  ) {
+    return this.folderService.findFolderById(id, profile.profileId).then((data) => {
+      return plainToInstance(FolderOutputDto, data);
+    }).catch((error) => {
+      this.logger.error(error);
+      throw error;
+    });
   }
 
   @Post()

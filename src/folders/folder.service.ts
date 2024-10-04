@@ -26,13 +26,32 @@ export class FolderService {
     private readonly profileService: ProfileService,
   ) { }
 
-  async findUserFolderByIdAndUserId(id: string, userId: string) {
-    const profile = await this.profileService.findProfileByUserId(userId);
-    if (!profile) {
-      throw new NotFoundException('Profile not found');
+  async findFolderById(id: string, profileId: string) {
+    const folder = await this.folderRepository.findOneByFilter({
+      match: { id, profileId },
+    });
+    if (!folder) {
+      throw new NotFoundException('folder not found');
     }
 
-    return this.findUserFolderByIdAndProfileId(id, profile.id);
+    if (folder.favoriteFotoId) {
+      const favoritePhoto = await this.photoService.findPhotoById(
+        folder.favoriteFotoId
+      );
+      return {
+        ...folder,
+        url: favoritePhoto.url,
+      };
+    }
+    else
+      return folder;
+
+  }
+
+  async findByFolderId(id: string) {
+    return this.folderRepository.findOneByFilter<Folder>({
+      match: { id },
+    });
   }
 
   async findUserFolderByIdAndProfileId(id: string, profileId: string) {

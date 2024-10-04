@@ -16,9 +16,19 @@ export class PublicFolderService {
   ) { }
 
   async findFoldersByProfileId(profileId: string) {
-    return this.folderRepository.find<Folder>({
+    const folders = await this.folderRepository.find<Folder>({
       match: { profileId, privateAccess: 0 },
     });
+
+    const photoIds = folders
+      .filter((folder) => folder.favoriteFotoId)
+      .map((folder) => folder.favoriteFotoId ?? '');
+    const photos = await this.photoService.findPhotosByIds(photoIds);
+    
+    return folders.map( folder => ({
+      ...folder,
+      url: photos.find((photo) => photo.id === folder.favoriteFotoId)?.url ?? '',
+    }))
   }
 
   async findFolderByIdAndProfileId(profileId: string, folderId: string) {

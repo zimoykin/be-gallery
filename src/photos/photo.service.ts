@@ -28,8 +28,8 @@ export class PhotoService {
     private readonly s3BucketServiceCompressed: S3BucketService,
     private readonly imageCompressorService: ImageCompressorService,
     //@ts-ignore
-    @Inject(forwardRef(() => FolderService)) 
-    private readonly folderRepository: FolderService,
+    @Inject(forwardRef(() => FolderService))
+    private readonly folderService: FolderService,
   ) { }
 
   /**
@@ -161,7 +161,13 @@ export class PhotoService {
     profileId: string,
     id: string,
     type: PhotoType,
-  ): Promise<Photo & { url?: string; }> {
+  ): Promise<Photo & { url?: string; isFavorite: boolean; }> {
+
+    const folder = await this.folderService.findByFolderId(folderId);
+    if (!folder) {
+      throw new NotFoundException();
+    }
+
     const photo = await this.photoRepository.find<Photo>({
       match: {
         folderId: folderId,
@@ -176,6 +182,7 @@ export class PhotoService {
       return {
         ...photo[0],
         url: await this.getUrlByType(type, photo[0]),
+        isFavorite: folder.favoriteFotoId !== undefined && folder.favoriteFotoId === id,
       };
   }
 
@@ -219,27 +226,24 @@ export class PhotoService {
       filter.match['privateAccess'] = privateAccess;
     }
 
+    const folder = await this.folderService.findByFolderId(folderId);
+    if (!folder) {
+      throw new NotFoundException();
+    }
+
     const photos = await this.photoRepository.find<Photo>(filter);
 
     if (photos.length === 0) {
       return [];
     } else {
-      const sighnedPhotos: Array<Photo & { url: string; }> = [];
+      const sighnedPhotos: Array<Photo & { url: string; isFavorite: boolean; }> = [];
 
       for await (const photo of photos) {
         const url = await this.getUrlByType(type, photo);
-        if (url) sighnedPhotos.push({ ...photo, url: url });
+        if (url) sighnedPhotos.push({ ...photo, url: url, isFavorite: folder.favoriteFotoId !== undefined && folder.favoriteFotoId === photo.id });
       }
       return sighnedPhotos.sort((a, b) => a.sortOrder - b.sortOrder);
     }
-  }
-
-  async getPhotosByFolderIdAndUserId(
-    folderId: string,
-    type: PhotoType,
-    profileId: string,
-  ): Promise<Array<Photo & { url: string; }>> {
-    return this.getPhotosByFolderIdAndProfileId(folderId, type, profileId);
   }
 
   async getTotalPhotosByFolderId(
@@ -329,10 +333,34 @@ export class PhotoService {
     photoId: string
   ) {
 
-    const folder = await this.folderRepository.updateFolderByProfileId(folderId, {
+    const folder = await this.folderService.updateFolderByProfileId(folderId, {
       favoriteFotoId: photoId
     }, profileId);
 
     return folder;
   }
+
+
+  async findPhotosByIds(ids: string[]) {
+    // Fetch photos from the repository
+    const photos = await this.photoRepository.find({
+      or: {
+        id: ids
+      }
+    });
+
+    // Map over the photos and resolve URLs asynchronously
+    const photosWithUrls = await Promise.all(
+      photos.map(async (photo) => {
+        const url = await this.getUrlByType(PhotoType.PREVIEW, photo);
+        return {
+          ...photo,
+          url,
+        };
+      })
+    );
+
+    return photosWithUrls;
+  }
+
 }
