@@ -1,10 +1,10 @@
 import { Controller, Delete, Get, Logger, Param, Post } from '@nestjs/common';
 import { LikesService } from './likes.service';
 import { UserAccess } from '@zimoykin/auth';
-import { Profile } from 'src/decorators/cookie.decorator';
-import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
+import { Profile } from '../decorators/cookie.decorator';
+import { IProfileCookie } from '../middlewares/profile-cookie.interface';
 
-@Controller('likes')
+@Controller('api/v1/likes')
 @UserAccess()
 export class LikesController {
   private readonly logger = new Logger(LikesController.name);
