@@ -26,5 +26,6 @@ import { folders } from './models/folder.seeds';
   ],
   controllers: [FolderController, PublicFolderController],
   providers: [FolderService, PublicFolderService],
+  exports: [FolderService],
 })
 export class FolderModule {}

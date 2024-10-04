@@ -9,6 +9,7 @@ import { S3BucketModule } from '../s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from '../image-compressor/image-compressor.module';
 import { profiles } from './models/profile.seed';
 import { ProfileConsumer } from './profile.consumer';
+import { EquipmentModule } from 'src/equipment/equipment.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ProfileConsumer } from './profile.consumer';
     }),
     S3BucketModule.forFeature('profile'),
     ImageCompressorModule,
+    EquipmentModule,
     AmqpModule.forFeature(Profile.name),
   ],
   controllers: [ProfileController, PublicProfileController],

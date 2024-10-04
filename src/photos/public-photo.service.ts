@@ -22,7 +22,7 @@ export class PublicPhotoService {
     private readonly photoOfTheDayRepository: DynamoDbRepository<PhotoOfTheDay>,
     private readonly photoService: PhotoService,
     private readonly profileService: ProfileService,
-  ) {}
+  ) { }
 
   private async determinePhotoOfTheDay(): Promise<PhotoOfTheDay | null> {
     const from = DateTime.local().startOf('day').toMillis();
@@ -49,7 +49,13 @@ export class PublicPhotoService {
         photoDay: from,
       });
 
-      return newPhotoOfTheDay;
+      if (!newPhotoOfTheDay) {
+        throw new InternalServerErrorException(
+          'could not create photo of the day',
+        );
+      }
+
+      return this.photoOfTheDayRepository.findById(newPhotoOfTheDay);
     } else {
       return photoOfTheDay;
     }

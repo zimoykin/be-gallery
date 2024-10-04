@@ -13,22 +13,12 @@ export class PublicFolderService {
     @InjectRepository(Folder.name)
     private readonly folderRepository: DynamoDbRepository<Folder>,
     private readonly photoService: PhotoService,
-  ) {}
+  ) { }
 
   async findFoldersByProfileId(profileId: string) {
-    const folders = await this.folderRepository.find<Folder>({
+    return this.folderRepository.find<Folder>({
       match: { profileId, privateAccess: 0 },
     });
-
-    const result: Partial<Folder & { url }>[] = [];
-    for await (const folder of folders) {
-      const url = await this.photoService.getFavoritePhotoUrlByFolderId(
-        folder.id,
-      );
-      result.push({ ...folder, url });
-    }
-
-    return result;
   }
 
   async findFolderByIdAndProfileId(profileId: string, folderId: string) {

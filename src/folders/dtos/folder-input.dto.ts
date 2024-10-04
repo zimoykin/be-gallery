@@ -45,4 +45,11 @@ export class FolderInputDto {
   @IsUUID()
   @IsOptional()
   favoriteFotoId?: string;
+
+  @IsNumber()
+  @ApiProperty({
+    example: 0,
+  })
+  @IsOptional()
+  privateAccess?: number;
 }

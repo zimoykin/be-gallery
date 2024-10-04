@@ -41,7 +41,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
     private readonly modelCls: ModelClsT,
     // @ts-ignore
     @Optional() @Inject('DYNAMO-DB-SEEDING') private readonly seeding?: T[],
-  ) {}
+  ) { }
 
   /**
    * Returns the name of the DynamoDB table associated with this repository.
@@ -306,6 +306,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
     filter?: IScanFilter<T>,
     indexName?: string, //TODO: investigate
   ): Promise<K[]> {
+    this.logger.debug(`Finding records with filter: ${JSON.stringify(filter)}`);
     const { filterExpression, expressionAttributeValues } =
       this.buildFilterExpression(filter);
     return this.scan(
@@ -347,7 +348,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
         this.logger.error(err);
         throw err;
       });
-  }
+  };
   /**
    * Finds a record by its id.
    * @param id - The id to search for.
@@ -355,6 +356,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
    * @returns A Promise resolving to the found record.
    */
   async findById<K = T>(id: string): Promise<K | null> {
+    this.logger.debug(`findById: ${id}`);
     const primaryKey = getPrimaryKey(this.modelCls);
     try {
       const result = await this.connection.db.query({
@@ -381,7 +383,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
       if (data?.length) return data[0];
       return null;
     });
-  }
+  };
 
   /**
    * Generate a list of records from the given inputs for the given table.
@@ -467,7 +469,8 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
    * @throws {Error} - If any required property is not exists in the data object.
    * @returns A Promise resolving to the created record.
    */
-  async create<K = T>(_data: Partial<T>): Promise<K | null> {
+  async create<K = T>(_data: Partial<T>): Promise<string> {
+    this.logger.debug(`create: ${JSON.stringify(_data)}`);
     const indexes = getIndexes(this.modelCls);
     const [sortKey] = getSortKey(this.modelCls);
     const primaryKey = getPrimaryKey(this.modelCls);
@@ -511,9 +514,11 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
       new PutCommand({
         TableName: this.getTableName(),
         Item: record,
+        ReturnValues: 'NONE'
       }),
     );
-    return this.findById<K>(primaryId);
+
+    return primaryId;
   }
   async batchWrite(records: T[]) {
     const chunks = await this.generateRecordDbByChunk(...records);
@@ -552,6 +557,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
   }
 
   async update(id: string, _data: object) {
+    this.logger.debug(`UPDATE: ${JSON.stringify(_data)}`);
     const existingRecord = await this.findById(id);
 
     if (!existingRecord) {
@@ -615,9 +621,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
       UpdateExpression: 'SET ' + updateExpression.join(', '),
     });
 
-    await this.connection.db.send(update);
-
-    return this.findById(id);
+    return this.connection.db.send(update);
   }
 
   //TODO: to be checked

@@ -24,7 +24,7 @@ import { FoldeWithTotalOutputDto } from './dtos/folder-with-total-output.dto';
 @Controller('api/v1/folders')
 export class FolderController {
   private readonly logger = new Logger(FolderController.name);
-  constructor(private readonly folderService: FolderService) {}
+  constructor(private readonly folderService: FolderService) { }
 
   @Get()
   @HttpCode(200)
@@ -63,10 +63,10 @@ export class FolderController {
   @HttpCode(200)
   async update(
     @Param('id') id: string,
-    @AuthUser() user: IAuthUser,
+    @Profile() profile: IProfileCookie,
     @Body() data: FolderInputDto,
   ): Promise<FolderOutputDto> {
-    return this.folderService.updateFolder(id, data, user.id).then((data) => {
+    return this.folderService.updateFolderByProfileId(id, data, profile.profileId).then((data) => {
       return plainToInstance(FolderOutputDto, data);
     });
   }

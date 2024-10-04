@@ -24,5 +24,6 @@ import { equipments } from './models/equipment.seed';
   ],
   controllers: [EquipmentController],
   providers: [EquipmentService],
+  exports: [EquipmentService],
 })
 export class EquipmentModule {}

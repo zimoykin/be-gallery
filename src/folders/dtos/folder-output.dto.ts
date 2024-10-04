@@ -30,5 +30,8 @@ export class FolderOutputDto {
   favoriteFotoId: string;
 
   @Expose()
+  privateAccess: number;
+
+  @Expose()
   url?: string;
 }

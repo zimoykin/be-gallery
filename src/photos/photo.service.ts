@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
 import { Photo, PhotoData } from './models/photo.model';
 import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
@@ -8,6 +8,7 @@ import { ImageCompressorService } from 'src/image-compressor/image-compressor.se
 import { InternalServerError } from '@aws-sdk/client-dynamodb';
 import { PhotoType } from './enums/photo-type.enum';
 import { ProfileService } from 'src/profiles/profile.service';
+import { FolderService } from 'src/folders/folder.service';
 
 @Injectable()
 export class PhotoService {
@@ -26,8 +27,10 @@ export class PhotoService {
     @InjectS3Bucket('compressed')
     private readonly s3BucketServiceCompressed: S3BucketService,
     private readonly imageCompressorService: ImageCompressorService,
-    private readonly profileService: ProfileService,
-  ) {}
+    //@ts-ignore
+    @Inject(forwardRef(() => FolderService)) 
+    private readonly folderRepository: FolderService,
+  ) { }
 
   /**
    * Resizes an image and saves it to s3.
@@ -141,14 +144,15 @@ export class PhotoService {
         bucket: bucket,
         camera: data.camera ?? 'no info',
         sortOrder: data.sortOrder || photos.length + 1,
+        privateAccess: 0
       })
-      .then(async (data: Photo) => {
+      .then(async (id) => {
         await this.resizeImage(
           file.buffer,
-          data.id,
+          id,
           `${profileId}/${folderId}/${file.originalname}`,
         );
-        return data;
+        return { id, ...data };
       });
   }
 
@@ -157,7 +161,7 @@ export class PhotoService {
     profileId: string,
     id: string,
     type: PhotoType,
-  ): Promise<Photo & { url?: string }> {
+  ): Promise<Photo & { url?: string; }> {
     const photo = await this.photoRepository.find<Photo>({
       match: {
         folderId: folderId,
@@ -175,7 +179,7 @@ export class PhotoService {
       };
   }
 
-  async findPhotoById(id: string): Promise<Photo & { url: string }> {
+  async findPhotoById(id: string): Promise<Photo & { url: string; }> {
     const photo = await this.photoRepository.findById(id);
     if (!photo) {
       throw new NotFoundException();
@@ -203,7 +207,7 @@ export class PhotoService {
     type: PhotoType,
     profileId: string,
     privateAccess?: number,
-  ): Promise<Array<Photo & { url: string }>> {
+  ): Promise<Array<Photo & { url: string; }>> {
     const filter = {
       match: {
         folderId: folderId,
@@ -220,7 +224,7 @@ export class PhotoService {
     if (photos.length === 0) {
       return [];
     } else {
-      const sighnedPhotos: Array<Photo & { url: string }> = [];
+      const sighnedPhotos: Array<Photo & { url: string; }> = [];
 
       for await (const photo of photos) {
         const url = await this.getUrlByType(type, photo);
@@ -234,7 +238,7 @@ export class PhotoService {
     folderId: string,
     type: PhotoType,
     profileId: string,
-  ): Promise<Array<Photo & { url: string }>> {
+  ): Promise<Array<Photo & { url: string; }>> {
     return this.getPhotosByFolderIdAndProfileId(folderId, type, profileId);
   }
 
@@ -267,19 +271,6 @@ export class PhotoService {
     });
     if (!photo) {
       throw new NotFoundException();
-    }
-
-    if (photo.favorite === false && data.favorite) {
-      //set to all other photos in the folder to false
-      await this.photoRepository.updateByFilter(
-        {
-          match: {
-            folderId: folderId,
-            profileId: profileId,
-          },
-        },
-        { favorite: false },
-      );
     }
 
     return this.photoRepository.update(id, data);
@@ -332,26 +323,16 @@ export class PhotoService {
     return photos[photos.length - 1];
   }
 
-  async getFavoritePhotoUrlByFolderId(folderId: string) {
-    const favorite = await this.photoRepository.findOneByFilter({
-      match: {
-        folderId: folderId,
-        favorite: true,
-      },
-    });
-    if (favorite) {
-      return await this.getUrlByType(PhotoType.PREVIEW, favorite);
-    } else {
-      const photo = await this.photoRepository.findOneByFilter({
-        match: {
-          folderId: folderId,
-          privateAccess: 0,
-        },
-      });
-      if (photo) {
-        return await this.getUrlByType(PhotoType.PREVIEW, photo);
-      }
-      return null;
-    }
+  async setFavouriteValue(
+    profileId: string,
+    folderId: string,
+    photoId: string
+  ) {
+
+    const folder = await this.folderRepository.updateFolderByProfileId(folderId, {
+      favoriteFotoId: photoId
+    }, profileId);
+
+    return folder;
   }
 }

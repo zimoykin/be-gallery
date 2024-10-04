@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -6,6 +7,7 @@ import {
   HttpCode,
   Logger,
   Param,
+  Patch,
   Post,
   Put,
   UploadedFile,
@@ -33,7 +35,7 @@ import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
 @Controller('api/v1/photos')
 export class PhotoController {
   private readonly logger = new Logger(PhotoController.name);
-  constructor(private readonly photoService: PhotoService) {}
+  constructor(private readonly photoService: PhotoService) { }
 
   @Get(':folderId/:type')
   async getPhotoByFolderId(
@@ -92,16 +94,27 @@ export class PhotoController {
   async uploadImg(
     @Param('folderId') folderId: string,
     @Body() data: PhotoInputDto,
-    @AuthUser() user: IAuthUser,
+    @Profile() profile: IProfileCookie,
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.photoService
-      .createPhotoObject(folderId, user.id, data, file)
+      .createPhotoObject(folderId, profile.profileId, data, file)
       .then((photo) => plainToInstance(PhotoOutputDto, photo))
       .catch((err) => {
         this.logger.error(err);
         throw err;
       });
+  }
+
+  @Patch(':folderId/:photoId')
+  async setFavourite(
+    @Param('folderId') folderId: string,
+    @Param('photoId') photoId: string,
+    @Profile() profile: IProfileCookie,
+  ) {
+
+    return this.photoService.setFavouriteValue(profile.profileId, folderId, photoId);
+
   }
 
   @Put(':folderId/:photoId')
