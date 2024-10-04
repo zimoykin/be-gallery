@@ -20,13 +20,13 @@ export class S3BucketService {
     // @ts-ignore //
     @Inject('S3_BUCKET_CONNECTION') private readonly s3: S3Client,
     // @ts-ignore //
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
-  ) { }
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async upload(
     fileBuffer: Buffer,
     key: string,
-  ): Promise<{ url: string; key: string; bucketName: string; folder: string; }> {
+  ): Promise<{ url: string; key: string; bucketName: string; folder: string }> {
     const params: PutObjectCommandInput = {
       Bucket: this.bucketName,
       Key: `${this.folderName}/${key}`,
@@ -57,7 +57,6 @@ export class S3BucketService {
   }
 
   async generateSignedUrl(key: string) {
-
     // get url from cache if it exists
     const urlCached = await this.cacheManager.get(key);
 
@@ -70,7 +69,6 @@ export class S3BucketService {
       Bucket: this.bucketName,
       Key: `${this.folderName}/${key}`,
     });
-
 
     const url = await getSignedUrl(this.s3, params, {
       expiresIn: 3600,

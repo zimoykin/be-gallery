@@ -7,7 +7,7 @@ import {
   Logger,
   Param,
   Post,
-  Put
+  Put,
 } from '@nestjs/common';
 import { FolderService } from './folder.service';
 import { FolderInputDto } from './dtos/folder-input.dto';
@@ -24,17 +24,17 @@ import { FoldeWithTotalOutputDto } from './dtos/folder-with-total-output.dto';
 @Controller('api/v1/folders')
 export class FolderController {
   private readonly logger = new Logger(FolderController.name);
-  constructor(private readonly folderService: FolderService) { }
+  constructor(private readonly folderService: FolderService) {}
 
   @Get()
   @HttpCode(200)
-  async findAll(
-    @Profile() profile: IProfileCookie,
-  ) {
-    return this.folderService.findAllFolderByProfileIdAndTotalPhotos(profile.profileId)
+  async findAll(@Profile() profile: IProfileCookie) {
+    return this.folderService
+      .findAllFolderByProfileIdAndTotalPhotos(profile.profileId)
       .then((data) => {
         return plainToInstance(FoldeWithTotalOutputDto, data);
-      }).catch((error) => {
+      })
+      .catch((error) => {
         this.logger.error(error);
         return [];
       });
@@ -48,7 +48,10 @@ export class FolderController {
 
   @Post()
   @HttpCode(200)
-  async create(@Profile() profile: IProfileCookie, @Body() data: FolderInputDto) {
+  async create(
+    @Profile() profile: IProfileCookie,
+    @Body() data: FolderInputDto,
+  ) {
     return this.folderService
       .createFolder({ ...data }, profile.profileId)
       .then((data) => {

@@ -1,4 +1,4 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { DynamicModule, InjectionToken, Module } from '@nestjs/common';
 import {
   S3Client,
   CreateBucketCommand,
@@ -16,8 +16,10 @@ interface S3BucketModuleOptions {
 }
 
 interface S3BucketModuleOptionsAsync {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useFactory: (args: any) => S3BucketModuleOptions;
-  inject: any[];
+  inject: InjectionToken[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   imports: any[];
 }
 

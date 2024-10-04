@@ -13,14 +13,14 @@ import { ProfileConsumer } from './profile.consumer';
 @Module({
   imports: [
     DynamodbModule.forFeature(Profile, {
-      seeding: profiles
+      seeding: profiles,
     }),
     S3BucketModule.forFeature('profile'),
     ImageCompressorModule,
-    AmqpModule.forFeature(Profile.name)
+    AmqpModule.forFeature(Profile.name),
   ],
   controllers: [ProfileController, PublicProfileController],
   providers: [ProfileService, ProfileConsumer],
-  exports: [ProfileService]
+  exports: [ProfileService],
 })
-export class ProfileModule { }
+export class ProfileModule {}

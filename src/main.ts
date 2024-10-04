@@ -14,9 +14,8 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.CROSS_ORIGIN ?? '*',
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true
+    credentials: true,
   });
-
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -33,9 +32,7 @@ async function bootstrap() {
   // swagger config
   const config = new DocumentBuilder()
     .setTitle('Gallery Service')
-    .setDescription(
-      'This service based on nestjs-template-9',
-    )
+    .setDescription('This service based on nestjs-template-9')
     .setVersion('1.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },

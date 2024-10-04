@@ -12,7 +12,7 @@ export async function createTable(
   tableName: string,
   primaryKey: string,
   sortKey?: [string, 'N' | 'S' | 'B'],
-  indexes?: { indexName: string; type: 'N' | 'S' | 'B'; }[],
+  indexes?: { indexName: string; type: 'N' | 'S' | 'B' }[],
 ) {
   if (!tableName) {
     throw new Error('Table name is not defined');
@@ -58,7 +58,7 @@ export async function createTable(
 
   const _LocalSecondaryIndexes: LocalSecondaryIndex[] = [];
 
-  for (const { indexName, type } of indexes ?? []) {
+  for (const { indexName } of indexes ?? []) {
     _LocalSecondaryIndexes.push({
       IndexName: `${String(indexName)}_Index`,
       KeySchema: [
@@ -101,7 +101,9 @@ export async function createTable(
     TableName: tableName,
     AttributeDefinitions: _AttributeDefinitions,
     KeySchema: keySchema,
-    LocalSecondaryIndexes: _LocalSecondaryIndexes?.length ? _LocalSecondaryIndexes : undefined,
+    LocalSecondaryIndexes: _LocalSecondaryIndexes?.length
+      ? _LocalSecondaryIndexes
+      : undefined,
     ProvisionedThroughput: {
       ReadCapacityUnits: 1,
       WriteCapacityUnits: 1,
@@ -110,7 +112,6 @@ export async function createTable(
       StreamEnabled: false,
     },
   });
-  
 
   logger.debug(`Table ${tableName} is created`);
 

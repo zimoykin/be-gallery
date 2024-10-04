@@ -13,7 +13,9 @@ export interface IConnectionOptions {
 
 export interface IConnectionAsyncOptions {
   inject?: InjectionToken[];
+  // eslint-disable-next-line
   useFactory: (...args: any[]) => IConnectionOptions;
+  // eslint-disable-next-line
   imports: any[];
 }
 

@@ -1,7 +1,7 @@
-import { IProfile } from "src/profiles/interfaces/profile.interface";
-import { IPhoto } from "./photo.interface";
+import { IProfile } from 'src/profiles/interfaces/profile.interface';
+import { IPhoto } from './photo.interface';
 
 export interface IPhotoOfTheDay {
-    photo: IPhoto,
-    profile: IProfile
+  photo: IPhoto;
+  profile: IProfile;
 }

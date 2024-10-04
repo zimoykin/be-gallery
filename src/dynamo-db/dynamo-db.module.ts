@@ -1,4 +1,10 @@
-import { DynamicModule, Logger, Module, OnApplicationBootstrap, Provider } from '@nestjs/common';
+import {
+  DynamicModule,
+  Logger,
+  Module,
+  OnApplicationBootstrap,
+  Provider,
+} from '@nestjs/common';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DynamoDbRepository } from './dynamo-db.repository';
 import { getModelToken } from './decorators/model-token.helper';
@@ -7,12 +13,17 @@ import {
   IConnectionAsyncOptions,
   IConnectionOptions,
 } from './dynamo-db.interfaces';
+import { factoryConstructor } from './interfaces/factory.type';
 
 @Module({})
 export class DynamodbModule implements OnApplicationBootstrap {
   private readonly logger = new Logger(DynamodbModule.name);
   private static client: IConnection;
-  private static seedingQueeue: Map<string, any> = new Map();
+  private static seedingQueeue: Map<
+    string,
+    // eslint-disable-next-line
+    { data: any; instance: DynamoDbRepository<any>; }
+  > = new Map();
   /**
    * Creates a DynamoDB client if it doesn't exist, and returns it. If the
    * `prefixCollection` option is provided, it will be stored for use by the
@@ -47,7 +58,13 @@ export class DynamodbModule implements OnApplicationBootstrap {
     }
   }
 
-  static appendSeedingQueue(table: string, instance: DynamoDbRepository, data: any) {
+  static appendSeedingQueue<T extends object>(
+    table: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    instance: DynamoDbRepository<T>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: T[],
+  ) {
     this.seedingQueeue.set(table, { data, instance });
   }
 
@@ -100,11 +117,11 @@ export class DynamodbModule implements OnApplicationBootstrap {
   }
 
   static forFeature<T>(
-    cls: new (...args: any) => T,
+    cls: new () => T,
     opts?: {
-      connectionName?: string,
+      connectionName?: string;
       seeding?: T[] | (() => T[]);
-    }
+    },
   ): DynamicModule {
     const providers: Provider[] = [
       {

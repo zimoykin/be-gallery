@@ -27,8 +27,8 @@ export class Photo {
   film?: string;
   location?: string;
   description?: string;
-  favorite: boolean = false;
-  
+  favorite = false;
+
   @Required()
   bucket: {
     bucketName: string;
@@ -53,10 +53,8 @@ export class Photo {
     previewHeight: number;
   };
 
-  likes: number = 0;
-
   @Index('N')
-  privateAccess: number = 1; // 0: public, 1: private
+  privateAccess = 1; // 0: public, 1: private
 }
 
 export type PhotoData = Omit<Photo, 'id'>;

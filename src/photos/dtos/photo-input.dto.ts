@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class PhotoInputDto {
   @IsNumber()
@@ -59,7 +65,6 @@ export class PhotoInputDto {
   })
   @Type(() => Number)
   privateAccess?: number; // 0 = public, 1 = private
-
 
   @IsBoolean()
   @IsOptional()

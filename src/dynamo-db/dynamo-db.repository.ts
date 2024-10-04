@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  OnModuleInit,
+  Optional,
+} from '@nestjs/common';
 import { IConnection } from './dynamo-db.interfaces';
 import { getIndexes } from './decorators/index.decorator';
 import {
@@ -20,18 +26,22 @@ import { factoryConstructor } from './interfaces/factory.type';
 import { toPlainObject } from 'lodash';
 import { DynamodbModule } from './dynamo-db.module';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ModelClsT = new (...args: any[]) => any;
+
 @Injectable()
-export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
+export class DynamoDbRepository<T extends object> implements OnModuleInit {
   private readonly logger: Logger = new Logger(DynamoDbRepository.name);
 
   constructor(
     //@ts-ignore//
     @Inject('DYNAMO-DB-CONNECTION') private readonly connection: IConnection,
     //@ts-ignore//
-    @Inject('DYNAMO-DB-MODEL') private readonly modelCls: new (...args: any[]) => T,
+    @Inject('DYNAMO-DB-MODEL')
+    private readonly modelCls: ModelClsT,
     // @ts-ignore
     @Optional() @Inject('DYNAMO-DB-SEEDING') private readonly seeding?: T[],
-  ) { }
+  ) {}
 
   /**
    * Returns the name of the DynamoDB table associated with this repository.
@@ -63,37 +73,40 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     );
 
     //if table is created, seed data
-    if (
-      isCreated &&
-      this.seeding?.length) {
+    if (isCreated && this.seeding?.length) {
       let status = 'CREATING';
       let incr = 0;
 
       while (status === 'CREATING' && incr < 10) {
         incr++;
-        const tableInfo = await this.connection.db.describeTable({ TableName: this.getTableName() });
+        const tableInfo = await this.connection.db.describeTable({
+          TableName: this.getTableName(),
+        });
         status = tableInfo.Table?.TableStatus ?? status;
 
         if (status === 'ACTIVE') {
           break;
         }
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
       if (status == 'ACTIVE') {
         DynamodbModule.appendSeedingQueue(
           this.getTableName(),
           this,
-          this.seeding
+          this.seeding,
         );
       } else {
-        this.logger.error(`Table ${this.getTableName()} is not created, seeding data failed`);
+        this.logger.error(
+          `Table ${this.getTableName()} is not created, seeding data failed`,
+        );
       }
     }
-
   }
 
-  private transfromDataToObject(marschalledData: any) {
+  private transfromDataToObject(
+    marschalledData: Record<string, AttributeValue>,
+  ) {
     const data = unmarshall(marschalledData);
     const primaryKey = getPrimaryKey(this.modelCls);
     const [sortKey] = getSortKey(this.modelCls);
@@ -114,8 +127,10 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
    * and the values are the values of the filter operations.
    * The attribute values are marshalled to DynamoDB attribute values.
    */
-  private buildFilterExpression(filter?: IScanFilter<T>): { filterExpression: string; expressionAttributeValues: Record<string, AttributeValue>; } {
-
+  private buildFilterExpression(filter?: IScanFilter<T>): {
+    filterExpression: string;
+    expressionAttributeValues: Record<string, AttributeValue>;
+  } {
     const filterExpression: string[] = [];
     const filterORExpression: string[] = [];
     const expressionAttributeValues = {};
@@ -189,20 +204,18 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
             break;
           }
         }
-      }
-      );
+      });
     }
-    //merge filters or 
+    //merge filters or
     if (filterORExpression.length > 0)
-      filterExpression.push(
-        `( ${filterORExpression.join(' OR ')} )`
-      );
+      filterExpression.push(`( ${filterORExpression.join(' OR ')} )`);
 
     return {
       filterExpression: filterExpression.join(' AND '),
-      expressionAttributeValues: marshall(expressionAttributeValues, { removeUndefinedValues: true }),
+      expressionAttributeValues: marshall(expressionAttributeValues, {
+        removeUndefinedValues: true,
+      }),
     };
-
   }
 
   /**
@@ -211,23 +224,23 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
    * @param data The object to remove undefined values from.
    * @returns The object with undefined values removed.
    */
-  private plainObjectNested(data: any) {
+  private plainObjectNested(data: object) {
     for (const [key, value] of Object.entries(data)) {
       if (value == undefined) {
         delete data[key];
-      } else
-        if (Array.isArray(value)) {
-          data[key] = value.map((item: any) => ({ ...this.plainObjectNested(item) }));
-        } else if (typeof value === 'object') {
-          data[key] = { ...this.plainObjectNested(value) };
-        } else {
-          data[key] = value;
-        }
+      } else if (Array.isArray(value)) {
+        data[key] = value.map((item) => ({
+          ...this.plainObjectNested(item),
+        }));
+      } else if (typeof value === 'object') {
+        data[key] = { ...this.plainObjectNested(value) };
+      } else {
+        data[key] = value;
+      }
     }
 
     return data;
   }
-
 
   /**
    * Scans the DynamoDB table and applies the given filter expression to the records.
@@ -247,22 +260,22 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     indexName?: string,
     accumulator: T[] = [],
     lastKey?: Record<string, AttributeValue>,
-    limit?: number
+    limit?: number,
   ) {
-    const result = await this.connection.db
-      .scan({
-        TableName: this.getTableName(),
-        IndexName: indexName ? `${indexName}_Index` : undefined,
-        FilterExpression: filterExpression?.length ? filterExpression : undefined,
-        ExpressionAttributeValues: filterExpression?.length ? expressionAttributeValues : undefined,
-        ExclusiveStartKey: lastKey || undefined,
-      });
+    const result = await this.connection.db.scan({
+      TableName: this.getTableName(),
+      IndexName: indexName ? `${indexName}_Index` : undefined,
+      FilterExpression: filterExpression?.length ? filterExpression : undefined,
+      ExpressionAttributeValues: filterExpression?.length
+        ? expressionAttributeValues
+        : undefined,
+      ExclusiveStartKey: lastKey || undefined,
+    });
 
     const acc = [
       ...accumulator,
-      ...result.Items?.map((item) =>
-        this.transfromDataToObject(item),
-      ) ?? []];
+      ...(result.Items?.map((item) => this.transfromDataToObject(item)) ?? []),
+    ];
 
     if (limit && acc.length >= limit) {
       return acc.splice(0, limit);
@@ -275,14 +288,12 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
         indexName,
         acc,
         result.LastEvaluatedKey,
-        limit
+        limit,
       );
     } else {
       return acc;
     }
-
   }
-
 
   /**
    * Reads all records from the DynamoDB table that match the given filter.
@@ -295,9 +306,16 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     filter?: IScanFilter<T>,
     indexName?: string, //TODO: investigate
   ): Promise<K[]> {
-
-    const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
-    return this.scan(filterExpression, expressionAttributeValues, indexName, [], undefined, filter?.limit);
+    const { filterExpression, expressionAttributeValues } =
+      this.buildFilterExpression(filter);
+    return this.scan(
+      filterExpression,
+      expressionAttributeValues,
+      indexName,
+      [],
+      undefined,
+      filter?.limit,
+    );
   }
 
   /**
@@ -311,8 +329,8 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     filter?: IScanFilter<T>,
     indexName?: string,
   ): Promise<number> {
-
-    const { filterExpression, expressionAttributeValues } = this.buildFilterExpression(filter);
+    const { filterExpression, expressionAttributeValues } =
+      this.buildFilterExpression(filter);
 
     return this.connection.db
       .scan({
@@ -320,7 +338,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
         IndexName: indexName ? `${indexName}_Index` : undefined,
         FilterExpression: filterExpression,
         ExpressionAttributeValues: expressionAttributeValues,
-        Select: 'COUNT'
+        Select: 'COUNT',
       })
       .then((data) => {
         return data.Count ?? 0;
@@ -329,7 +347,6 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
         this.logger.error(err);
         throw err;
       });
-
   }
   /**
    * Finds a record by its id.
@@ -366,7 +383,6 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     });
   }
 
-
   /**
    * Generate a list of records from the given inputs for the given table.
    *
@@ -380,15 +396,16 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
    * @param inputs - The inputs to generate the records from.
    * @returns A Promise resolving to the generated records.
    */
-  private async generateRecordDbByChunk(...inputs: T[]): Promise<Array<Array<Record<string, any>>>> {
-
+  private async generateRecordDbByChunk(
+    ...inputs: T[]
+  ): Promise<Array<Array<Record<string, object | string | number | boolean>>>> {
     const indexes = getIndexes(this.modelCls);
-    const [sortKey,] = getSortKey(this.modelCls);
+    const [sortKey] = getSortKey(this.modelCls);
     const primaryKey = getPrimaryKey(this.modelCls);
     const required = getRequired(this.modelCls) || [];
 
     const records: {
-      [x: string]: any;
+      [x: string]: string | number | object;
       data: T;
     }[] = [];
 
@@ -401,7 +418,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
 
       let data = factoryConstructor(this.modelCls)() as unknown as T;
       data = this.plainObjectNested(
-        toPlainObject(Object.assign(data, item))
+        toPlainObject(Object.assign(data, item)),
       ) as T;
 
       const record = {
@@ -430,17 +447,18 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     }
 
     if (records?.length > 25) {
-      let init = 0; let step = 25;
-      const result: Array<Array<Record<string, any>>> = [];
+      const init = 0;
+      const step = 25;
+      const result: Array<
+        Array<Record<string, object | string | number | boolean>>
+      > = [];
       for (let i = init; i < records.length; i += step) {
         const chunk = records.slice(i, i + step);
         result.push(chunk);
       }
 
       return result;
-    }
-    else
-      return [records];
+    } else return [records];
   }
   /**
    * Creates a new record in DynamoDB.
@@ -451,7 +469,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
    */
   async create<K = T>(_data: Partial<T>): Promise<K | null> {
     const indexes = getIndexes(this.modelCls);
-    const [sortKey,] = getSortKey(this.modelCls);
+    const [sortKey] = getSortKey(this.modelCls);
     const primaryKey = getPrimaryKey(this.modelCls);
     const required = getRequired(this.modelCls) || [];
 
@@ -463,7 +481,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
 
     let data = factoryConstructor(this.modelCls)() as unknown as T;
     data = this.plainObjectNested(
-      toPlainObject(Object.assign(data, _data))
+      toPlainObject(Object.assign(data, _data)),
     ) as T;
 
     const record = {
@@ -472,12 +490,11 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
       data: { ...data },
     };
 
-    for (const { indexName, type } of indexes) {
+    for (const { indexName } of indexes) {
       if (data[indexName] !== undefined) {
         record[String(indexName)] = data[indexName];
       }
     }
-
 
     if (record[String(sortKey)] === undefined) {
       throw new Error(`Sort key ${sortKey} is not exists`);
@@ -502,8 +519,8 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
     const chunks = await this.generateRecordDbByChunk(...records);
     const tableName = this.getTableName();
 
-
     chunks.forEach(async (chunk) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const batch: any[] = [];
       chunk.forEach((record) => {
         batch.push({
@@ -513,36 +530,40 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
         });
       });
 
-      await this.connection.db.send(new BatchWriteCommand({
-        ReturnConsumedCapacity: 'TOTAL',
-        RequestItems: {
-          [tableName]: batch
-        }
-      }))
+      await this.connection.db
+        .send(
+          new BatchWriteCommand({
+            ReturnConsumedCapacity: 'TOTAL',
+            RequestItems: {
+              [tableName]: batch,
+            },
+          }),
+        )
         .then(() => {
           this.logger.log(`Batch write: ${JSON.stringify(chunk)}`);
         })
-        .catch(err => {
+        .catch((err) => {
           this.logger.error(err);
           throw err;
         });
       //we have to wait aws limit 25 records per second
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
+      await new Promise((resolve) => setTimeout(resolve, 3000));
     });
   }
 
-  async update(id: string, _data: any) {
+  async update(id: string, _data: object) {
     const existingRecord = await this.findById(id);
 
     if (!existingRecord) {
       throw new Error('not found');
     }
 
-    const data = this.plainObjectNested(toPlainObject(Object.assign(existingRecord, _data))) as T;
+    const data = this.plainObjectNested(
+      toPlainObject(Object.assign(existingRecord, _data)),
+    ) as T;
 
     const indexes = getIndexes(this.modelCls);
-    const [sortKey, type] = getSortKey(this.modelCls);
+    const [sortKey] = getSortKey(this.modelCls);
     const primaryKey = getPrimaryKey(this.modelCls);
     const required = getRequired(this.modelCls) || [];
 
@@ -556,7 +577,7 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
       data: data,
     };
 
-    for (const { indexName, type } of indexes) {
+    for (const { indexName } of indexes) {
       if (data[indexName] == undefined) {
         throw new Error(`${indexName} is required`);
       }
@@ -600,11 +621,13 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
   }
 
   //TODO: to be checked
-  async updateByFilter<K = T>(filter: IScanFilter<T>, _data: any) {
+  async updateByFilter<K = T>(filter: IScanFilter<T>, _data: object) {
     const records = await this.find(filter);
-    const data = records.map(record => this.plainObjectNested(toPlainObject(Object.assign(record, _data)))) as K[];
+    const data = records.map((record) =>
+      this.plainObjectNested(toPlainObject(Object.assign(record, _data))),
+    ) as K[];
     const indexes = getIndexes(this.modelCls);
-    const [sortKey, type] = getSortKey(this.modelCls);
+    const [sortKey] = getSortKey(this.modelCls);
     const primaryKey = getPrimaryKey(this.modelCls);
     const required = getRequired(this.modelCls) || [];
 
@@ -660,14 +683,12 @@ export class DynamoDbRepository<T extends {} = any> implements OnModuleInit {
       await this.connection.db.send(update);
     }
 
-
     return true;
   }
 
-
   async remove(id: string) {
     const primaryKey = getPrimaryKey(this.modelCls);
-    const [sortKey, type] = getSortKey(this.modelCls);
+    const [sortKey] = getSortKey(this.modelCls);
     const existingRecord = await this.findById(id);
     if (!existingRecord) {
       throw new Error('not found');

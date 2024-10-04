@@ -9,28 +9,25 @@ import { profiles } from 'src/profiles/models/profile.seed';
 @Module({
   imports: [
     DynamodbModule.forFeature(Message, {
-
-
       seeding: () => {
-
         const msg: Omit<Message, 'id'>[] = [];
-        messages.forEach(message => {
-          profiles.forEach(profile1 => {
-            profiles.forEach(profile2 => {
+        messages.forEach((message) => {
+          profiles.forEach((profile1) => {
+            profiles.forEach((profile2) => {
               msg.push({
                 ...message,
                 senderId: profile1.id,
-                receiverId: profile2.id
+                receiverId: profile2.id,
               });
             });
           });
         });
 
         return msg;
-      }
-    })
+      },
+    }),
   ],
   providers: [MessagesService],
-  controllers: [MessagesController]
+  controllers: [MessagesController],
 })
-export class MessagesModule { }
+export class MessagesModule {}

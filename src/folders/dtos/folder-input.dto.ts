@@ -42,7 +42,6 @@ export class FolderInputDto {
   })
   sortOrder: number;
 
-
   @IsUUID()
   @IsOptional()
   favoriteFotoId?: string;

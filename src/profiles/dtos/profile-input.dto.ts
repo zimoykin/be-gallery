@@ -1,28 +1,26 @@
-import { IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
-import { Type } from "class-transformer";
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class ProfileInDto {
-    @IsString()
-    name: string;
+  @IsString()
+  name: string;
 
-    @IsNumber()
-    @IsOptional()
-    privateAccess?: number;
+  @IsNumber()
+  @IsOptional()
+  privateAccess?: number;
 
-    @IsString()
-    @IsOptional()
-    bio?: string;
+  @IsString()
+  @IsOptional()
+  bio?: string;
 
-    @IsString()
-    @IsOptional()
-    location?: string;
+  @IsString()
+  @IsOptional()
+  location?: string;
 
-    @IsString()
-    @IsOptional()
-    website?: string;
+  @IsString()
+  @IsOptional()
+  website?: string;
 
-    @IsString()
-    @IsOptional()
-    email?: string;
-
+  @IsString()
+  @IsOptional()
+  email?: string;
 }
