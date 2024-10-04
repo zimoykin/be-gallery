@@ -1,21 +1,20 @@
-import { Exclude, Expose } from "class-transformer";
-import { IsIn, IsString } from "class-validator";
+import { Exclude, Expose } from 'class-transformer';
+import { IsIn, IsString } from 'class-validator';
 
 @Exclude()
 export class EquipmentOutputDto {
+  @Expose()
+  id: string;
 
-    @Expose()
-    id: string;
+  @Expose()
+  @IsString()
+  name: string;
 
-    @Expose()
-    @IsString()
-    name: string;
+  @Expose()
+  favorite = 0; // 1 - true, 0 - false
 
-    @Expose()
-    favorite: number = 0; // 1 - true, 0 - false 
-
-    @Expose()
-    @IsString()
-    @IsIn(['camera', 'lens', 'other'])
-    category: 'camera' | 'lens' | 'other';
+  @Expose()
+  @IsString()
+  @IsIn(['camera', 'lens', 'other'])
+  category: 'camera' | 'lens' | 'other';
 }

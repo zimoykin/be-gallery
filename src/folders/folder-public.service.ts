@@ -11,19 +11,20 @@ export class PublicFolderService {
   constructor(
     // @ts-ignore //
     @InjectRepository(Folder.name)
-    private readonly folderRepository: DynamoDbRepository,
+    private readonly folderRepository: DynamoDbRepository<Folder>,
     private readonly photoService: PhotoService,
-  ) { }
+  ) {}
 
   async findFoldersByProfileId(profileId: string) {
-    const folders = await this.folderRepository
-      .find<Folder>({
-        match: { profileId, privateAccess: 0 }
-      });
+    const folders = await this.folderRepository.find<Folder>({
+      match: { profileId, privateAccess: 0 },
+    });
 
-    const result: Partial<Folder & { url; }>[] = [];
+    const result: Partial<Folder & { url }>[] = [];
     for await (const folder of folders) {
-      const url = await this.photoService.getFavoritePhotoUrlByFolderId(folder.id);
+      const url = await this.photoService.getFavoritePhotoUrlByFolderId(
+        folder.id,
+      );
       result.push({ ...folder, url });
     }
 
@@ -32,15 +33,14 @@ export class PublicFolderService {
 
   async findFolderByIdAndProfileId(profileId: string, folderId: string) {
     const filter = {
-      match: { id: folderId, profileId, private: false }
+      match: { id: folderId, profileId, private: false },
     };
 
     const [data, count] = await Promise.all([
       this.folderRepository.find<Folder>(filter),
-      this.photoService.getTotalPhotosByFolderId(folderId, profileId)
+      this.photoService.getTotalPhotosByFolderId(folderId, profileId),
     ]);
 
     return { ...data, totalPhotos: count || 0 };
   }
-
 }

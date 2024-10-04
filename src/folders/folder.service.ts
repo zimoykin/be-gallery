@@ -1,4 +1,9 @@
-import { BadGatewayException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
 import { Folder } from './models/folder.model';
 import { DynamoDbRepository } from '../dynamo-db/dynamo-db.repository';
@@ -13,13 +18,12 @@ export class FolderService {
   constructor(
     // @ts-ignore //
     @InjectRepository(Folder.name)
-    private readonly folderRepository: DynamoDbRepository,
+    private readonly folderRepository: DynamoDbRepository<Folder>,
     private readonly photoService: PhotoService,
-    private readonly profileService: ProfileService
-  ) { }
+    private readonly profileService: ProfileService,
+  ) {}
 
   async findUserFolderByIdAndUserId(id: string, userId: string) {
-
     const profile = await this.profileService.findProfileByUserId(userId);
     if (!profile) {
       throw new NotFoundException('Profile not found');
@@ -29,8 +33,10 @@ export class FolderService {
   }
 
   async findUserFolderByIdAndProfileId(id: string, profileId: string) {
-    const count = await this.photoService
-      .getTotalPhotosByFolderId(id, profileId);
+    const count = await this.photoService.getTotalPhotosByFolderId(
+      id,
+      profileId,
+    );
 
     return this.folderRepository
       .findOneByFilter<Folder>({
@@ -49,23 +55,39 @@ export class FolderService {
       throw new NotFoundException('Profile not found');
     }
 
-    const folders = await this.folderRepository.find<Folder>({ match: { profileId: profile.id } });
-    return Promise.all(folders.map(async folder => {
-      const count = await this.photoService.getTotalPhotosByFolderId(folder.id, profile.id);
-      return { ...folder, totalPhotos: count };
-    }));
+    const folders = await this.folderRepository.find<Folder>({
+      match: { profileId: profile.id },
+    });
+    return Promise.all(
+      folders.map(async (folder) => {
+        const count = await this.photoService.getTotalPhotosByFolderId(
+          folder.id,
+          profile.id,
+        );
+        return { ...folder, totalPhotos: count };
+      }),
+    );
   }
 
   async findAllFolderByProfileIdAndTotalPhotos(profileId: string) {
-    const folders = await this.folderRepository.find<Folder>({ match: { profileId: profileId } });
-    return Promise.all(folders.map(async folder => {
-      const count = await this.photoService.getTotalPhotosByFolderId(folder.id, profileId);
-      return { ...folder, totalPhotos: count };
-    }));
+    const folders = await this.folderRepository.find<Folder>({
+      match: { profileId: profileId },
+    });
+    return Promise.all(
+      folders.map(async (folder) => {
+        const count = await this.photoService.getTotalPhotosByFolderId(
+          folder.id,
+          profileId,
+        );
+        return { ...folder, totalPhotos: count };
+      }),
+    );
   }
 
   async createFolder(data: Partial<Folder>, profileId: string) {
-    const userFolders = await this.findAllFolderByProfileIdAndTotalPhotos(profileId);
+    const userFolders = await this.findAllFolderByProfileIdAndTotalPhotos(
+      profileId,
+    );
     if (userFolders.length >= 10) {
       throw new BadGatewayException(
         `You can't create more than 10 folders. You have ${userFolders.length}`,
@@ -80,7 +102,10 @@ export class FolderService {
       throw new NotFoundException('Profile not found');
     }
 
-    const userFolder = await this.findUserFolderByIdAndProfileId(id, profile?.id);
+    const userFolder = await this.findUserFolderByIdAndProfileId(
+      id,
+      profile?.id,
+    );
     if (!userFolder) {
       throw new NotFoundException(`Folder with id ${id} not found`);
     }
@@ -93,7 +118,10 @@ export class FolderService {
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
-    const userFolder = await this.findUserFolderByIdAndProfileId(id, profile?.id);
+    const userFolder = await this.findUserFolderByIdAndProfileId(
+      id,
+      profile?.id,
+    );
     if (!userFolder) {
       throw new NotFoundException(`Folder with id ${id} not found`);
     }

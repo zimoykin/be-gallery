@@ -15,14 +15,16 @@ import { folders } from './models/folder.seeds';
     DynamodbModule.forFeature(Folder, {
       seeding() {
         return profiles
-          .map(profile => {
+          .map((profile) => {
             return folders(profile.id);
           })
           .flat();
       },
     }),
-    PhotoModule, ProfileModule],
+    PhotoModule,
+    ProfileModule,
+  ],
   controllers: [FolderController, PublicFolderController],
   providers: [FolderService, PublicFolderService],
 })
-export class FolderModule { }
+export class FolderModule {}

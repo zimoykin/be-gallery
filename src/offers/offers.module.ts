@@ -10,16 +10,16 @@ import { profiles } from 'src/profiles/models/profile.seed';
   imports: [
     DynamodbModule.forFeature(Offer, {
       seeding: () => {
-        return offers('').map(offer => {
+        return offers('').map((offer) => {
           return {
             ...offer,
-            profileId: profiles[Math.floor(Math.random() * profiles.length)].id
-          }
-        })
-      }
-    })
+            profileId: profiles[Math.floor(Math.random() * profiles.length)].id,
+          };
+        });
+      },
+    }),
   ],
   providers: [OffersService],
-  controllers: [OffersController]
+  controllers: [OffersController],
 })
-export class OffersModule { }
+export class OffersModule {}

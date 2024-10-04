@@ -30,7 +30,7 @@ export class Folder {
 
   @Index('N')
   @Required()
-  privateAccess: number = 0; // 0: public, 1: private
+  privateAccess = 0; // 0: public, 1: private
 
   favoriteFotoId?: string;
 }

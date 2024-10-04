@@ -18,10 +18,10 @@ import { ProfileModule } from 'src/profiles/profile.module';
     S3BucketModule.forFeature('preview'),
     S3BucketModule.forFeature('compressed'),
     ImageCompressorModule,
-    ProfileModule
+    ProfileModule,
   ],
   controllers: [PhotoController, PhotoPublicController],
   providers: [PhotoService, PublicPhotoService],
   exports: [PhotoService],
 })
-export class PhotoModule { }
+export class PhotoModule {}

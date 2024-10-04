@@ -3,7 +3,7 @@ import 'reflect-metadata';
 const PRIMARYT_METADATA_KEY = Symbol('primaryKey');
 
 export function PrimaryKey(): PropertyDecorator {
-  return (target: Object, propertyKey: string | symbol) => {
+  return (target: object, propertyKey: string | symbol) => {
     let primaryKey =
       Reflect.getMetadata(PRIMARYT_METADATA_KEY, target) || undefined;
     primaryKey = propertyKey;
@@ -11,6 +11,6 @@ export function PrimaryKey(): PropertyDecorator {
   };
 }
 
-export function getPrimaryKey(target: Object): string {
+export function getPrimaryKey(target: object): string {
   return Reflect.getMetadata(PRIMARYT_METADATA_KEY, target) || undefined;
 }

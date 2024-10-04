@@ -21,11 +21,9 @@ export class ImageCompressorService {
     }
   }
 
-  async convertSvgToJpg(svgBuffer: any) {
+  async convertSvgToJpg(svgBuffer: unknown) {
     try {
-      const jpgBuffer = await sharp(svgBuffer)
-        .jpeg()
-        .toBuffer();
+      const jpgBuffer = await sharp(String(svgBuffer)).jpeg().toBuffer();
 
       return jpgBuffer;
     } catch (error) {
@@ -35,7 +33,7 @@ export class ImageCompressorService {
 
   async getImageSize(
     buffer: Buffer,
-  ): Promise<{ width: number; height: number; }> {
+  ): Promise<{ width: number; height: number }> {
     const metadata = await sharp(buffer).metadata();
     return {
       width: metadata.width ?? 0,

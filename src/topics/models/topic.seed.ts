@@ -1,12 +1,12 @@
-import { Topic } from "./topic.model";
+import { Topic } from './topic.model';
 
-export const topics:Topic[] = [
-    {
-        id: 'eda5aa95-0da8-404f-abe9-6a8932614c61',
-        title: "How to choose your first camera wisely?",
-        url: "bg/topic-1.jpeg",
-        profileId: '',
-        text: `
+export const topics: Topic[] = [
+  {
+    id: 'eda5aa95-0da8-404f-abe9-6a8932614c61',
+    title: 'How to choose your first camera wisely?',
+    url: 'bg/topic-1.jpeg',
+    profileId: '',
+    text: `
           Choosing the right camera lens depends on what you’re trying to capture and the effect you want to achieve. Here's a guide on different types of lenses and their uses:
   
   1. Standard Lenses (35mm to 70mm)
@@ -44,13 +44,13 @@ export const topics:Topic[] = [
   Purpose: Think about what you’ll be photographing most often — landscapes, portraits, sports, etc. This will help you decide whether you need a wide-angle, telephoto, or prime lens.
   Each lens type serves a different purpose, so it's useful to match the lens to your specific needs, whether it’s for versatility, creativity, or focusing on detail.'
   `,
-    },
-    {
-        id: '9273935c-1f61-4b47-90dc-87924f4d0fce',
-        title: "What is your best lens?",
-        profileId: '',
-        url: "bg/topic-2.jpeg",
-        text: `
+  },
+  {
+    id: '9273935c-1f61-4b47-90dc-87924f4d0fce',
+    title: 'What is your best lens?',
+    profileId: '',
+    url: 'bg/topic-2.jpeg',
+    text: `
       Choosing your first camera can be exciting but also overwhelming with so many options on the market. Here’s a guide on what to consider when buying your first camera:
   
   1. Types of Cameras
@@ -112,14 +112,14 @@ export const topics:Topic[] = [
   When choosing your first camera, think about how you plan to use it (e.g., for travel, portraits, landscapes), your budget, and whether you want room to grow into more advanced photography. If possible, try out different cameras in a store to see which feels most comfortable in your hands. Starting with a versatile, easy-to-use camera is key, and you can always upgrade your gear as your skills improve!
   
           `,
-    },
+  },
 
-    {
-        id: 'a6c75276-6430-4a8d-bb64-69bf076f80d0',
-        title: "How to choose the right film for your photos?",
-        profileId: '',
-        url: "bg/topic-3.jpeg",
-        text: `
+  {
+    id: 'a6c75276-6430-4a8d-bb64-69bf076f80d0',
+    title: 'How to choose the right film for your photos?',
+    profileId: '',
+    url: 'bg/topic-3.jpeg',
+    text: `
           Choosing the right film for your photos depends on the aesthetic you want to achieve and the shooting conditions. Here are key factors to consider:
   
   ### 1. **Film Speed (ISO)**
@@ -152,5 +152,5 @@ export const topics:Topic[] = [
   
   By experimenting with different film stocks, you can find the one that best suits your style and needs.
           `,
-    },
+  },
 ];

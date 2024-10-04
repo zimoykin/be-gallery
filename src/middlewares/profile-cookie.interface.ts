@@ -1,4 +1,4 @@
 export interface IProfileCookie {
-    profileId: string;
-    userId: string;
+  profileId: string;
+  userId: string;
 }

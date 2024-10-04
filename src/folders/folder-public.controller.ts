@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Logger,
-  Param,
-} from '@nestjs/common';
+import { Controller, Get, Logger, Param } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { FolderOutputDto } from './dtos/folder-output.dto';
 import { PublicFolderService } from './folder-public.service';
@@ -13,16 +8,13 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller('api/v1/public/folders')
 export class PublicFolderController {
   private readonly logger = new Logger(PublicFolderController.name);
-  constructor(private readonly folderService: PublicFolderService) { }
+  constructor(private readonly folderService: PublicFolderService) {}
 
   @Get('/:profileId')
-  async findAll(
-    @Param('profileId') profileId: string
-  ) {
-    return this.folderService.findFoldersByProfileId(profileId)
-      .then((data) => {
-        return plainToInstance(FolderOutputDto, data);
-      });
+  async findAll(@Param('profileId') profileId: string) {
+    return this.folderService.findFoldersByProfileId(profileId).then((data) => {
+      return plainToInstance(FolderOutputDto, data);
+    });
   }
 
   @Get('/:profileId/:folderId')
@@ -32,5 +24,4 @@ export class PublicFolderController {
   ) {
     return this.folderService.findFolderByIdAndProfileId(profileId, folderId);
   }
-
 }

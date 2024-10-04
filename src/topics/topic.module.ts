@@ -10,16 +10,16 @@ import { topics } from './models/topic.seed';
   imports: [
     DynamodbModule.forFeature(Topic, {
       seeding: () => {
-        return topics.map(profile => {
+        return topics.map((profile) => {
           return {
             ...profile,
-            profileId: profiles.sort(() => Math.random() - 0.5)[0].id
+            profileId: profiles.sort(() => Math.random() - 0.5)[0].id,
           };
         });
-      }
+      },
     }),
   ],
   controllers: [TopicController],
-  providers: [TopicService]
+  providers: [TopicService],
 })
-export class TopicModule { }
+export class TopicModule {}

@@ -16,6 +16,7 @@ import { TopicModule } from './topics/topic.module';
 import { MessagesModule } from './messages/messages.module';
 import { AmqpModule } from '@zimoykin/amqp';
 import { EquipmentModule } from './equipment/equipment.module';
+import { LikesModule } from './likes/likes.module';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { EquipmentModule } from './equipment/equipment.module';
       useFactory: (config: ConfigService<ConfigVariables>) => {
         const url = config.get('RMQ_URL')!;
         return { url };
-      }
+      },
     }),
     JwtModule.forRootAsync({
       imports: [ConfigModule],
@@ -85,7 +86,8 @@ import { EquipmentModule } from './equipment/equipment.module';
     OffersModule,
     TopicModule,
     MessagesModule,
-    EquipmentModule
+    EquipmentModule,
+    LikesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
