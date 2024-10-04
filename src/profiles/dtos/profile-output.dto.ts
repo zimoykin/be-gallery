@@ -1,4 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
+import { IEquipment } from '../interfaces/eqiupment.interface';
 
 @Exclude()
 export class ProfileOutputDto {
@@ -31,4 +32,7 @@ export class ProfileOutputDto {
 
   @Expose()
   url: string;
+
+  @Expose()
+  favoriteEquipment?: Array<IEquipment>;
 }

@@ -66,11 +66,4 @@ export class PhotoInputDto {
   @Type(() => Number)
   privateAccess?: number; // 0 = public, 1 = private
 
-  @IsBoolean()
-  @IsOptional()
-  @ApiProperty({
-    example: 'true',
-  })
-  @Type(() => Boolean)
-  favorite?: boolean;
 }

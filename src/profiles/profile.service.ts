@@ -10,6 +10,7 @@ import { Profile } from './models/profile.model';
 import { S3BucketService } from '../s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
 import { InjectS3Bucket } from '../s3-bucket/inject-s3-bucket.decorator';
+import { EquipmentService } from '../equipment/equipment.service';
 
 type File = Express.Multer.File;
 
@@ -24,7 +25,8 @@ export class ProfileService {
     @InjectS3Bucket('profile')
     private readonly s3BucketService: S3BucketService,
     private readonly imageCompressorService: ImageCompressorService,
-  ) {}
+    private readonly eqipmentService: EquipmentService,
+  ) { }
 
   private isFile(data: unknown): data is File {
     return data instanceof File;
@@ -42,7 +44,7 @@ export class ProfileService {
       throw new BadRequestException('could not create profile');
     }
 
-    return profile;
+    return this.findProfileByUserId(userId);
   }
 
   async findProfileByUserId(userId: string) {
@@ -50,9 +52,11 @@ export class ProfileService {
       match: { userId: userId },
     });
 
-    // if (!profile) {
-    //     throw new NotFoundException('Profile not found');
-    // }
+    if (!profile) {
+      throw new NotFoundException('could not find profile');
+    }
+
+    const favoriteEquipment = await this.eqipmentService.findFavoriteEquipmentByProfileId(profile?.id);
 
     if (profile?.bucket?.key) {
       const url = await this.s3BucketService.generateSignedUrl(
@@ -61,6 +65,7 @@ export class ProfileService {
       return {
         ...profile,
         url,
+        favoriteEquipment
       };
     }
 
@@ -132,6 +137,9 @@ export class ProfileService {
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
+
+    const favoriteEquipment = await this.eqipmentService.findFavoriteEquipmentByProfileId(profile?.id);
+
     if (profile.bucket?.key) {
       const url = await this.s3BucketService.generateSignedUrl(
         profile.bucket.key,
@@ -139,6 +147,7 @@ export class ProfileService {
       return {
         ...profile,
         url,
+        favoriteEquipment
       };
     }
 

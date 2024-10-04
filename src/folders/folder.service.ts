@@ -1,5 +1,7 @@
 import {
   BadGatewayException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -19,9 +21,10 @@ export class FolderService {
     // @ts-ignore //
     @InjectRepository(Folder.name)
     private readonly folderRepository: DynamoDbRepository<Folder>,
-    private readonly photoService: PhotoService,
+    // @ts-ignore //
+    @Inject(forwardRef(() => PhotoService)) private readonly photoService: PhotoService,
     private readonly profileService: ProfileService,
-  ) {}
+  ) { }
 
   async findUserFolderByIdAndUserId(id: string, userId: string) {
     const profile = await this.profileService.findProfileByUserId(userId);
@@ -96,7 +99,7 @@ export class FolderService {
     return this.folderRepository.create({ ...data, profileId: profileId });
   }
 
-  async updateFolder(id: string, data: FolderInputDto, userId: string) {
+  async updateFolderByUserId(id: string, data: FolderInputDto, userId: string) {
     const profile = await this.profileService.findProfileByUserId(userId);
     if (!profile) {
       throw new NotFoundException('Profile not found');
@@ -111,6 +114,17 @@ export class FolderService {
     }
 
     return this.folderRepository.update(id, { ...data, profileId: profile.id });
+  }
+  async updateFolderByProfileId(id: string, data: Partial<Folder>, profileId: string) {
+    const userFolder = await this.findUserFolderByIdAndProfileId(
+      id,
+      profileId,
+    );
+    if (!userFolder) {
+      throw new NotFoundException(`Folder with id ${id} not found`);
+    }
+
+    return this.folderRepository.update(id, { ...data, profileId: profileId });
   }
 
   async removeFolder(id: string, userId: string) {

@@ -16,11 +16,19 @@ export class EquipmentService {
     // @ts-ignore //
     @InjectRepository(Equipment.name)
     private readonly equipRepository: DynamoDbRepository<Equipment>,
-  ) {}
+  ) { }
 
   async findEquipmentProfileById(profileId: string) {
     const eqps = await this.equipRepository.find({
       match: { profileId: profileId },
+    });
+    return eqps ?? [];
+  }
+
+
+  async findFavoriteEquipmentByProfileId(profileId: string) {
+    const eqps = await this.equipRepository.find({
+      match: { profileId: profileId, favorite: 1 },
     });
     return eqps ?? [];
   }
