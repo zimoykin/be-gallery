@@ -42,7 +42,7 @@ export class PhotoController {
     @Param() params: PhotosParamDto,
     @Profile() profile: IProfileCookie,
   ): Promise<PhotoOutputDto[]> {
-    const photos = await this.photoService.getPhotosByFolderIdAndUserId(
+    const photos = await this.photoService.getPhotosByFolderIdAndProfileId(
       params.folderId,
       params.type,
       profile.profileId,

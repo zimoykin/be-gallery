@@ -8,13 +8,14 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller('api/v1/public/folders')
 export class PublicFolderController {
   private readonly logger = new Logger(PublicFolderController.name);
-  constructor(private readonly folderService: PublicFolderService) {}
+  constructor(private readonly folderService: PublicFolderService) { }
 
   @Get('/:profileId')
   async findAll(@Param('profileId') profileId: string) {
-    return this.folderService.findFoldersByProfileId(profileId).then((data) => {
-      return plainToInstance(FolderOutputDto, data);
-    });
+    return this.folderService.findFoldersByProfileId(profileId)
+      .then((data) => {
+        return plainToInstance(FolderOutputDto, data);
+      });
   }
 
   @Get('/:profileId/:folderId')
