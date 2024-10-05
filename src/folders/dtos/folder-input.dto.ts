@@ -16,20 +16,6 @@ export class FolderInputDto {
   title: string;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    example: '#d9e86b',
-  })
-  bgColor: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    example: '#000000',
-  })
-  color: string;
-
-  @IsString()
   @IsOptional()
   @ApiProperty({
     example: 'KODAK PORTRA 800',

@@ -1,14 +1,15 @@
 import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
+import { DynamoDbRepository } from '../dynamo-db/dynamo-db.repository';
 import { Photo, PhotoData } from './models/photo.model';
-import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
-import { S3BucketService } from 'src/s3-bucket/s3-bucket.service';
-import { InjectS3Bucket } from 'src/s3-bucket/inject-s3-bucket.decorator';
-import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
+import { InjectRepository } from '../dynamo-db/decorators/inject-model.decorator';
+import { S3BucketService } from '../s3-bucket/s3-bucket.service';
+import { InjectS3Bucket } from '../s3-bucket/inject-s3-bucket.decorator';
+import { ImageCompressorService } from '../image-compressor/image-compressor.service';
 import { InternalServerError } from '@aws-sdk/client-dynamodb';
 import { PhotoType } from './enums/photo-type.enum';
-import { ProfileService } from 'src/profiles/profile.service';
-import { FolderService } from 'src/folders/folder.service';
+import { FolderService } from '../folders/folder.service';
+import { InjectSender } from 'src/lib/decorators';
+import { AmqpSender } from 'src/lib/amqp.sender';
 
 @Injectable()
 export class PhotoService {
@@ -30,6 +31,9 @@ export class PhotoService {
     //@ts-ignore
     @Inject(forwardRef(() => FolderService))
     private readonly folderService: FolderService,
+    //@ts-ignore
+    @InjectSender('folder_favorite_changed')
+    private readonly sender: AmqpSender,
   ) { }
 
   /**
@@ -337,6 +341,11 @@ export class PhotoService {
       favoriteFotoId: photoId
     }, profileId);
 
+    await this.sender.sendMessage({
+      state: 'favorite_changed',
+      contentId: photoId
+    });
+
     return folder;
   }
 
@@ -361,6 +370,10 @@ export class PhotoService {
     );
 
     return photosWithUrls;
+  }
+
+  async updatePhotoLikesCount(id: string, count: number) {
+    return this.photoRepository.update(id, { likes: count });
   }
 
 }

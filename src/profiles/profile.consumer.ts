@@ -1,14 +1,8 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { AmqpConsumer, InjectConsumer } from '@zimoykin/amqp';
-import { Profile } from './models/profile.model';
 import { ProfileService } from './profile.service';
-
-type ProfileDto = {
-  name: string;
-  email: string;
-  id: string;
-  role: 'user' | 'admin';
-};
+import { InjectConsumer } from '../lib/decorators';
+import { UserCreatedDto } from '../lib/common/dtos/user-created.dto';
+import { AmqpConsumer } from '../lib/amqp.consumer';
 
 @Injectable()
 export class ProfileConsumer implements OnModuleInit {
@@ -17,11 +11,11 @@ export class ProfileConsumer implements OnModuleInit {
   constructor(
     private readonly profileService: ProfileService,
     // @ts-ignore
-    @InjectConsumer(Profile.name) private readonly consumer: AmqpConsumer,
-  ) {}
+    @InjectConsumer('user_created') private readonly consumer: AmqpConsumer,
+  ) { }
 
   onModuleInit() {
-    this.consumer.subscribe<ProfileDto>(async (msg) => {
+    this.consumer.subscribe<UserCreatedDto>(async (msg) => {
       this.logger.debug(JSON.stringify(msg));
 
       const profile = this.profileService.findProfileByUserId(msg.id);
