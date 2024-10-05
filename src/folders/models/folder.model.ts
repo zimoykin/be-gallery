@@ -20,11 +20,12 @@ export class Folder {
 
   description: string;
 
-  @Required()
-  color: string;
-
-  @Required()
-  bgColor: string;
+  leftBottomColor: string;
+  leftTopColor: string;
+  centerTopColor: string;
+  centerBottomColor: string;
+  rightBottomColor: string;
+  rightTopColor: string;
 
   url?: string;
 

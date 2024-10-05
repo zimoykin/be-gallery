@@ -9,6 +9,8 @@ import { PublicFolderService } from './folder-public.service';
 import { ProfileModule } from '../profiles/profile.module';
 import { profiles } from '../profiles/models/profile.seed';
 import { folders } from './models/folder.seeds';
+import { FolderConsumer } from './folder.consumer';
+import { AmqpModule } from 'src/lib/amqp.module';
 
 @Module({
   imports: [
@@ -23,9 +25,10 @@ import { folders } from './models/folder.seeds';
     }),
     PhotoModule,
     ProfileModule,
+    AmqpModule.forFeature('folder_dominant_color')
   ],
   controllers: [FolderController, PublicFolderController],
-  providers: [FolderService, PublicFolderService],
+  providers: [FolderService, PublicFolderService, FolderConsumer],
   exports: [FolderService],
 })
 export class FolderModule {}

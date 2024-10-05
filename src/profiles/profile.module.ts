@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AmqpModule } from '@zimoykin/amqp';
 import { ProfileController } from './profile.controller';
 import { ProfileService } from './profile.service';
 import { DynamodbModule } from '../dynamo-db/dynamo-db.module';
@@ -10,6 +9,7 @@ import { ImageCompressorModule } from '../image-compressor/image-compressor.modu
 import { profiles } from './models/profile.seed';
 import { ProfileConsumer } from './profile.consumer';
 import { EquipmentModule } from 'src/equipment/equipment.module';
+import { AmqpModule } from 'src/lib/amqp.module';
 
 @Module({
   imports: [
@@ -19,7 +19,7 @@ import { EquipmentModule } from 'src/equipment/equipment.module';
     S3BucketModule.forFeature('profile'),
     ImageCompressorModule,
     EquipmentModule,
-    AmqpModule.forFeature(Profile.name),
+    AmqpModule.forFeature('user_created'),
   ],
   controllers: [ProfileController, PublicProfileController],
   providers: [ProfileService, ProfileConsumer],

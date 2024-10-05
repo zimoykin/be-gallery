@@ -4,8 +4,8 @@ export interface IFolder {
   sortOrder: number;
   title: string;
   description: string;
-  color: string;
-  bgColor: string;
+  colorLeft: string;
+  ColorRight: string;
   privateAccess: number;
   url?: string;
   favoriteFotoId?: string;

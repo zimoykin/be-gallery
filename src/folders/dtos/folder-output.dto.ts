@@ -12,10 +12,22 @@ export class FolderOutputDto {
   title: string;
 
   @Expose()
-  bgColor: string;
+  leftTopColor: string;
 
   @Expose()
-  color: string;
+  leftBottomColor: string;
+
+  @Expose()
+  centerTopColor: string;
+  
+  @Expose()
+  centerBottomColor: string;
+
+  @Expose()
+  rightTopColor: string;
+
+  @Expose()
+  rightBottomColor: string;
 
   @Expose()
   description: string;

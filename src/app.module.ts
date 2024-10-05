@@ -14,9 +14,9 @@ import { ProfileAuthMiddleware } from './middlewares/profile-auth.middleware';
 import { OffersModule } from './offers/offers.module';
 import { TopicModule } from './topics/topic.module';
 import { MessagesModule } from './messages/messages.module';
-import { AmqpModule } from '@zimoykin/amqp';
 import { EquipmentModule } from './equipment/equipment.module';
 import { LikesModule } from './likes/likes.module';
+import { AmqpModule } from './lib/amqp.module';
 
 @Module({
   imports: [

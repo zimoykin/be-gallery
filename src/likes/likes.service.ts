@@ -2,6 +2,8 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
 import { Like } from './models/like.model';
 import { InjectRepository } from '../dynamo-db/decorators/inject-model.decorator';
+import { InjectSender } from 'src/lib/decorators';
+import { AmqpSender } from 'src/lib/amqp.sender';
 
 @Injectable()
 export class LikesService {
@@ -11,7 +13,9 @@ export class LikesService {
     //@ts-ignore
     @InjectRepository(Like.name)
     private readonly repo: DynamoDbRepository<Like>,
-  ) {}
+    //@ts-ignore
+    @InjectSender('like_added') private readonly sender: AmqpSender,
+  ) { }
 
   async getLikesCountByContentId(contentId: string) {
     const count = await this.repo.countByFilter({
@@ -26,6 +30,11 @@ export class LikesService {
       profileId: profileId,
     });
 
+    await this.sender.sendMessage({
+      state: 'added',
+      contentId: contentId,
+    });
+
     return like;
   }
 
@@ -37,6 +46,12 @@ export class LikesService {
       throw new NotFoundException('Like not found');
     }
     await this.repo.remove(like.id);
+
+    await this.sender.sendMessage({
+      state: 'removed',
+      contentId: contentId,
+    });
+
     return like;
   }
 }

@@ -10,6 +10,8 @@ import { PublicPhotoService } from './public-photo.service';
 import { PhotoPublicController } from './photo-public.controller';
 import { ProfileModule } from 'src/profiles/profile.module';
 import { FolderModule } from 'src/folders/folder.module';
+import { PhotoConsumer } from './photo.consumer';
+import { AmqpModule } from 'src/lib/amqp.module';
 
 @Module({
   imports: [
@@ -20,11 +22,12 @@ import { FolderModule } from 'src/folders/folder.module';
     S3BucketModule.forFeature('compressed'),
     ImageCompressorModule,
     ProfileModule,
-    forwardRef(() => FolderModule)
-    // FolderModule
+    forwardRef(() => FolderModule),
+    AmqpModule.forFeature('folder_favorite_changed'),
+    AmqpModule.forFeature('folder_dominant_color'),
   ],
   controllers: [PhotoController, PhotoPublicController],
-  providers: [PhotoService, PublicPhotoService],
+  providers: [PhotoService, PublicPhotoService, PhotoConsumer],
   exports: [PhotoService],
 })
 export class PhotoModule { }

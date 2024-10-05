@@ -4,10 +4,15 @@ import { LikesService } from './likes.service';
 import { DynamodbModule } from '../dynamo-db/dynamo-db.module';
 import { Like } from './models/like.model';
 import { PublicLikesController } from './public-likes.controller';
+import { PhotoModule } from '../photos/photo.module';
+import { LikesConsumer } from './likes.consumer';
+import { AmqpModule } from '../lib/amqp.module';
 
 @Module({
-  imports: [DynamodbModule.forFeature(Like)],
+  imports: [PhotoModule,
+    AmqpModule.forFeature('like_added'),
+    DynamodbModule.forFeature(Like)],
   controllers: [LikesController, PublicLikesController],
-  providers: [LikesService],
+  providers: [LikesService, LikesConsumer],
 })
-export class LikesModule {}
+export class LikesModule { }
