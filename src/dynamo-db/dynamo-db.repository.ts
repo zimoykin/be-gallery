@@ -621,7 +621,8 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
       UpdateExpression: 'SET ' + updateExpression.join(', '),
     });
 
-    return this.connection.db.send(update);
+    await this.connection.db.send(update);
+    return id;
   }
 
   //TODO: to be checked
@@ -690,6 +691,15 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
     return true;
   }
 
+  /**
+   * Deletes a record from DynamoDB.
+   *
+   * It first checks if the record exists. If it does not, it throws an error.
+   * If it does, it deletes the record.
+   * @param id - The id of the record to delete.
+   * @throws {Error} - If the record is not found.
+   * @returns A Promise resolving to the deleted record.
+   */
   async remove(id: string) {
     const primaryKey = getPrimaryKey(this.modelCls);
     const [sortKey] = getSortKey(this.modelCls);

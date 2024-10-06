@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { OffersService } from './offers.service';
 import { OffersController } from './offers.controller';
+import { OffersPublicController } from './offers-public.controller';
 import { DynamodbModule } from 'src/dynamo-db/dynamo-db.module';
 import { Offer } from './models/offer.model';
 import { offers } from './models/offer.seed';
@@ -20,6 +21,6 @@ import { profiles } from 'src/profiles/models/profile.seed';
     }),
   ],
   providers: [OffersService],
-  controllers: [OffersController],
+  controllers: [OffersController, OffersPublicController],
 })
-export class OffersModule {}
+export class OffersModule { }
