@@ -21,12 +21,12 @@ export class S3BucketService {
     @Inject('S3_BUCKET_CONNECTION') private readonly s3: S3Client,
     // @ts-ignore //
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) { }
 
   async upload(
     fileBuffer: Buffer,
     key: string,
-  ): Promise<{ url: string; key: string; bucketName: string; folder: string }> {
+  ): Promise<{ url: string; key: string; bucketName: string; folder: string; }> {
     const params: PutObjectCommandInput = {
       Bucket: this.bucketName,
       Key: `${this.folderName}/${key}`,
@@ -71,13 +71,13 @@ export class S3BucketService {
     });
 
     const url = await getSignedUrl(this.s3, params, {
-      expiresIn: 3600,
+      expiresIn: 3600*24,
       signingDate: new Date(),
       signingService: 's3',
     });
 
     // set url in cache
-    await this.cacheManager.set(key, url, 3600 * 1000);
+    await this.cacheManager.set(key, url, 24 * 3600 * 1000);
 
     // return url
     return url;
