@@ -4,6 +4,9 @@ import { Exclude, Expose } from "class-transformer";
 @Exclude()
 export class OfferOutputDto implements IOfferOutput {
     @Expose()
+    id: string;
+
+    @Expose()
     title: string;
 
     @Expose()
@@ -24,5 +27,12 @@ export class OfferOutputDto implements IOfferOutput {
     @Expose()
     category?: 'trip' | 'hotel' | 'restaurant' | 'camera' | 'lens' | 'other';
 
+    @Expose()
     url?: string;
+
+    @Expose()
+    profileId: string;
+
+    @Expose()
+    availableUntil: number;
 }

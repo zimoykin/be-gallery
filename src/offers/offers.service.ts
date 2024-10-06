@@ -13,14 +13,19 @@ export class OffersService {
     ) { }
 
 
+    async getOfferById(id: string): Promise<Offer | null> {
+        return this.repo.findById(id);
+    }
+
     async getAllOffers(): Promise<Offer[]> {
         return this.repo.find({
             match: {
                 privateAccess: 0
             },
-            lte: {
-
-            }
+            gte: {
+                availableUntil: new Date().getTime()
+            },
+            limit: 5
         });
     }
     async getAllOffersByProfileId(profileId: string): Promise<Offer[]> {
@@ -30,7 +35,7 @@ export class OffersService {
             }
         });
     }
-    
+
 
     async createOffer(profileId: string, data: IOfferInput): Promise<Offer | null> {
         const id = await this.repo.create({ ...data, profileId: profileId });

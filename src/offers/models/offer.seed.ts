@@ -13,6 +13,7 @@ export const offers = (profileId: string): Omit<Offer, 'id'>[] => [
     profileId: profileId,
     url: 'https://www.google.com',
     privateAccess: 0,
+    availableUntil: new Date().getTime() + 1000 * 60 * 60 * 24 * 90,
   },
   {
     title: 'Italian city tour with Guide',
@@ -26,6 +27,7 @@ export const offers = (profileId: string): Omit<Offer, 'id'>[] => [
     profileId: profileId,
     url: 'https://www.google.com',
     privateAccess: 0,
+    availableUntil: new Date().getTime() + 1000 * 60 * 60 * 24 * 90,
   },
   {
     title: 'Canon EOS 90D DSLR',
@@ -39,5 +41,6 @@ export const offers = (profileId: string): Omit<Offer, 'id'>[] => [
     profileId: profileId,
     url: 'https://www.google.com',
     privateAccess: 0,
+    availableUntil: new Date().getTime() + 1000 * 60 * 60 * 24 * 90,
   },
 ];
