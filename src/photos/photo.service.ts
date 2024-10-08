@@ -1,7 +1,4 @@
 import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { DynamoDbRepository } from '../dynamo-db/dynamo-db.repository';
-import { Photo, PhotoData } from './models/photo.model';
-import { InjectRepository } from '../dynamo-db/decorators/inject-model.decorator';
 import { S3BucketService } from '../s3-bucket/s3-bucket.service';
 import { InjectS3Bucket } from '../s3-bucket/inject-s3-bucket.decorator';
 import { ImageCompressorService } from '../image-compressor/image-compressor.service';
@@ -10,14 +7,17 @@ import { PhotoType } from './enums/photo-type.enum';
 import { FolderService } from '../folders/folder.service';
 import { InjectSender } from 'src/lib/decorators';
 import { AmqpSender } from 'src/lib/amqp.sender';
+import { InjectModel } from '@nestjs/mongoose';
+import { PhotoModel } from './models/photo.model';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class PhotoService {
   private readonly logger = new Logger(PhotoService.name);
   constructor(
     // @ts-ignore //
-    @InjectRepository(Photo.name)
-    private readonly photoRepository: DynamoDbRepository<Photo>,
+    @InjectModel(PhotoModel.name)
+    private readonly photoRepository: Model<PhotoModel>,
     // @ts-ignore //
     @InjectS3Bucket('photos')
     private readonly s3BucketServiceOriginal: S3BucketService,
@@ -64,6 +64,8 @@ export class PhotoService {
       previewWidth,
       previewHeight,
     );
+
+
     const bucketPreview = await this.s3BucketServicePreview.upload(
       preview,
       key,
@@ -78,15 +80,31 @@ export class PhotoService {
       key,
     );
 
+    const signedUrlPreview = await this.s3BucketServiceOriginal.generateSignedUrl(
+      bucketPreview.key,
+    );
+    const signedUrlCompressed = await this.s3BucketServiceOriginal.generateSignedUrl(
+      bucketCompressed.key,
+    );
+
     await this.photoRepository
-      .update(photoId, {
-        ...photo,
-        compressed: { ...bucketCompressed, width: compressedWidth },
-        preview: {
-          ...bucketPreview,
-          width: previewWidth,
-          height: previewHeight,
-        },
+      .findByIdAndUpdate(photoId, {
+        $set: {
+          compressed: bucketCompressed,
+          preview: {
+            ...bucketPreview,
+            width: previewWidth,
+            height: previewHeight,
+          },
+          previewUrl: signedUrlPreview.url,
+          previewUrlAvailableUntil: signedUrlPreview.expiresIn,
+
+          compressedUrl: signedUrlCompressed.url,
+          compressedUrlAvailableUntil: signedUrlCompressed.expiresIn,
+        }
+      })
+      .then((res) => {
+        this.logger.log(`updated photo ${photoId}`, res);
       })
       .catch((err) => {
         this.logger.error(err);
@@ -94,40 +112,104 @@ export class PhotoService {
       });
   }
 
-  private async getUrlByType(type: PhotoType, photo: Photo) {
+  /**
+   * Generate a new signed url for a given key and type
+   * @param id the id of the photo object
+   * @param type the type of the url to update
+   * @param key the key of the object in s3
+   * @returns {Promise<{url: string, expiresIn: number}>} signed url and expiration time in milliseconds
+   */
+  private async generateNewSignedUrl(id: string, type: PhotoType, key: string): Promise<{ url: string; expiresIn?: number; }> {
+    // update photo object 
+    switch (type) {
+      case 'preview': {
+        //generate new signed url
+        const signedUrl = await this.s3BucketServicePreview.generateSignedUrl(
+          key,
+        );
+        await this.photoRepository.findOneAndUpdate({ _id: id }, { $set: { previewUrl: signedUrl.url, previewUrlAvailableUntil: signedUrl.expiresIn } });
+        return signedUrl;
+      }
+      case 'compressed': {
+        //generate new signed url
+        const signedUrl = await this.s3BucketServiceCompressed.generateSignedUrl(
+          key,
+        );
+        await this.photoRepository.findOneAndUpdate({ _id: id }, { $set: { compressedUrl: signedUrl.url, compressedUrlAvailableUntil: signedUrl.expiresIn } });
+        return signedUrl;
+      }
+      case 'original': {
+        //generate new signed url
+        const signedUrl = await this.s3BucketServiceOriginal.generateSignedUrl(
+          key,
+        );
+        await this.photoRepository.findOneAndUpdate({ _id: id }, { $set: { originalUrl: signedUrl.url, originalUrlAvailableUntil: signedUrl.expiresIn } });
+        return signedUrl;
+      }
+      default: throw new Error('Invalid type');
+
+    }
+  }
+
+  async getUrlByType(type: PhotoType, photo: PhotoModel) {
     switch (type) {
       case 'preview':
-        if (photo.preview?.key)
-          return this.s3BucketServicePreview.generateSignedUrl(
-            photo.preview?.key,
-          );
-        break;
+        if (photo.preview) {
+          //if url is still available, then use it
+          if (photo.previewUrl && photo?.previewUrlAvailableUntil && photo.previewUrlAvailableUntil > Date.now()) {
+            return { url: photo.previewUrl, expiresIn: photo.previewUrlAvailableUntil };
+          }
+          //if url is expired, then generate new one
+          else if (photo?.previewUrlAvailableUntil && photo.previewUrlAvailableUntil < Date.now() && photo.preview?.key) {
+            return this.generateNewSignedUrl(photo._id, type, photo.preview?.key);
+          } else if (photo.preview?.key) {
+            return this.generateNewSignedUrl(photo._id, type, photo.preview?.key);
+          }
+        } else {
+          throw new Error('No preview available');
+        }
       case 'compressed':
-        if (photo.compressed?.key)
-          return this.s3BucketServiceCompressed.generateSignedUrl(
-            photo.compressed?.key,
-          );
-        break;
+        if (photo.compressedUrl) {
+          //if url is still available, then use it
+          if (photo?.compressedUrlAvailableUntil && photo.compressedUrlAvailableUntil > Date.now()) {
+            return { url: photo.compressedUrl, expiresIn: photo.previewUrlAvailableUntil };
+          }
+          //if url is expired, then generate new one
+          else if (photo?.compressedUrlAvailableUntil && photo.compressedUrlAvailableUntil < Date.now() && photo.compressed?.key) {
+            return this.generateNewSignedUrl(photo._id, type, photo.compressed?.key);
+          } else if (photo.compressed?.key) {
+            return this.generateNewSignedUrl(photo._id, type, photo.compressed?.key);
+          }
+        } else {
+          throw new Error('No preview available');
+        }
       default:
-        if (photo.bucket?.key)
-          return this.s3BucketServiceOriginal.generateSignedUrl(
-            photo.bucket?.key,
-          );
-        break;
+        if (photo.originalUrl) {
+          //if url is still available, then use it
+          if (photo?.originalUrlAvailableUntil && photo.originalUrlAvailableUntil > Date.now()) {
+            return { url: photo.originalUrl, expiresIn: photo.originalUrlAvailableUntil };
+          }
+          //if url is expired, then generate new one
+          else if (photo?.originalUrlAvailableUntil && photo.originalUrlAvailableUntil < Date.now() && photo.original?.key) {
+            return this.generateNewSignedUrl(photo._id, type, photo.original?.key);
+          } else if (photo.original?.key) {
+            return this.generateNewSignedUrl(photo._id, type, photo.original?.key);
+          }
+        } else {
+          throw new Error('No preview available');
+        }
     }
   }
 
   async createPhotoObject(
     folderId: string,
     profileId: string,
-    data: Partial<Photo>,
+    data: Partial<PhotoModel>,
     file: Express.Multer.File,
   ) {
     const photos = await this.photoRepository.find({
-      match: {
-        folderId: folderId,
-        profileId: profileId,
-      },
+      folderId: folderId,
+      profileId: profileId,
     });
 
     if (photos.length >= 10) {
@@ -140,67 +222,81 @@ export class PhotoService {
       file.buffer,
       `${profileId}/${folderId}/${file.originalname}`,
     );
+    const signedUrl = await this.s3BucketServiceOriginal.generateSignedUrl(
+      bucket.key,
+    );
     return this.photoRepository
-      .create<PhotoData>({
+      .create({
         ...data,
         folderId,
         profileId: profileId,
-        bucket: bucket,
+        original: bucket,
         camera: data.camera ?? 'no info',
         sortOrder: data.sortOrder || photos.length + 1,
-        privateAccess: 0
+        privateAccess: 0,
+        originalUrl: signedUrl.url,
+        originalUrlAvailableUntil: signedUrl.expiresIn,
       })
-      .then(async (id) => {
+      .then(async (data) => {
         await this.resizeImage(
           file.buffer,
-          id,
+          data._id,
           `${profileId}/${folderId}/${file.originalname}`,
         );
-        return { id, ...data };
+        return { id: data._id, ...data };
       });
   }
 
-  async getSpecificPhotoByIdByFolderId(
-    folderId: string,
-    profileId: string,
-    id: string,
-    type: PhotoType,
-  ): Promise<Photo & { url?: string; isFavorite: boolean; }> {
+  // async getSpecificPhotoByIdByFolderId(
+  //   folderId: string,
+  //   profileId: string,
+  //   id: string,
+  //   type: PhotoType,
+  // ): Promise<Photo & { url?: string; isFavorite: boolean; }> {
 
-    const folder = await this.folderService.findByFolderId(folderId);
-    if (!folder) {
-      throw new NotFoundException();
-    }
+  //   const folder = await this.folderService.findByFolderId(folderId);
+  //   if (!folder) {
+  //     throw new NotFoundException();
+  //   }
 
-    const photo = await this.photoRepository.find<Photo>({
-      match: {
-        folderId: folderId,
-        id: id,
-        profileId: profileId,
-      },
+  //   const photo = await this.photoRepository.find<Photo>({
+  //     match: {
+  //       folderId: folderId,
+  //       id: id,
+  //       profileId: profileId,
+  //     },
+  //   });
+
+  //   const signedUrl = await this.getUrlByType(type, photo[0]);
+  //   if (photo.length === 0) {
+  //     throw new NotFoundException();
+  //   } else
+  //     return {
+  //       ...photo[0],
+  //       url: signedUrl?.url,
+  //       urlAvailableUntil: signedUrl?.expiresIn ?? 0,
+  //       isFavorite: folder.favoriteFotoId !== undefined && folder.favoriteFotoId === id,
+  //     };
+  // }
+
+  async findPhotoById(id: string, profileId: string, type: PhotoType): Promise<PhotoModel> {
+    const photo = await this.photoRepository.findOne({
+      _id: id,
+      profileId: profileId
     });
-
-    if (photo.length === 0) {
-      throw new NotFoundException();
-    } else
-      return {
-        ...photo[0],
-        url: await this.getUrlByType(type, photo[0]),
-        isFavorite: folder.favoriteFotoId !== undefined && folder.favoriteFotoId === id,
-      };
-  }
-
-  async findPhotoById(id: string): Promise<Photo & { url: string; }> {
-    const photo = await this.photoRepository.findById(id);
     if (!photo) {
       throw new NotFoundException();
     }
+    const signedUrl = await this.getUrlByType(type, photo);
 
     return {
       ...photo,
-      url: (await this.getUrlByType(PhotoType.PREVIEW, photo)) ?? '',
+      [`${type}Url`]: signedUrl?.url ?? '',
+      [`${type}UrlAvailableUntil`]: signedUrl?.expiresIn ?? 0
     };
   }
+
+
 
   /**
    * @description
@@ -218,33 +314,42 @@ export class PhotoService {
     type: PhotoType,
     profileId: string,
     privateAccess?: number,
-  ): Promise<Array<Photo & { url: string; }>> {
+  ): Promise<Array<PhotoModel>> {
     const filter = {
-      match: {
-        folderId: folderId,
-        profileId: profileId,
-      },
+      folderId: folderId,
+      profileId: profileId,
     };
 
     if (privateAccess !== undefined) {
-      filter.match['privateAccess'] = privateAccess;
+      filter['privateAccess'] = privateAccess;
     }
 
-    const folder = await this.folderService.findByFolderId(folderId);
-    if (!folder) {
-      throw new NotFoundException();
-    }
-
-    const photos = await this.photoRepository.find<Photo>(filter);
+    const photos = await this.photoRepository.find({
+      ...filter
+    }).lean();
 
     if (photos.length === 0) {
       return [];
     } else {
-      const sighnedPhotos: Array<Photo & { url: string; isFavorite: boolean; }> = [];
-
+      const sighnedPhotos: Array<PhotoModel> = [];
       for await (const photo of photos) {
-        const url = await this.getUrlByType(type, photo);
-        if (url) sighnedPhotos.push({ ...photo, url: url, isFavorite: folder.favoriteFotoId !== undefined && folder.favoriteFotoId === photo.id });
+        const signedUrl = await this.getUrlByType(type, photo).catch(() => {
+          this.logger.debug(`Failed to generate signed url for photo ${photo._id}`);;
+        });
+
+        if (!signedUrl) {
+          continue;
+        }
+
+        const image = {
+          [`${type}Url`]: signedUrl?.url ?? '',
+          [`${type}UrlAvailableUntil`]: signedUrl?.expiresIn ?? 0
+        };
+        if (signedUrl?.url)
+          sighnedPhotos.push({
+            ...photo,
+            ...image
+          });
       }
       return sighnedPhotos.sort((a, b) => a.sortOrder - b.sortOrder);
     }
@@ -254,7 +359,7 @@ export class PhotoService {
     folderId: string,
     profileId: string,
   ): Promise<number> {
-    const count = await this.photoRepository.countByFilter({
+    const count = await this.photoRepository.count({
       match: {
         folderId: folderId,
         profileId: profileId,
@@ -268,37 +373,33 @@ export class PhotoService {
     profileId: string,
     folderId: string,
     id: string,
-    data: Partial<Photo>,
+    data: Partial<PhotoModel>,
   ) {
-    const photo = await this.photoRepository.findOneByFilter({
-      match: {
-        profileId: profileId,
-        folderId: folderId,
-        id: id,
-      },
+    const photo = await this.photoRepository.findOne({
+      profileId: profileId,
+      folderId: folderId,
+      _id: id,
     });
     if (!photo) {
       throw new NotFoundException();
     }
 
-    return this.photoRepository.update(id, data);
+    return this.photoRepository.findByIdAndUpdate({ _id: id }, data);
   }
 
   async removePhoto(folderId: string, profileId: string, id: string) {
-    const existingPhoto = await this.photoRepository.findOneByFilter<Photo>({
-      match: {
-        id: id,
-        folderId: folderId,
-        profileId: profileId,
-      },
+    const existingPhoto = await this.photoRepository.findOne({
+      id: id,
+      folderId: folderId,
+      profileId: profileId,
     });
 
     if (!existingPhoto) {
       throw new NotFoundException();
     }
 
-    if (existingPhoto.bucket?.key)
-      await this.s3BucketServiceOriginal.deleteFile(existingPhoto.bucket?.key);
+    if (existingPhoto.original?.key)
+      await this.s3BucketServiceOriginal.deleteFile(existingPhoto.original?.key);
     if (existingPhoto.preview?.key)
       await this.s3BucketServicePreview.deleteFile(existingPhoto.preview?.key);
     if (existingPhoto.compressed?.key)
@@ -310,21 +411,19 @@ export class PhotoService {
   }
 
   async removePhotosByFolderId(folderId: string, profileId: string) {
-    const photos = await this.photoRepository.find<Photo>({
-      match: {
-        folderId: folderId,
-        profileId: profileId,
-      },
+    const photos = await this.photoRepository.find({
+      folderId: folderId,
+      profileId: profileId,
     });
 
     for await (const photo of photos) {
-      await this.s3BucketServiceOriginal.deleteFile(photo.bucket.key);
+      await this.s3BucketServiceOriginal.deleteFile(photo.original.key);
       await this.photoRepository.remove(photo.id);
     }
   }
 
-  async getTheLastPhoto(): Promise<Photo | null> {
-    const photos = await this.photoRepository.find({});
+  async getTheLastPhoto(): Promise<PhotoModel | null> {
+    const photos = await this.photoRepository.find();
     if (photos.length === 0) {
       return null;
     }
@@ -353,8 +452,8 @@ export class PhotoService {
   async findPhotosByIds(ids: string[]) {
     // Fetch photos from the repository
     const photos = await this.photoRepository.find({
-      or: {
-        id: ids
+      id: {
+        $or: ids
       }
     });
 
@@ -373,7 +472,7 @@ export class PhotoService {
   }
 
   async updatePhotoLikesCount(id: string, count: number) {
-    return this.photoRepository.update(id, { likes: count });
+    return this.photoRepository.findByIdAndUpdate({ _id: id }, { likes: count });
   }
 
 }

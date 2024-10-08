@@ -26,9 +26,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
 import { PhotosParamDto } from './dtos/photos-param.dto';
 import { PhotoOutputDto } from './dtos/photo-output.dto';
-import { PhotoParamDto } from './dtos/photo-param.dto';
 import { Profile } from '../decorators/cookie.decorator';
 import { IProfileCookie } from '../middlewares/profile-cookie.interface';
+import { PhotoParamDto } from './dtos/photo-param.dto';
 
 @ApiBearerAuth('Authorization')
 @UserAccess()
@@ -53,16 +53,15 @@ export class PhotoController {
   }
 
   @Get(':folderId/:photoId/:type')
-  async getSpecificPhotoByIdByFolderId(
+  async getPhotoById(
     @Param() param: PhotoParamDto,
     @Profile() profile: IProfileCookie,
   ) {
     return this.photoService
-      .getSpecificPhotoByIdByFolderId(
-        param.folderId,
-        profile.profileId,
+      .findPhotoById(
         param.photoId,
-        param.type,
+        profile.profileId,
+        param.type
       )
       .then((photo) => plainToInstance(PhotoOutputDto, photo));
   }

@@ -1,9 +1,10 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 
 @Exclude()
 export class PhotoOutputDto {
-  @Expose()
-  id: string;
+  @Expose({ name: 'id' })
+  _id: string;
+
   @Expose()
   sortOrder: number;
   @Expose()
@@ -23,7 +24,13 @@ export class PhotoOutputDto {
   @Expose()
   description?: string;
   @Expose()
-  url: string;
+  previewUrl: string;
+
+  @Expose()
+  compressedUrl: string;
+
+  @Expose()
+  originalUrl: string;
 
   @Expose()
   likes: number;

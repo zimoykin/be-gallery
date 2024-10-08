@@ -24,57 +24,50 @@ export class AmqpConsumer implements OnModuleDestroy {
         }
     }
 
-    /**
-     * Subscribe to an AMQP queue and listen for messages.
-     *
-     * @param cb - The callback to call when a message is received. The callback receives the parsed message object as an argument.
-     * @returns A promise that resolves to a function which unsubscribes from the queue and closes the channel when called.
-     * @throws {Error} - If there is an error subscribing to the queue, the promise is rejected with the error.
-     */
     async subscribe<T>(cb: (message: T) => void): Promise<() => Promise<void>> {
-
         const setting = AMQP_TOPICS[this.pattern];
         if (!setting) {
             throw new Error(`Unknown topic: ${this.pattern}`);
         }
-
+    
         const topic = `${setting.topic}.main`;
         const dlq_topic = `${setting.topic}.dlq`;
-
+    
         try {
-
             this.logger.debug(`AMQP-Consumer: ${this.pattern}`);
-
+    
             this.channel = await this.connection.createChannel();
             this.dlq_channel = await this.connection.createChannel();
-
+    
             await this.channel.assertQueue(topic, { durable: true });
             await this.dlq_channel.assertQueue(dlq_topic, { durable: true });
-
+    
             this.channel.prefetch(1);
-
-            const observable = new Observable((subscriber: Subscriber<T>) => {
-                this.channel.consume(topic, async (message) => {
-                    if (message !== null) {
-
+    
+            const consumeMessage = async (message) => {
+                if (message !== null) {
+                    try {
                         const setting = AMQP_TOPICS[this.pattern];
                         if (!setting) {
                             throw new Error(`Unknown topic: ${this.pattern}`);
                         }
-
+    
                         const parsedMessage = JSON.parse(message.content.toString()) as T;
                         const result = await validateIncommingMsg(plainToInstance(setting.payload, parsedMessage));
-
-                        subscriber.next(result);
+                        await cb(result);
                         this.channel.ack(message);
+                    } catch (error) {
+
+                        await this.dlq_channel.sendToQueue(dlq_topic, Buffer.from(JSON.stringify(error)));
+                        this.channel.ack(message);
+                        this.logger.error(`Error while processing message: ${error.message}`);
                     }
-                });
-            });
-
-            const subscription = observable.subscribe(cb);
-
+                }
+            };
+    
+            await this.channel.consume(topic, consumeMessage);
+    
             return async () => {
-                subscription.unsubscribe();
                 await this.channel.close();
                 this.logger.debug(`Stopped consuming from pattern: ${this.pattern}`);
             };
@@ -82,8 +75,8 @@ export class AmqpConsumer implements OnModuleDestroy {
             if (error instanceof Error) {
                 this.logger.error(`Failed to subscribe to AMQP queue: ${error.message}`);
             }
-            await this.dlq_channel.sendToQueue(dlq_topic, Buffer.from(JSON.stringify(error)));
             throw error;
         }
     }
+    
 }

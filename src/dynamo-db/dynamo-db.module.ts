@@ -2,7 +2,6 @@ import {
   DynamicModule,
   Logger,
   Module,
-  OnApplicationBootstrap,
   Provider,
 } from '@nestjs/common';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
@@ -13,17 +12,11 @@ import {
   IConnectionAsyncOptions,
   IConnectionOptions,
 } from './dynamo-db.interfaces';
-import { factoryConstructor } from './interfaces/factory.type';
 
 @Module({})
-export class DynamodbModule implements OnApplicationBootstrap {
+export class DynamodbModule {
   private readonly logger = new Logger(DynamodbModule.name);
   private static client: IConnection;
-  private static seedingQueeue: Map<
-    string,
-    // eslint-disable-next-line
-    { data: any; instance: DynamoDbRepository<any>; }
-  > = new Map();
   /**
    * Creates a DynamoDB client if it doesn't exist, and returns it. If the
    * `prefixCollection` option is provided, it will be stored for use by the
@@ -42,30 +35,6 @@ export class DynamodbModule implements OnApplicationBootstrap {
       };
     }
     return this.client;
-  }
-
-  async onApplicationBootstrap() {
-    if (DynamodbModule.seedingQueeue.size > 0) {
-      this.logger.debug(JSON.stringify(DynamodbModule.seedingQueeue));
-
-      DynamodbModule.seedingQueeue.forEach(async (val, table) => {
-        this.logger.debug(table);
-        await val.instance.batchWrite(val.data);
-        this.logger.debug(`Table ${table} seeded`);
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-      });
-      DynamodbModule.seedingQueeue.clear();
-    }
-  }
-
-  static appendSeedingQueue<T extends object>(
-    table: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    instance: DynamoDbRepository<T>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: T[],
-  ) {
-    this.seedingQueeue.set(table, { data, instance });
   }
 
   /**
