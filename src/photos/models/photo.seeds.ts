@@ -61,7 +61,14 @@ export const seedPhotos = () => {
         'https://images.pexels.com/photos/28305233/pexels-photo-28305233.jpeg',
         'https://images.pexels.com/photos/28683066/pexels-photo-28683066.jpeg',
         'https://images.pexels.com/photos/28573322/pexels-photo-28573322.jpeg',
-        'https://images.pexels.com/photos/27833590/pexels-photo-27833590.jpeg'
+        'https://images.pexels.com/photos/27833590/pexels-photo-27833590.jpeg',
+        'https://images.pexels.com/photos/28518085/pexels-photo-28518085.jpeg',
+        'https://images.pexels.com/photos/28770118/pexels-photo-28770118.jpeg',
+        'https://images.pexels.com/photos/27566893/pexels-photo-27566893.jpeg',
+        'https://images.pexels.com/photos/27569516/pexels-photo-27569516.jpeg',
+        'https://images.pexels.com/photos/28353017/pexels-photo-28353017.jpeg',
+        'https://images.pexels.com/photos/28303871/pexels-photo-28303871.jpeg',
+        'https://images.pexels.com/photos/28098286/pexels-photo-28098286.jpeg'
 
     ];
 
@@ -69,8 +76,8 @@ export const seedPhotos = () => {
         camera: cameras(),
         lens: lenses(),
         location: locations(),
-        film: 'KODAK PORTRA 800',
-        iso: '800',
+        film: Math.floor(10 * Math.random()) > 5 ? 'KODAK PORTRA 800' : 'KODAK ULTRAMAX 400',
+        iso: Math.floor(10 * Math.random()) > 5 ? '200' : '400',
         sortOrder: 1,
         description: 'This is a description',
         privateAccess: 0,

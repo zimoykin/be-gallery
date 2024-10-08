@@ -1,8 +1,10 @@
 import { Exclude, Expose, Transform } from 'class-transformer';
+import { IsMongoId } from 'class-validator';
 
 @Exclude()
 export class PhotoOutputDto {
-  @Expose({ name: 'id' })
+  @Expose()
+  @Transform((value) => value.obj._id)
   _id: string;
 
   @Expose()

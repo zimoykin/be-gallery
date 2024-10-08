@@ -30,18 +30,18 @@ export class PhotoConsumer implements OnModuleInit {
     async onModuleInit() {
         this.consumer.subscribe<FolderFavoriteChanged>(async (msg) => {
             this.logger.debug(JSON.stringify(msg));
-            const photo = await this.photoRepository.findById({ _id: msg.contentId });
+            const photo = await this.photoRepository.findById({ _id: msg.contentId }).lean();
             if (!photo) {
                 throw new Error('Photo not found');
             }
 
             let url;
-            if (photo.previewUrl && (photo?.previewUrlAvailableUntil ?? 1000) > Date.now()) {
+            if (photo.previewUrl && (photo?.previewUrlAvailableUntil ?? 0) > Date.now()) {
                 //if url is still available, then use it
                 url = photo.previewUrl;
             } else if (photo.preview?.key) {
                 const signedUrl = await this.s3BucketServicePreview.generateSignedUrl(photo.preview?.key);
-                await this.photoRepository.findByIdAndUpdate({ _id: photo.id }, { url: signedUrl, urlAvailableUntil: signedUrl.expiresIn });
+                await this.photoRepository.findByIdAndUpdate({ _id: photo._id }, { url: signedUrl, urlAvailableUntil: signedUrl.expiresIn });
                 url = signedUrl.url;
             }
 
