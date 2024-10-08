@@ -11,6 +11,11 @@ import { PhotoService } from './photo.service';
 import { IPhotoOfTheDay } from './interfaces/photo-of-the-day.interface';
 import { PhotoType } from './enums/photo-type.enum';
 import { ProfileService } from 'src/profiles/profile.service';
+import { Photo } from './models/photo.model';
+import { IPhoto } from './interfaces/photo.interface';
+import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
+import { InjectS3Bucket } from 'src/s3-bucket/inject-s3-bucket.decorator';
+import { S3BucketService } from 'src/s3-bucket/s3-bucket.service';
 
 @Injectable()
 export class PublicPhotoService {
@@ -20,8 +25,15 @@ export class PublicPhotoService {
     //@ts-ignore//
     @InjectRepository(PhotoOfTheDay.name)
     private readonly photoOfTheDayRepository: DynamoDbRepository<PhotoOfTheDay>,
+    //@ts-ignore//
+    @InjectRepository(Photo.name)
+    private readonly photoRepo: DynamoDbRepository<Photo>,
     private readonly photoService: PhotoService,
     private readonly profileService: ProfileService,
+    private readonly imageService: ImageCompressorService,
+    // @ts-ignore //
+    @InjectS3Bucket('preview')
+    private readonly s3BucketServicePreview: S3BucketService,
   ) { }
 
   private async determinePhotoOfTheDay(): Promise<PhotoOfTheDay | null> {
@@ -104,4 +116,48 @@ export class PublicPhotoService {
       };
     });
   }
+
+
+  async getFavouritePhotos() {
+    const photos = await this.photoRepo.find({
+      match: {
+        privateAccess: 0
+      }
+    });
+
+    const reduced = photos?.reduce((acc, photo) => {
+      if (!acc.some(pred => pred.url === photo.url)) {
+        acc.push(photo);
+      }
+
+      return acc;
+    }, [] as Photo[]) ?? [];
+
+    const profileIds = reduced.map((photo) => photo.profileId);
+    const profiles = await this.profileService.findProfileByIds(profileIds);
+
+    const result: Photo[] = [];
+    for await (const photo of reduced) {
+      //has static url
+      if (photo.url) {
+        result.push(photo);
+      }
+      else if (photo.preview?.key) {
+        const url = await this.s3BucketServicePreview.generateSignedUrl(photo.preview?.key);
+        await this.photoRepo.update(photo.id, {
+          url: url,
+          urlAvailableUntil: Date.now() + 7 * 24 * 3600 * 1000
+        });
+        result.push({ ...photo, url });
+      }
+    }
+
+    return result.map((photo) => {
+      return {
+        photo: { ...photo },
+        profile: profiles.find((profile) => profile.id === photo.profileId),
+      };
+    });
+  }
+
 }

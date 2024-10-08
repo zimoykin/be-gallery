@@ -71,6 +71,9 @@ export class FolderService {
       });
   }
 
+  /* 
+  * @deprecated
+  **/
   async findAllByUserId(userId: string) {
     const profile = await this.profileService.findProfileByUserId(userId);
     if (!profile) {
@@ -89,6 +92,12 @@ export class FolderService {
         return { ...folder, totalPhotos: count };
       }),
     );
+  }
+  async findAllByProfileId(profileId: string) {
+    const folders = await this.folderRepository.find<Folder>({
+      match: { profileId: profileId },
+    });
+    return folders;
   }
 
   async findAllFolderByProfileIdAndTotalPhotos(profileId: string) {

@@ -71,13 +71,13 @@ export class S3BucketService {
     });
 
     const url = await getSignedUrl(this.s3, params, {
-      expiresIn: 3600*24,
+      expiresIn: 3600 * 24 * 7,
       signingDate: new Date(),
       signingService: 's3',
     });
 
     // set url in cache
-    await this.cacheManager.set(key, url, 24 * 3600 * 1000);
+    await this.cacheManager.set(key, url, 7 * 24 * 3600 * 1000);
 
     // return url
     return url;

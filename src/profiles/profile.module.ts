@@ -8,7 +8,7 @@ import { S3BucketModule } from '../s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from '../image-compressor/image-compressor.module';
 import { profiles } from './models/profile.seed';
 import { ProfileConsumer } from './profile.consumer';
-import { EquipmentModule } from 'src/equipment/equipment.module';
+import { EquipmentModule } from 'src/equipments/equipment.module';
 import { AmqpModule } from 'src/lib/amqp.module';
 
 @Module({

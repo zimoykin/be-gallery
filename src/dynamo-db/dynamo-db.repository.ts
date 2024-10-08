@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
   OnModuleInit,
   Optional,
 } from '@nestjs/common';
@@ -25,6 +26,7 @@ import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { factoryConstructor } from './interfaces/factory.type';
 import { toPlainObject } from 'lodash';
 import { DynamodbModule } from './dynamo-db.module';
+import { NotFound } from '@aws-sdk/client-s3';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ModelClsT = new (...args: any[]) => any;
@@ -72,36 +74,36 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
       getIndexes(this.modelCls),
     );
 
-    //if table is created, seed data
-    if (isCreated && this.seeding?.length) {
-      let status = 'CREATING';
-      let incr = 0;
+    // //if table is created, seed data
+    // if (isCreated && this.seeding?.length) {
+    //   let status = 'CREATING';
+    //   let incr = 0;
 
-      while (status === 'CREATING' && incr < 10) {
-        incr++;
-        const tableInfo = await this.connection.db.describeTable({
-          TableName: this.getTableName(),
-        });
-        status = tableInfo.Table?.TableStatus ?? status;
+    //   while (status === 'CREATING' && incr < 10) {
+    //     incr++;
+    //     const tableInfo = await this.connection.db.describeTable({
+    //       TableName: this.getTableName(),
+    //     });
+    //     status = tableInfo.Table?.TableStatus ?? status;
 
-        if (status === 'ACTIVE') {
-          break;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
+    //     if (status === 'ACTIVE') {
+    //       break;
+    //     }
+    //     await new Promise((resolve) => setTimeout(resolve, 1000));
+    //   }
 
-      if (status == 'ACTIVE') {
-        DynamodbModule.appendSeedingQueue(
-          this.getTableName(),
-          this,
-          this.seeding,
-        );
-      } else {
-        this.logger.error(
-          `Table ${this.getTableName()} is not created, seeding data failed`,
-        );
-      }
-    }
+    //   if (status == 'ACTIVE') {
+    //     DynamodbModule.appendSeedingQueue(
+    //       this.getTableName(),
+    //       this,
+    //       this.seeding,
+    //     );
+    //   } else {
+    //     this.logger.error(
+    //       `Table ${this.getTableName()} is not created, seeding data failed`,
+    //     );
+    //   }
+    // }
   }
 
   private transfromDataToObject(
@@ -207,7 +209,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
       });
     }
     //merge filters or
-    if (filterORExpression.length > 0)
+    if (filterORExpression.length > 1)
       filterExpression.push(`( ${filterORExpression.join(' OR ')} )`);
 
     return {
@@ -306,7 +308,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
     filter?: IScanFilter<T>,
     indexName?: string, //TODO: investigate
   ): Promise<K[]> {
-    this.logger.debug(`Finding records with filter: ${JSON.stringify(filter)}`);
+    this.logger.debug(`filtering ${this.getTableName()}: ${JSON.stringify(filter)}`);
     const { filterExpression, expressionAttributeValues } =
       this.buildFilterExpression(filter);
     return this.scan(
@@ -356,7 +358,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
    * @returns A Promise resolving to the found record.
    */
   async findById<K = T>(id: string): Promise<K | null> {
-    this.logger.debug(`findById: ${id}`);
+    this.logger.debug(`findById ${this.getTableName()}: ${id}`);
     const primaryKey = getPrimaryKey(this.modelCls);
     try {
       const result = await this.connection.db.query({
@@ -370,7 +372,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
         const item = result?.Items[0];
         return this.transfromDataToObject(item);
       } else {
-        throw new Error('not found');
+        throw new NotFoundException(`not found ${id}`);
       }
     } catch (err) {
       this.logger.error(err);
@@ -470,7 +472,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
    * @returns A Promise resolving to the created record.
    */
   async create<K = T>(_data: Partial<T>): Promise<string> {
-    this.logger.debug(`create: ${JSON.stringify(_data)}`);
+    this.logger.debug(`create ${this.getTableName()}: ${JSON.stringify(_data)}`);
     const indexes = getIndexes(this.modelCls);
     const [sortKey] = getSortKey(this.modelCls);
     const primaryKey = getPrimaryKey(this.modelCls);
@@ -557,7 +559,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
   }
 
   async update(id: string, _data: object) {
-    this.logger.debug(`UPDATE: ${JSON.stringify(_data)}`);
+    this.logger.debug(`update ${this.getTableName()}: ${id}: ${JSON.stringify(_data)}`);
     const existingRecord = await this.findById(id);
 
     if (!existingRecord) {
@@ -701,6 +703,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
    * @returns A Promise resolving to the deleted record.
    */
   async remove(id: string) {
+    this.logger.debug(`remove ${this.getTableName()} : ${id}`);
     const primaryKey = getPrimaryKey(this.modelCls);
     const [sortKey] = getSortKey(this.modelCls);
     const existingRecord = await this.findById(id);
