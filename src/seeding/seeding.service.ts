@@ -69,6 +69,10 @@ export class SeedingService implements OnApplicationBootstrap {
         if (this.config.get('NODE_ENV') !== 'seeding') {
             return;
         }
+
+        const photos = seedPhotos();
+        let photoIndex = 0;
+
         for await (const prof of profiles) {
             await new Promise((resolve) => setTimeout(resolve, 2000));
             const profile = await this.profileRepo.findById(prof.id).catch(() => null);
@@ -92,15 +96,12 @@ export class SeedingService implements OnApplicationBootstrap {
                 this.logger.log(`Folder created: ${createdFolder}`);
                 await new Promise((resolve) => setTimeout(resolve, 1000));
 
-                const photos = seedPhotos();
-
-                const indexs = [...new Set([
-                    ...this.getTwoRandomInt(0, photos.length - 1),
-                    ...this.getTwoRandomInt(0, photos.length - 1),
-                ])];
 
                 let lastPhoto;
-                for await (const index of indexs) {
+                for await (const index of [photoIndex, photoIndex + 1]) {
+                    if (index >= photos.length) {
+                        continue;
+                    }
                     const photo = photos[index];
                     const imageBuffer = await this.imageCompressorService.getImageBufferFromUrl(photo.url);
                     const originalname = photo.url.split('/').find((x) => x.includes('.jpeg')) ?? `${createdProfile}-${createdFolder}-${index}.jpg`;
@@ -172,6 +173,8 @@ export class SeedingService implements OnApplicationBootstrap {
 
                     lastPhoto = createdPhoto._id.toString();
                 }
+
+                photoIndex += 2;
 
                 if (lastPhoto) {
                     await this.folderRepo.update(createdFolder, {

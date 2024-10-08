@@ -392,7 +392,7 @@ export class PhotoService {
       id: id,
       folderId: folderId,
       profileId: profileId,
-    });
+    }).lean();
 
     if (!existingPhoto) {
       throw new NotFoundException();
@@ -407,7 +407,9 @@ export class PhotoService {
         existingPhoto.compressed?.key,
       );
 
-    return this.photoRepository.remove(id);
+    return this.photoRepository.findByIdAndDelete({
+      _id: id
+    });
   }
 
   async removePhotosByFolderId(folderId: string, profileId: string) {

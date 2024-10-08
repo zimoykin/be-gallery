@@ -8,6 +8,7 @@ import { ProfileService } from 'src/profiles/profile.service';
 import { Model } from 'mongoose';
 import { PhotoModel } from './models/photo.model';
 import { InjectModel } from '@nestjs/mongoose';
+import { random } from 'lodash';
 
 @Injectable()
 export class PublicPhotoService {
@@ -44,13 +45,16 @@ export class PublicPhotoService {
 
 
   async getFavouritePhotos() {
-    const photos = await this.photoRepo.find({ privateAccess: 0 }).limit(15).lean();
+    const photos = await this.photoRepo.aggregate<PhotoModel>([
+      { $match: { privateAccess: 0 } },
+      { $sample: { size: 15 } }
+    ]);
 
     const profileIds = [...new Set(photos.map((photo) => photo.profileId))];
     const profiles = await this.profileService.findProfileByIds(profileIds);
 
     const result: PhotoModel[] = [];
-    for await (const photo of photos) {
+    for await (const photo of photos.sort(() => Math.random() - 0.5)) {
       const signedUrl = await this.photoService.getUrlByType(PhotoType.ORIGINAL, photo);
       if (signedUrl) {
         result.push({ ...photo, originalUrl: signedUrl.url, originalUrlAvailableUntil: signedUrl.expiresIn });

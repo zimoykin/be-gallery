@@ -22,16 +22,6 @@ export const profiles: Profile[] = [
     userId: '2',
   },
   {
-    id: '3e1d7a8a-3953-4a36-abe9-5d2b8070699e',
-    name: 'Alberta De Nou',
-    email: 'albert.nou@me.com',
-    location: 'Paris, France',
-    website: 'https://github.com/zimoykin',
-    url: 'https://avataaars.io/?avatarStyle=Circle&topType=LongHairCurvy&accessoriesType=Sunglasses&hairColor=BrownDark&facialHairType=Blank&facialHairColor=Brown&clotheType=ShirtScoopNeck&clotheColor=Blue02&eyeType=Default&eyebrowType=Angry&mouthType=Sad&skinColor=Yellow',
-    privateAccess: 0,
-    userId: '3',
-  },
-  {
     id: '86fcb1db-96d9-4ff5-8424-7e1d8e76d7c9',
     name: 'Freddy Kowalski',
     email: 'fred.kowalski@me.com',
@@ -50,15 +40,5 @@ export const profiles: Profile[] = [
     url: 'https://avataaars.io/?avatarStyle=Circle&topType=LongHairStraight&accessoriesType=Blank&hairColor=BrownDark&facialHairType=Blank&clotheType=BlazerShirt&eyeType=Default&eyebrowType=Default&mouthType=Default&skinColor=Light',
     privateAccess: 0,
     userId: '5',
-  },
-  {
-    id: '4f3a8fe9-a138-471e-976f-7eb2237fcef0',
-    name: 'Marty Brodkowski',
-    email: 'marty.smith@me.com',
-    location: 'Texas Area, USA',
-    website: 'https://github.com/zimoykin',
-    url: 'https://avataaars.io/?avatarStyle=Circle&topType=ShortHairSides&accessoriesType=Blank&hairColor=SilverGray&facialHairType=Blank&facialHairColor=Blonde&clotheType=Hoodie&clotheColor=Heather&graphicType=Hola&eyeType=Squint&eyebrowType=UnibrowNatural&mouthType=Default&skinColor=Light',
-    privateAccess: 0,
-    userId: '6',
   },
 ];
