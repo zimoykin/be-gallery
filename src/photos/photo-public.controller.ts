@@ -12,18 +12,7 @@ export class PhotoPublicController {
   constructor(
     private readonly publicPhotoService: PublicPhotoService
   ) { }
-
-  @Get('photo-of-the-day')
-  async getPhotoOfTheDay(): Promise<PublicPhotoOutputDto> {
-    return this.publicPhotoService
-      .getPhotoOfTheDay()
-      .then((photo) => plainToInstance(PublicPhotoOutputDto, photo))
-      .catch((err) => {
-        this.logger.error(err);
-        throw err;
-      });
-  }
-
+  
   @Get('favourite')
   async getFavouritePhotos(): Promise<PublicPhotoOutputDto[]> {
     return this.publicPhotoService.getFavouritePhotos().then((photos) => plainToInstance(PublicPhotoOutputDto, photos))

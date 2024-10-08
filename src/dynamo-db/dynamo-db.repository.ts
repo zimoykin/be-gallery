@@ -25,14 +25,13 @@ import { getRequired } from './decorators/required.decorator';
 import { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { factoryConstructor } from './interfaces/factory.type';
 import { toPlainObject } from 'lodash';
-import { DynamodbModule } from './dynamo-db.module';
-import { NotFound } from '@aws-sdk/client-s3';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ModelClsT = new (...args: any[]) => any;
 
 @Injectable()
 export class DynamoDbRepository<T extends object> implements OnModuleInit {
+  static updateCounter = 0;
   private readonly logger: Logger = new Logger(DynamoDbRepository.name);
 
   constructor(
@@ -40,9 +39,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
     @Inject('DYNAMO-DB-CONNECTION') private readonly connection: IConnection,
     //@ts-ignore//
     @Inject('DYNAMO-DB-MODEL')
-    private readonly modelCls: ModelClsT,
-    // @ts-ignore
-    @Optional() @Inject('DYNAMO-DB-SEEDING') private readonly seeding?: T[],
+    private readonly modelCls: ModelClsT
   ) { }
 
   /**
@@ -73,37 +70,6 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
       getSortKey(this.modelCls),
       getIndexes(this.modelCls),
     );
-
-    // //if table is created, seed data
-    // if (isCreated && this.seeding?.length) {
-    //   let status = 'CREATING';
-    //   let incr = 0;
-
-    //   while (status === 'CREATING' && incr < 10) {
-    //     incr++;
-    //     const tableInfo = await this.connection.db.describeTable({
-    //       TableName: this.getTableName(),
-    //     });
-    //     status = tableInfo.Table?.TableStatus ?? status;
-
-    //     if (status === 'ACTIVE') {
-    //       break;
-    //     }
-    //     await new Promise((resolve) => setTimeout(resolve, 1000));
-    //   }
-
-    //   if (status == 'ACTIVE') {
-    //     DynamodbModule.appendSeedingQueue(
-    //       this.getTableName(),
-    //       this,
-    //       this.seeding,
-    //     );
-    //   } else {
-    //     this.logger.error(
-    //       `Table ${this.getTableName()} is not created, seeding data failed`,
-    //     );
-    //   }
-    // }
   }
 
   private transfromDataToObject(
@@ -264,6 +230,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
     lastKey?: Record<string, AttributeValue>,
     limit?: number,
   ) {
+    DynamoDbRepository.updateCounter++;
     const result = await this.connection.db.scan({
       TableName: this.getTableName(),
       IndexName: indexName ? `${indexName}_Index` : undefined,
@@ -308,6 +275,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
     filter?: IScanFilter<T>,
     indexName?: string, //TODO: investigate
   ): Promise<K[]> {
+    DynamoDbRepository.updateCounter++;
     this.logger.debug(`filtering ${this.getTableName()}: ${JSON.stringify(filter)}`);
     const { filterExpression, expressionAttributeValues } =
       this.buildFilterExpression(filter);
@@ -332,6 +300,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
     filter?: IScanFilter<T>,
     indexName?: string,
   ): Promise<number> {
+    DynamoDbRepository.updateCounter++;
     const { filterExpression, expressionAttributeValues } =
       this.buildFilterExpression(filter);
 
@@ -358,6 +327,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
    * @returns A Promise resolving to the found record.
    */
   async findById<K = T>(id: string): Promise<K | null> {
+    DynamoDbRepository.updateCounter++;
     this.logger.debug(`findById ${this.getTableName()}: ${id}`);
     const primaryKey = getPrimaryKey(this.modelCls);
     try {
@@ -472,6 +442,11 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
    * @returns A Promise resolving to the created record.
    */
   async create<K = T>(_data: Partial<T>): Promise<string> {
+    DynamoDbRepository.updateCounter++;
+    if (DynamoDbRepository.updateCounter === 25) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      DynamoDbRepository.updateCounter = 0;
+    }
     this.logger.debug(`create ${this.getTableName()}: ${JSON.stringify(_data)}`);
     const indexes = getIndexes(this.modelCls);
     const [sortKey] = getSortKey(this.modelCls);
@@ -523,6 +498,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
     return primaryId;
   }
   async batchWrite(records: T[]) {
+    DynamoDbRepository.updateCounter++;
     const chunks = await this.generateRecordDbByChunk(...records);
     const tableName = this.getTableName();
 
@@ -559,7 +535,12 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
   }
 
   async update(id: string, _data: object) {
-    this.logger.debug(`update ${this.getTableName()}: ${id}: ${JSON.stringify(_data)}`);
+    DynamoDbRepository.updateCounter++;
+    if (DynamoDbRepository.updateCounter === 25) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      DynamoDbRepository.updateCounter = 0;
+    }
+    this.logger.debug(`update ${DynamoDbRepository.updateCounter} ${this.getTableName()}: ${id}: ${JSON.stringify(_data)}`);
     const existingRecord = await this.findById(id);
 
     if (!existingRecord) {

@@ -7,7 +7,6 @@ import {
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class S3BucketService {
@@ -18,9 +17,7 @@ export class S3BucketService {
     // @ts-ignore //
     @Inject('S3_FOLDER_NAME') private readonly folderName: string,
     // @ts-ignore //
-    @Inject('S3_BUCKET_CONNECTION') private readonly s3: S3Client,
-    // @ts-ignore //
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject('S3_BUCKET_CONNECTION') private readonly s3: S3Client
   ) { }
 
   async upload(
@@ -42,7 +39,6 @@ export class S3BucketService {
       upload
         .done()
         .then(() => {
-          this.cacheManager.del(key);
           resolve({
             url: `https://${this.bucketName}.s3.amazonaws.com/${key}`,
             key: key,
@@ -56,31 +52,29 @@ export class S3BucketService {
     });
   }
 
-  async generateSignedUrl(key: string) {
-    // get url from cache if it exists
-    const urlCached = await this.cacheManager.get(key);
-
-    if (urlCached) {
-      return String(urlCached);
-    }
-
+  /**
+   * Generate a signed url for a given key
+   * @param key key of the object in s3
+   * @returns {url: string, expiresIn: number} signed url and expiration time in milliseconds
+   * @throws InternalServerError if there is an error generating the signed url
+   */
+  async generateSignedUrl(key: string): Promise<{ url: string; expiresIn?: number; }> {
     // get url from s3
     const params = new GetObjectCommand({
       Bucket: this.bucketName,
       Key: `${this.folderName}/${key}`,
     });
 
+    const expiresIn = 60 * 60 * 24 * 7; // 7 days, coz s3 requires
+
     const url = await getSignedUrl(this.s3, params, {
-      expiresIn: 3600 * 24 * 7,
+      expiresIn: expiresIn,
       signingDate: new Date(),
       signingService: 's3',
     });
 
-    // set url in cache
-    await this.cacheManager.set(key, url, 7 * 24 * 3600 * 1000);
-
     // return url
-    return url;
+    return { url, expiresIn: new Date().setMilliseconds(expiresIn*1000) };
   }
 
   async deleteFile(key: string) {

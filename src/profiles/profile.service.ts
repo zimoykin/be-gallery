@@ -58,10 +58,10 @@ export class ProfileService {
     const result: Profile[] = [];
     for await (const profile of profiles) {
       if (profile.bucket?.key) {
-        const url = await this.s3BucketService.generateSignedUrl(
+        const signedUrl = await this.s3BucketService.generateSignedUrl(
           profile.bucket.key,
         );
-        profile.url = url;
+        profile.url = signedUrl.url;
         result.push({ ...profile });
       } else {
         result.push(profile);
@@ -82,12 +82,12 @@ export class ProfileService {
     const favoriteEquipment = await this.eqipmentService.findFavoriteEquipmentByProfileId(profile?.id);
 
     if (profile?.bucket?.key) {
-      const url = await this.s3BucketService.generateSignedUrl(
+      const signedUrl = await this.s3BucketService.generateSignedUrl(
         profile.bucket.key,
       );
       return {
         ...profile,
-        url,
+        url: signedUrl.url,
         favoriteEquipment
       };
     }
@@ -105,10 +105,10 @@ export class ProfileService {
     const result: Profile[] = [];
     for await (const profile of profiles) {
       if (profile.bucket?.key) {
-        const url = await this.s3BucketService.generateSignedUrl(
+        const signedUrl = await this.s3BucketService.generateSignedUrl(
           profile.bucket.key,
         );
-        profile.url = url;
+        profile.url = signedUrl.url;
         result.push({ ...profile });
       } else {
         result.push(profile);
@@ -175,12 +175,12 @@ export class ProfileService {
     const favoriteEquipment = await this.eqipmentService.findFavoriteEquipmentByProfileId(profile?.id);
 
     if (profile.bucket?.key) {
-      const url = await this.s3BucketService.generateSignedUrl(
+      const signedUrl = await this.s3BucketService.generateSignedUrl(
         profile.bucket.key,
       );
       return {
         ...profile,
-        url,
+        url: signedUrl.url,
         favoriteEquipment
       };
     }

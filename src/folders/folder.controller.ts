@@ -30,7 +30,7 @@ export class FolderController {
   @HttpCode(200)
   async findAll(@Profile() profile: IProfileCookie) {
     return this.folderService
-      .findAllFolderByProfileIdAndTotalPhotos(profile.profileId)
+      .findAllByProfileId(profile.profileId)
       .then((data) => {
         return plainToInstance(FoldeWithTotalOutputDto, data);
       })

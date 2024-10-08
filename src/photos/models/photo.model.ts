@@ -1,65 +1,100 @@
-import { Table } from 'src/dynamo-db/decorators/table.decorator';
-import { Index } from '../../dynamo-db/decorators/index.decorator';
-import { PrimaryKey } from '../../dynamo-db/decorators/primary-key.decorator';
-import { SortKey } from '../../dynamo-db/decorators/sort-key.decorator';
-import { Required } from '../../dynamo-db/decorators/required.decorator';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-@Table(Photo.name)
-export class Photo {
-  @PrimaryKey()
-  id: string;
+class Bucket {
+  @Prop()
+  bucketName: string;
+  @Prop()
+  folder: string;
+  @Prop()
+  url: string;
 
-  @Index('N')
+  @Prop()
+  key: string;
+
+  @Prop()
+  previewWidth: number;
+
+  @Prop()
+  previewHeight: number;
+}
+const BucketSchema = SchemaFactory.createForClass(Bucket);
+
+@Schema({
+  timestamps: true,
+  collection: 'gallery_photos',
+  versionKey: false,
+})
+export class PhotoModel {
+
+  _id: string;
+  @Prop()
   sortOrder: number;
 
-  @Index('S')
-  @Required()
+  @Prop({ required: true })
   profileId: string;
 
-  @SortKey('S')
+  @Prop({ required: true })
   folderId: string;
 
-  @Required()
+  @Prop({ required: true })
   camera: string;
 
+  @Prop({ required: false })
   lens?: string;
+
+  @Prop({ required: false })
   iso?: string;
+
+  @Prop({ required: false })
   film?: string;
+
+  @Prop({ required: false })
   location?: string;
+
+  @Prop({ required: true })
   description?: string;
 
-  url?: string;
+  //preview
+  @Prop({ required: false, schema: BucketSchema })
+  preview?: Bucket;
 
-  @Required()
-  bucket: {
-    bucketName: string;
-    folder: string;
-    url: string;
-    key: string;
-  };
+  @Prop({ required: false })
+  previewUrl?: string;
 
-  compressed?: {
-    bucketName: string;
-    folder: string;
-    url: string;
-    key: string;
-  };
+  @Prop({ required: false })
+  previewUrlAvailableUntil?: number;
 
-  preview?: {
-    bucketName: string;
-    folder: string;
-    url: string;
-    key: string;
-    previewWidth: number;
-    previewHeight: number;
-  };
+  //compressed
+  @Prop({ required: false, schema: BucketSchema })
+  compressed?: Bucket;
 
-  @Index('N')
-  privateAccess = 1; // 0: public, 1: private
+  @Prop({ required: false })
+  compressedUrl?: string;
 
-  @Index('N')
-  @Required()
+  @Prop({ required: false })
+  compressedUrlAvailableUntil?: number;
+
+  @Prop({ required: false, schema: BucketSchema })
+  original: Bucket;
+  
+  @Prop({ required: false })
+  originalUrl?: string;
+
+  @Prop({ required: false })
+  originalUrlAvailableUntil?: number;
+
+  @Prop({ required: false, default: 0 })
+  privateAccess: number; // 0: public, 1: private
+
+  @Prop({ required: false, default: 0 })
   likes: number = 0;
 }
 
-export type PhotoData = Omit<Photo, 'id'>;
+export type PhotoDocument = PhotoModel & Document;
+export const PhotoSchema = SchemaFactory.createForClass(PhotoModel);
+
+
+export default {
+  schema: PhotoSchema,
+  name: PhotoModel.name,
+};

@@ -18,9 +18,18 @@ import { EquipmentModule } from './equipments/equipment.module';
 import { LikesModule } from './likes/likes.module';
 import { AmqpModule } from './lib/amqp.module';
 import { SeedingModule } from './seeding/seeding.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (config: ConfigService<ConfigVariables>) => {
+        const uri = config.get<string>('MONGO_CONNECTION')!;
+        return { uri };
+
+      }, inject: [ConfigService]
+    }),
     AmqpModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
