@@ -20,22 +20,24 @@ import {
   ApiConsumes,
   ApiOperation,
 } from '@nestjs/swagger';
-import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
+import { UserAccess } from '@zimoykin/auth';
 import { PhotoInputDto } from './dtos/photo-input.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
 import { PhotosParamDto } from './dtos/photos-param.dto';
 import { PhotoOutputDto } from './dtos/photo-output.dto';
 import { PhotoParamDto } from './dtos/photo-param.dto';
-import { Profile } from 'src/decorators/cookie.decorator';
-import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
+import { Profile } from '../decorators/cookie.decorator';
+import { IProfileCookie } from '../middlewares/profile-cookie.interface';
 
 @ApiBearerAuth('Authorization')
 @UserAccess()
 @Controller('api/v1/photos')
 export class PhotoController {
   private readonly logger = new Logger(PhotoController.name);
-  constructor(private readonly photoService: PhotoService) { }
+  constructor(
+    private readonly photoService: PhotoService
+  ) { }
 
   @Get(':folderId/:type')
   async getPhotoByFolderId(
@@ -106,6 +108,7 @@ export class PhotoController {
       });
   }
 
+  @ApiOperation({ summary: 'set favourite' })
   @Patch(':folderId/:photoId')
   async setFavourite(
     @Param('folderId') folderId: string,
@@ -137,4 +140,5 @@ export class PhotoController {
   ) {
     return this.photoService.removePhoto(folderId, profile.profileId, photoId);
   }
+
 }

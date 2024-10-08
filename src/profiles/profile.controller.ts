@@ -28,7 +28,7 @@ import { IProfile } from './interfaces/profile.interface';
 @Controller('api/v1/profiles')
 export class ProfileController {
   private readonly logger = new Logger(ProfileController.name);
-  constructor(private readonly profileService: ProfileService) {}
+  constructor(private readonly profileService: ProfileService) { }
 
   @Get('me')
   @HttpCode(200)
@@ -110,12 +110,11 @@ export class ProfileController {
   @HttpCode(200)
   async login(
     @AuthUser() authUser: IAuthUser,
-    @Profile() profileCookie: IProfileCookie,
     @Res() res: Response,
   ) {
-    res.clearCookie(cookieProfileAuth);
     let profile: IProfile;
     try {
+      res.clearCookie(cookieProfileAuth);
       profile =
         (await this.profileService.findProfileByUserId(authUser.id)) ||
         (await this.profileService.createProfile(
@@ -125,6 +124,7 @@ export class ProfileController {
     } catch (error) {
       profile = await this.profileService.createProfile(
         authUser.id,
+        authUser.email?.split('@')[0] ?? 'unknown',
         authUser.email ?? 'unknown',
       );
     }

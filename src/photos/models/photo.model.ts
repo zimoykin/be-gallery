@@ -28,6 +28,8 @@ export class Photo {
   location?: string;
   description?: string;
 
+  url?: string;
+
   @Required()
   bucket: {
     bucketName: string;

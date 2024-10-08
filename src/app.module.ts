@@ -14,9 +14,10 @@ import { ProfileAuthMiddleware } from './middlewares/profile-auth.middleware';
 import { OffersModule } from './offers/offers.module';
 import { TopicModule } from './topics/topic.module';
 import { MessagesModule } from './messages/messages.module';
-import { EquipmentModule } from './equipment/equipment.module';
+import { EquipmentModule } from './equipments/equipment.module';
 import { LikesModule } from './likes/likes.module';
 import { AmqpModule } from './lib/amqp.module';
+import { SeedingModule } from './seeding/seeding.module';
 
 @Module({
   imports: [
@@ -88,6 +89,7 @@ import { AmqpModule } from './lib/amqp.module';
     MessagesModule,
     EquipmentModule,
     LikesModule,
+    SeedingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

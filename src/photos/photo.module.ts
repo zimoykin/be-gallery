@@ -12,7 +12,6 @@ import { ProfileModule } from 'src/profiles/profile.module';
 import { FolderModule } from 'src/folders/folder.module';
 import { PhotoConsumer } from './photo.consumer';
 import { AmqpModule } from 'src/lib/amqp.module';
-
 @Module({
   imports: [
     DynamodbModule.forFeature(Photo),

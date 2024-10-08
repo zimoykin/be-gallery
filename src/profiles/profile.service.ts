@@ -10,7 +10,7 @@ import { Profile } from './models/profile.model';
 import { S3BucketService } from '../s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
 import { InjectS3Bucket } from '../s3-bucket/inject-s3-bucket.decorator';
-import { EquipmentService } from '../equipment/equipment.service';
+import { EquipmentService } from '../equipments/equipment.service';
 
 type File = Express.Multer.File;
 
@@ -28,8 +28,8 @@ export class ProfileService {
     private readonly eqipmentService: EquipmentService,
   ) { }
 
-  private isFile(data: unknown): data is File {
-    return data instanceof File;
+  private isFile(data: any): data is Express.Multer.File {
+    return data.mimetype !== undefined;
   }
 
   async createProfile(userId: string, userName: string, email?: string) {
@@ -45,6 +45,29 @@ export class ProfileService {
     }
 
     return this.findProfileByUserId(userId);
+  }
+
+
+  async findProfileByIds(profileIds: string[]) {
+    const profiles = await this.profileRepository.find({
+      or: {
+        id: profileIds,
+      }
+    });
+    //get all avatars
+    const result: Profile[] = [];
+    for await (const profile of profiles) {
+      if (profile.bucket?.key) {
+        const url = await this.s3BucketService.generateSignedUrl(
+          profile.bucket.key,
+        );
+        profile.url = url;
+        result.push({ ...profile });
+      } else {
+        result.push(profile);
+      }
+    }
+    return result;
   }
 
   async findProfileByUserId(userId: string) {
@@ -114,16 +137,27 @@ export class ProfileService {
       throw new BadRequestException('File not found');
     }
 
+    //resize avatar
     const resized = await this.imageCompressorService.compressImage(
       file.buffer,
       320,
       320,
     );
+
+    //delete prev avatar from bucket
+    if (profile.bucket?.key)
+      await this.s3BucketService.deleteFile(profile.bucket.key);
+
+    //upload new avatar
     const bucket = await this.s3BucketService.upload(
       resized,
       `${profile.id}/${profile.id}${'.jpeg'}`,
     );
-    return this.profileRepository.update(profile.id, { bucket });
+
+    //update profile
+    const result = await this.profileRepository.update(profile.id, { bucket });
+
+    return result;
   }
 
   async findProfileById(id: string) {

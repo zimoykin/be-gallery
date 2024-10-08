@@ -13,13 +13,19 @@ export class ImageCompressorService {
     try {
       const compressedImage = await sharp(file.buffer)
         .jpeg({ quality: 80 })
-        .resize(width, height, { fit: 'cover' })
+        .resize(width, height, { fit: 'cover', position: 'center' })
         .toBuffer();
       return compressedImage;
     } catch (error) {
       this.logger.error('Error compressing image:', error);
       throw error;
     }
+  }
+
+  async getImageBufferFromUrl(url: string) {
+    const response = await axios({ url, responseType: 'arraybuffer' });
+    const imageBuffer = Buffer.from(response.data, 'binary');
+    return imageBuffer;
   }
 
   async convertSvgToJpg(svgBuffer: unknown) {
@@ -88,10 +94,7 @@ export class ImageCompressorService {
   }
 
   async determineDominantColors(url: string) {
-
-    const response = await axios({ url, responseType: 'arraybuffer' });
-    const imageBuffer = Buffer.from(response.data, 'binary');
-
+    const imageBuffer = await this.getImageBufferFromUrl(url);
     const image = sharp(imageBuffer)
       .resize(100, 100)
       .blur(1)
