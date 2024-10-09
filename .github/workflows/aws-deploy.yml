@@ -30,7 +30,7 @@ jobs:
       env:
         REGISTRY_URI: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
       run: |
-        docker build -t bb-pipelinetest .
+        docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t bb-pipelinetest .
         docker tag bb-pipelinetest $REGISTRY_URI/bb-pipelinetest:latest
         docker push $REGISTRY_URI/bb-pipelinetest:latest
 
