@@ -35,8 +35,14 @@ jobs:
           docker tag gallery $REGISTRY_URI/gallery:latest
           docker push $REGISTRY_URI/gallery:latest
 
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
       - name: Deploy to EC2
-        env: 
+        env:
           EC2_INSTANCE_IP: ${{ secrets.EC2_INSTANCE_IP }}
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@$EC2_INSTANCE_IP \
