@@ -1,4 +1,4 @@
-name: Deploy to AWS
+name: Deploy to AWS-build-push-image-ecr
 
 on:
   workflow_dispatch:
