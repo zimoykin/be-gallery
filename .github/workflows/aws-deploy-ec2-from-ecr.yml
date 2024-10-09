@@ -40,6 +40,10 @@ jobs:
            sudo yum install docker -y && \
            sudo service docker start && \
            sudo usermod -aG docker ec2-user"
+      
+      - name: Generate Env 
+        run: | 
+          echo ${{ secrets.ENV_VARS }} > .env
 
       - name: Deploy to EC2
         env:
@@ -48,7 +52,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-          "echo ${{ secrets.ENV_VARS }} > .env && \"
           "docker login -u AWS -p $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }}) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com && \
            docker pull $REGISTRY_REPO && \
            docker stop gallery || true && \
