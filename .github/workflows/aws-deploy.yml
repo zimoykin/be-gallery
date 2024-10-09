@@ -42,10 +42,8 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
       - name: Deploy to EC2
-        env:
-          EC2_INSTANCE_IP: ${{ secrets.EC2_INSTANCE_IP }}
         run: |
-          ssh -o "StrictHostKeyChecking=no" ec2-user@$EC2_INSTANCE_IP \
+          ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
           "docker pull $REGISTRY_URI/gallery:latest && \
            docker stop gallery || true && \
            docker rm gallery || true && \
