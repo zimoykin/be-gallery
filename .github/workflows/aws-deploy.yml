@@ -54,6 +54,8 @@ jobs:
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
           "docker pull $REGISTRY_URI/gallery:latest && \
-           docker stop gallery || true && \
-           docker rm gallery || true && \
+           if [ \$(docker ps -q -f name=gallery) ]; then \
+             docker stop gallery; \
+             docker rm gallery; \
+           fi && \
            docker run -d -p 80:8081 --name gallery $REGISTRY_URI/gallery:latest"
