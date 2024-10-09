@@ -55,10 +55,10 @@ import { MongooseModule } from '@nestjs/mongoose';
         )!;
 
         return {
-          region: AWS_REGION,
+          region: AWS_REGION.trim(),
           credentials: {
-            accessKeyId: AWS_ACCESS_KEY_ID,
-            secretAccessKey: AWS_SECRET_ACCESS_KEY,
+            accessKeyId: AWS_ACCESS_KEY_ID.trim(),
+            secretAccessKey: AWS_SECRET_ACCESS_KEY.trim(),
           },
           prefixCollection: 'gallery',
         };
