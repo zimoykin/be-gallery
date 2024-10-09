@@ -31,14 +31,14 @@ jobs:
           REGISTRY_URI: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com'
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t bb-pipelinetest .
-          docker tag bb-pipelinetest $REGISTRY_URI/bb-pipelinetest:latest
-          docker push $REGISTRY_URI/bb-pipelinetest:latest
+          docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t gallery .
+          docker tag gallery $REGISTRY_URI/gallery:latest
+          docker push $REGISTRY_URI/gallery:latest
 
       - name: Deploy to EC2
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@<EC2_INSTANCE_IP> \
-          "docker pull $REGISTRY_URI/bb-pipelinetest:latest && \
+          "docker pull $REGISTRY_URI/gallery:latest && \
            docker stop gallery || true && \
            docker rm gallery || true && \
-           docker run -d -p 80:3000 --name gallery $REGISTRY_URI/bb-pipelinetest:latest"
+           docker run -d -p 80:3000 --name gallery $REGISTRY_URI/gallery:latest"
