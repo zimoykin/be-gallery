@@ -12,15 +12,20 @@ export async function createTable(
   tableName: string,
   primaryKey: string,
   sortKey?: [string, 'N' | 'S' | 'B'],
-  indexes?: { indexName: string; type: 'N' | 'S' | 'B' }[],
+  indexes?: { indexName: string; type: 'N' | 'S' | 'B'; }[],
 ) {
   if (!tableName) {
     throw new Error('Table name is not defined');
   }
 
-  const tables = await connection.listTables();
-  if (tables.TableNames?.includes(tableName)) {
+  try {
+    const tables = await connection.listTables();
+    if (tables.TableNames?.includes(tableName)) {
+      return false;
+    }
     return false;
+  } catch (error) {
+    logger.error(error);
   }
 
   if (!primaryKey) {

@@ -33,7 +33,7 @@ export class DynamodbModule {
           credentials: opts.credentials,
           logger: console,
           retryMode: 'standard',
-          
+
         }),
         prefixCollection: opts.prefixCollection,
       };
