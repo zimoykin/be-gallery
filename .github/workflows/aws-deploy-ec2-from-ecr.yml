@@ -53,4 +53,4 @@ jobs:
            docker pull $REGISTRY_REPO && \
            docker stop gallery || true && \
            docker rm gallery || true && \
-           docker run -d -p 80:8081 --name gallery --env-file ~/.env $REGISTRY_REPO
+           docker run -d -p 80:8081 --name gallery $REGISTRY_REPO
