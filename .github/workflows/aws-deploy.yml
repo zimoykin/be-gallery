@@ -53,14 +53,9 @@ jobs:
       - name: Deploy to EC2
         env:
           REGISTRY_URI: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com'
-          AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-          "aws ecr get-login-password --region $AWS_REGION \
-          | docker login --username AWS --password-stdin $REGISTRY_URI && \
-           docker pull $REGISTRY_URI/gallery:latest && \
-           if [ \$(docker ps -q -f name=gallery) ]; then \
-             docker stop gallery; \
-             docker rm gallery; \
-           fi && \
+          "docker pull $REGISTRY_URI/gallery:latest && \
+           docker stop gallery || true && \
+           docker rm gallery || true && \
            docker run -d -p 80:8081 --name gallery $REGISTRY_URI/gallery:latest"
