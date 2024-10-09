@@ -30,7 +30,7 @@ export class DynamodbModule {
       this.client = {
         db: new DynamoDB({
           region: opts.region,
-          // credentials: opts.credentials,
+          credentials: opts.credentials,
         }),
         prefixCollection: opts.prefixCollection,
       };
