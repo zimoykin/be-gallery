@@ -31,6 +31,9 @@ export class DynamodbModule {
         db: new DynamoDB({
           region: opts.region,
           credentials: opts.credentials,
+          logger: console,
+          retryMode: 'standard',
+          
         }),
         prefixCollection: opts.prefixCollection,
       };
