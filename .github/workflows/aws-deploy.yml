@@ -35,14 +35,6 @@ jobs:
           docker tag gallery $REGISTRY_URI/gallery:latest
           docker push $REGISTRY_URI/gallery:latest
 
-      - name: Debug ECR login
-        run: |
-          echo "login to AWS ECR..."
-          aws ecr get-login-password --region $AWS_REGION \
-          | docker login -u AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-          echo "Статус входа: $?"
-          docker pull $REGISTRY_REPO
-
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
@@ -50,20 +42,17 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_INSTANCE_IP }} >> ~/.ssh/known_hosts
 
-      - name: Install Docker on EC2
-        run: |
-          ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-          "sudo yum update -y && \
-          sudo yum install docker -y && \
-          sudo service docker start && \
-          sudo usermod -aG docker ec2-user"
-
-      - name: Deploy to EC2
+      - name: Install Docker and Deploy to EC2
         env:
           REGISTRY_REPO: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/gallery:latest'
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-          docker pull $REGISTRY_REPO && \
+          "sudo yum update -y && \
+           sudo yum install docker -y && \
+           sudo service docker start && \
+           sudo usermod -aG docker ec2-user && \
+           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login -u AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com && \
+           docker pull $REGISTRY_REPO && \
            docker stop gallery || true && \
            docker rm gallery || true && \
-           docker run -d -p 80:8081 --name gallery $REGISTRY_REPO
+           docker run -d -p 80:8081 --name gallery $REGISTRY_REPO"
