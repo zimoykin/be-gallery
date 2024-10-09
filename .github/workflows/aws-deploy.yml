@@ -55,7 +55,8 @@ jobs:
           REGISTRY_URI: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com'
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-          "docker pull $REGISTRY_URI/gallery:latest && \
+          "aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $REGISTRY_URI && \
+           docker pull $REGISTRY_URI/gallery:latest && \
            if [ \$(docker ps -q -f name=gallery) ]; then \
              docker stop gallery; \
              docker rm gallery; \
