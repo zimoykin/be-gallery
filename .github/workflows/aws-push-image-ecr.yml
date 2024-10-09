@@ -1,0 +1,36 @@
+name: Deploy to AWS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to AWS ECR
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        run: |
+          aws ecr get-login-password --region $AWS_REGION \
+          | docker login -u AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+      - name: Build, tag, and push Docker image
+        env:
+          REGISTRY_URI: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com'
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t gallery .
+          docker tag gallery $REGISTRY_URI/gallery:latest
+          docker push $REGISTRY_URI/gallery:latest

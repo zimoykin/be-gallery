@@ -1,0 +1,49 @@
+name: Deploy to AWS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to AWS ECR
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        run: |
+          aws ecr get-login-password --region $AWS_REGION \
+          | docker login -u AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_INSTANCE_IP }} >> ~/.ssh/known_hosts
+
+      - name: Install Docker and Deploy to EC2
+        env:
+          REGISTRY_REPO: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/gallery:latest'
+        run: |
+          ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
+          "sudo yum update -y && \
+           sudo yum install docker -y && \
+           sudo service docker start && \
+           sudo usermod -aG docker ec2-user && \
+           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login -u AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com && \
+           docker pull $REGISTRY_REPO && \
+           docker stop gallery || true && \
+           docker rm gallery || true && \
+           docker run -d -p 80:8081 --name gallery $REGISTRY_REPO"
