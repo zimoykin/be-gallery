@@ -41,9 +41,6 @@ jobs:
            sudo service docker start && \
            sudo usermod -aG docker ec2-user"
 
-      - name: Create .env file
-        run: echo "${{ secrets.ENV_VARS }}" > ~/.env
-
       - name: Deploy to EC2
         env:
           REGISTRY_REPO: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/gallery:latest'
