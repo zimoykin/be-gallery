@@ -52,10 +52,10 @@ jobs:
 
       - name: Deploy to EC2
         env:
-          REGISTRY_URI: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com'
+          REGISTRY_REPO: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/gallery:latest'
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-          "docker pull $REGISTRY_URI/gallery:latest && \
+          "docker pull $REGISTRY_REPO && \
            docker stop gallery || true && \
            docker rm gallery || true && \
-           docker run -d -p 80:8081 --name gallery $REGISTRY_URI/gallery:latest"
+           docker run -d -p 80:8081 --name gallery $REGISTRY_REPO"
