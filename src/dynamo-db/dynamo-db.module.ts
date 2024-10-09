@@ -25,12 +25,12 @@ export class DynamodbModule {
    * @returns The DynamoDB client
    */
   private static makeConnection(opts: IConnectionOptions): IConnection {
-    DynamodbModule.logger.debug(opts.region);
+    DynamodbModule.logger.debug(`Region: ${opts.region}`);
     if (!this.client) {
       this.client = {
         db: new DynamoDB({
           region: opts.region,
-          credentials: opts.credentials,
+          // credentials: opts.credentials,
         }),
         prefixCollection: opts.prefixCollection,
       };
