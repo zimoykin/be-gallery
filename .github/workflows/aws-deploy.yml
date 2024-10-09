@@ -53,13 +53,12 @@ jobs:
       - name: Deploy to EC2
         env:
           REGISTRY_REPO: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/gallery:latest'
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-           echo "${{ secrets.ENV_VARS }}" >> ~/.env && \
-           "docker login -u AWS -p $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }}) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com && \
-           docker pull $REGISTRY_REPO && \
-           docker stop gallery || true && \
-           docker rm gallery || true && \
-           docker run -d -p 80:8081 --name gallery --env-file ~/.env $REGISTRY_REPO"
+          ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} bash -c "
+            echo '${{ secrets.ENV_VARS }}' > ~/.env && \
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login -u AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com && \
+            docker pull $REGISTRY_REPO && \
+            docker stop gallery || true && \
+            docker rm gallery || true && \
+            docker run -d -p 80:8081 --name gallery --env-file ~/.env $REGISTRY_REPO
+          "
