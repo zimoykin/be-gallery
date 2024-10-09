@@ -57,8 +57,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-          "docker login -u AWS -p $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }}) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com && \
+           echo "${{ secrets.ENV_VARS }}" >> ~/.env && \
+           docker login -u AWS -p $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }}) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com && \
            docker pull $REGISTRY_REPO && \
            docker stop gallery || true && \
            docker rm gallery || true && \
-           docker run -d -p 80:8081 --name gallery $REGISTRY_REPO"
+           docker run -d -p 80:8081 --name gallery --env-file ~/.env $REGISTRY_REPO
