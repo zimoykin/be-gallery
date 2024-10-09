@@ -33,7 +33,7 @@ jobs:
         run: |
           docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t gallery .
           docker tag gallery:$REGISTRY_URI/gallery:latest
-          docker push -t $REGISTRY_URI/gallery:latest
+          docker push $REGISTRY_URI/gallery:latest
 
       - name: Set up SSH key
         run: |
