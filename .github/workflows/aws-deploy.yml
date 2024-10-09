@@ -1,37 +1,39 @@
 name: Deploy to AWS
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
 
-      - name: Log in to AWS ECR
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-          | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URI }}
+    - name: Log in to AWS ECR
+      env:
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      run: |
+        aws ecr get-login-password --region $AWS_REGION \
+        | docker login -u AWS -p $(aws ecr get-login-password --region $AWS_REGION) ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-      - name: Build, tag, and push Docker image
-        run: |
-          docker build -t gallery-service .
-          docker tag gallery-service:latest ${{ secrets.ECR_REPOSITORY_URI }}:latest
-          docker push ${{ secrets.ECR_REPOSITORY_URI }}:latest
+    - name: Build, tag, and push Docker image
+      env:
+        REGISTRY_URI: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com"
+      run: |
+        docker build -t bb-pipelinetest .
+        docker tag bb-pipelinetest $REGISTRY_URI/bb-pipelinetest:latest
+        docker push $REGISTRY_URI/bb-pipelinetest:latest
 
-      - name: Deploy to EC2
-        run: |
-          ssh -o "StrictHostKeyChecking=no" ec2-user@<EC2_INSTANCE_IP> \
-          "docker pull ${{ secrets.ECR_REPOSITORY_URI }}:latest && \
-           docker stop gallery-service || true && \
-           docker rm gallery-service || true && \
-           docker run -d -p 80:3000 gallery-service:latest"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Deploy to EC2
+      run: |
+        ssh -o "StrictHostKeyChecking=no" ec2-user@<EC2_INSTANCE_IP> \
+        "docker pull $REGISTRY_URI/bb-pipelinetest:latest && \
+         docker stop <имя_контейнера> || true && \
+         docker rm <имя_контейнера> || true && \
+         docker run -d -p 80:3000 $REGISTRY_URI/bb-pipelinetest:latest"
