@@ -15,7 +15,7 @@ import {
 
 @Module({})
 export class DynamodbModule {
-  private readonly logger = new Logger(DynamodbModule.name);
+  private static readonly logger = new Logger(DynamodbModule.name);
   private static client: IConnection;
   /**
    * Creates a DynamoDB client if it doesn't exist, and returns it. If the
@@ -25,6 +25,7 @@ export class DynamodbModule {
    * @returns The DynamoDB client
    */
   private static makeConnection(opts: IConnectionOptions): IConnection {
+    DynamodbModule.logger.debug(opts);
     if (!this.client) {
       this.client = {
         db: new DynamoDB({

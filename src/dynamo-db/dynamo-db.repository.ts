@@ -63,7 +63,7 @@ export class DynamoDbRepository<T extends object> implements OnModuleInit {
     return tableName;
   }
   async onModuleInit() {
-    const isCreated = await createTable(
+    await createTable(
       this.connection.db,
       this.getTableName(),
       getPrimaryKey(this.modelCls),
