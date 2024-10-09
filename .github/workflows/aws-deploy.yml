@@ -51,6 +51,8 @@ jobs:
           sudo usermod -aG docker ec2-user"
 
       - name: Deploy to EC2
+        env:
+          REGISTRY_URI: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com'
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
           "docker pull $REGISTRY_URI/gallery:latest && \
