@@ -35,6 +35,14 @@ jobs:
           docker tag gallery $REGISTRY_URI/gallery:latest
           docker push $REGISTRY_URI/gallery:latest
 
+      - name: Debug ECR login
+        run: |
+          echo "login to AWS ECR..."
+          aws ecr get-login-password --region $AWS_REGION \
+          | docker login -u AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+          echo "Статус входа: $?"
+          docker pull $REGISTRY_REPO
+
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
@@ -55,7 +63,7 @@ jobs:
           REGISTRY_REPO: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/gallery:latest'
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-          "docker pull $REGISTRY_REPO && \
+          docker pull $REGISTRY_REPO && \
            docker stop gallery || true && \
            docker rm gallery || true && \
-           docker run -d -p 80:8081 --name gallery $REGISTRY_REPO"
+           docker run -d -p 80:8081 --name gallery $REGISTRY_REPO
