@@ -11,11 +11,11 @@ async function bootstrap() {
 
   app.use(cookie('secret'));
 
-  app.enableCors({
-    origin: process.env.CROSS_ORIGIN ?? '*',
-    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true,
-  });
+  // app.enableCors({
+  //   origin: process.env.CROSS_ORIGIN ?? '*',
+  //   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  //   credentials: true,
+  // });
 
   app.useGlobalPipes(
     new ValidationPipe({
