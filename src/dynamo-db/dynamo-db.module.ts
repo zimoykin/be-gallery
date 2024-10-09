@@ -25,7 +25,7 @@ export class DynamodbModule {
    * @returns The DynamoDB client
    */
   private static makeConnection(opts: IConnectionOptions): IConnection {
-    DynamodbModule.logger.debug(opts);
+    DynamodbModule.logger.debug(opts.region);
     if (!this.client) {
       this.client = {
         db: new DynamoDB({
