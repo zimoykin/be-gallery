@@ -32,8 +32,8 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t gallery .
-          docker tag gallery $REGISTRY_URI/gallery:latest
-          docker push $REGISTRY_URI/gallery:latest
+          docker tag gallery $REGISTRY_URI/gallery:${{ github.run_id }}
+          docker push $REGISTRY_URI/gallery:${{ github.run_id }}
 
       - name: Set up SSH key
         run: |
@@ -58,7 +58,7 @@ jobs:
 
       - name: Deploy to EC2
         env:
-          REGISTRY_REPO: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/gallery:latest'
+          REGISTRY_REPO: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/gallery:${{ github.run_id }}'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
