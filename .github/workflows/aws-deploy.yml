@@ -40,9 +40,7 @@ jobs:
           else
             echo "Repository does not exist. Creating repository..."
             aws ecr create-repository --repository-name ${PROJECT_NAME}
-            # Wait for a few seconds to ensure the repository is available
             sleep 10
-            # Check if the repository was created successfully
             if aws ecr describe-repositories --repository-names ${PROJECT_NAME} >/dev/null 2>&1; then
               echo "Repository created successfully."
             else
@@ -87,12 +85,17 @@ jobs:
           ssh -o "StrictHostKeyChecking=no" ec2-user@${EC2_INSTANCE_IP} \
           "docker login -u AWS -p $(aws ecr get-login-password --region ${AWS_REGION}) ${REGISTRY_URI} && \
            docker pull $REGISTRY_REPO && \
-           docker stop ${PROJECT_NAME} || true && \
-           docker rm ${PROJECT_NAME} || true && \
+           # docker stop ${PROJECT_NAME} || true && \
+           # docker rm ${PROJECT_NAME} || true && \
            docker run -d -p 3000:3000 --name ${PROJECT_NAME} --env-file .env $REGISTRY_REPO && \
            docker image prune -af"
 
-      #  optional
+        #  optional
+      - name: Clean up SSH key and Env
+        run: |
+          rm -f ~/.ssh/id_rsa
+          rm -f .env
+
       - name: Clean up ECR
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} "
