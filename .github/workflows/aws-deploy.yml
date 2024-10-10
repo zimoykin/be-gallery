@@ -85,8 +85,8 @@ jobs:
           "docker login -u AWS -p $(aws ecr get-login-password --region ${AWS_REGION}) ${REGISTRY_URI} && \
            docker pull ${REGISTRY_REPO} && \
            if [ \$(docker ps -aq -f name=${PROJECT_NAME}) ]; then \
-            docker stop ${PROJECT_NAME}; \
-            docker rm ${PROJECT_NAME}; \
+            docker stop ${PROJECT_NAME} ; \
+            docker rm ${PROJECT_NAME} ; \
            fi && \
            docker run -d -p 3000:3000 --name ${PROJECT_NAME} --env-file .env ${REGISTRY_REPO} && \
            docker image prune -af"
