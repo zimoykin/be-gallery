@@ -22,6 +22,7 @@ jobs:
         run: |
           echo "REGISTRY_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com" >> $GITHUB_ENV
           echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$(echo $GITHUB_REF | sed 's|refs/heads/||')" >> $GITHUB_ENV
 
       - name: Log in to AWS ECR
         env:
@@ -29,12 +30,9 @@ jobs:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
         run: |
           aws ecr get-login-password --region $AWS_REGION \
-          | docker login -u AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+          | docker login -u AWS --password-stdin ${REGISTRY_URI}
 
       - name: Build, tag, and push Docker image
-        env:
-          REGISTRY_URI: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com'
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t gallery .
           docker tag gallery $REGISTRY_URI/gallery:${{ github.run_id }}
