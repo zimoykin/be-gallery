@@ -40,8 +40,15 @@ jobs:
           else
             echo "Repository does not exist. Creating repository..."
             aws ecr create-repository --repository-name ${PROJECT_NAME}
-            aws ecr wait repository-exists --repository-name ${PROJECT_NAME}
-            echo "Repository created successfully."
+            # Wait for a few seconds to ensure the repository is available
+            sleep 10
+            # Check if the repository was created successfully
+            if aws ecr describe-repositories --repository-names ${PROJECT_NAME} >/dev/null 2>&1; then
+              echo "Repository created successfully."
+            else
+              echo "Failed to create repository."
+              exit 1
+            fi
           fi
 
       - name: Build, tag, and push Docker image
