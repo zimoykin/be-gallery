@@ -56,6 +56,8 @@ jobs:
 
       - name: Build, tag, and push Docker image
         run: |
+          echo "Project name: ${PROJECT_NAME}"
+          echo "Registry repo: ${REGISTRY_REPO}"
           docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t ${PROJECT_NAME} .
           docker tag ${PROJECT_NAME} ${REGISTRY_REPO}
           docker push ${REGISTRY_REPO}
