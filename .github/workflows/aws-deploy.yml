@@ -69,3 +69,17 @@ jobs:
            docker rm gallery || true && \
            docker run -d -p 3000:3000 --name gallery --env-file .env $REGISTRY_REPO && \
            docker image prune -af"
+
+      #  optional
+      - name: Clean up ECR
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        run: |
+          ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} "
+          # Получаем список неиспользуемых образов и удаляем их
+          IMAGE_IDS=\$(aws ecr list-images --repository-name gallery --filter tagStatus=UNTAGGED --query 'imageIds[*]' --output json)
+          if [ "\$IMAGE_IDS" != "[]" ]; then
+            aws ecr batch-delete-image --repository-name gallery --image-ids \$IMAGE_IDS
+          fi
+          "
