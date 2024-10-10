@@ -93,7 +93,8 @@ jobs:
            docker pull ${REGISTRY_REPO} && \
            docker stop ${PROJECT_NAME} || true && \
            docker run -d -p 3000:3000 --name ${PROJECT_NAME} --env-file .env ${REGISTRY_REPO} && \
-           echo "successfully"
+           echo "successfully" && \
+           docker image prune -a -f
            "
 
         #  optional
@@ -101,12 +102,3 @@ jobs:
         run: |
           rm -f ~/.ssh/id_rsa
           rm -f .env
-
-      - name: Clean up ECR
-        run: |
-          ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} "
-          IMAGE_IDS=\$(aws ecr list-images --repository-name ${PROJECT_NAME} --filter tagStatus=UNTAGGED --query 'imageIds[*]' --output json)
-          if [ "\$IMAGE_IDS" != "[]" ]; then
-            aws ecr batch-delete-image --repository-name ${PROJECT_NAME} --image-ids \$IMAGE_IDS
-          fi
-          "
