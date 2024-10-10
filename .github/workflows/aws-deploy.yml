@@ -35,8 +35,8 @@ jobs:
 
       - name: Build, tag, and push Docker image
         run: |
-          docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t gallery .
-          docker tag gallery $REGISTRY_URI/${PROJECT_NAME}:${{ github.run_id }}
+          docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t ${PROJECT_NAME} .
+          docker tag ${PROJECT_NAME} $REGISTRY_URI/${PROJECT_NAME}:${{ github.run_id }}
           docker push $REGISTRY_URI/$PROJECT_NAME:${{ github.run_id }}
 
       - name: Set up SSH key
@@ -69,17 +69,17 @@ jobs:
           ssh -o "StrictHostKeyChecking=no" ec2-user@${EC2_INSTANCE_IP} \
           "docker login -u AWS -p $(aws ecr get-login-password --region ${AWS_REGION}) ${REGISTRY_URI} && \
            docker pull $REGISTRY_REPO && \
-           docker stop gallery || true && \
-           docker rm gallery || true && \
-           docker run -d -p 3000:3000 --name gallery --env-file .env $REGISTRY_REPO && \
+           docker stop ${PROJECT_NAME} || true && \
+           docker rm ${PROJECT_NAME} || true && \
+           docker run -d -p 3000:3000 --name ${PROJECT_NAME} --env-file .env $REGISTRY_REPO && \
            docker image prune -af"
 
       #  optional
       - name: Clean up ECR
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} "
-          IMAGE_IDS=\$(aws ecr list-images --repository-name gallery --filter tagStatus=UNTAGGED --query 'imageIds[*]' --output json)
+          IMAGE_IDS=\$(aws ecr list-images --repository-name ${PROJECT_NAME} --filter tagStatus=UNTAGGED --query 'imageIds[*]' --output json)
           if [ "\$IMAGE_IDS" != "[]" ]; then
-            aws ecr batch-delete-image --repository-name gallery --image-ids \$IMAGE_IDS
+            aws ecr batch-delete-image --repository-name ${PROJECT_NAME} --image-ids \$IMAGE_IDS
           fi
           "
