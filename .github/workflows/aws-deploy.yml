@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
@@ -45,10 +45,12 @@ jobs:
       - name: Install Docker on EC2
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-          "sudo yum update -y && \
-           sudo yum install docker -y && \
-           sudo service docker start && \
-           sudo usermod -aG docker ec2-user"
+          "if ! command -v docker &> /dev/null; then \
+             sudo yum update -y && \
+             sudo yum install docker -y && \
+             sudo service docker start && \
+             sudo usermod -aG docker ec2-user; \
+           fi"
 
       - name: Generate Env
         run: |
