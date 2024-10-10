@@ -20,14 +20,15 @@ jobs:
 
       - name: Set envs
         run: |
+          echo "EC2_INSTANCE_IP=${{ secrets.EC2_INSTANCE_IP }}" >> $GITHUB_ENV
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+          echo "AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
           echo "REGISTRY_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com" >> $GITHUB_ENV
           echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
           echo "BRANCH_NAME=$(echo $GITHUB_REF | sed 's|refs/heads/||')" >> $GITHUB_ENV
+          echo "PROJECT_NAME=$(jq -r .name < package.json)" >> $GITHUB_ENV 
 
       - name: Log in to AWS ECR
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
         run: |
           aws ecr get-login-password --region $AWS_REGION \
           | docker login -u AWS --password-stdin ${REGISTRY_URI}
@@ -35,19 +36,19 @@ jobs:
       - name: Build, tag, and push Docker image
         run: |
           docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t gallery .
-          docker tag gallery $REGISTRY_URI/gallery:${{ github.run_id }}
-          docker push $REGISTRY_URI/gallery:${{ github.run_id }}
+          docker tag gallery $REGISTRY_URI/${PROJECT_NAME}:${{ github.run_id }}
+          docker push $REGISTRY_URI/$PROJECT_NAME:${{ github.run_id }}
 
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_INSTANCE_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${EC2_INSTANCE_IP} >> ~/.ssh/known_hosts
 
       - name: Install Docker on EC2
         run: |
-          ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
+          ssh -o "StrictHostKeyChecking=no" ec2-user@${EC2_INSTANCE_IP} \
           "if ! command -v docker &> /dev/null; then \
              sudo yum update -y && \
              sudo yum install docker -y && \
@@ -61,12 +62,12 @@ jobs:
 
       - name: Deploy to EC2
         env:
-          REGISTRY_REPO: '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/gallery:${{ github.run_id }}'
+          REGISTRY_REPO: '${REGISTRY_URI}/${PROJECT_NAME}:${{ github.run_id }}'
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
-          "docker login -u AWS -p $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }}) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com && \
+          ssh -o "StrictHostKeyChecking=no" ec2-user@${EC2_INSTANCE_IP} \
+          "docker login -u AWS -p $(aws ecr get-login-password --region ${AWS_REGION}) ${REGISTRY_URI} && \
            docker pull $REGISTRY_REPO && \
            docker stop gallery || true && \
            docker rm gallery || true && \
@@ -75,9 +76,6 @@ jobs:
 
       #  optional
       - name: Clean up ECR
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
         run: |
           ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} "
           IMAGE_IDS=\$(aws ecr list-images --repository-name gallery --filter tagStatus=UNTAGGED --query 'imageIds[*]' --output json)
