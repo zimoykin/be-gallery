@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v4
@@ -26,12 +26,21 @@ jobs:
           echo "REGISTRY_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com" >> $GITHUB_ENV
           echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
           echo "BRANCH_NAME=$(echo $GITHUB_REF | sed 's|refs/heads/||')" >> $GITHUB_ENV
-          echo "PROJECT_NAME=$(jq -r .name < package.json)" >> $GITHUB_ENV 
+          echo "PROJECT_NAME=$(jq -r .name < package.json)" >> $GITHUB_ENV
 
       - name: Log in to AWS ECR
         run: |
           aws ecr get-login-password --region $AWS_REGION \
           | docker login -u AWS --password-stdin ${REGISTRY_URI}
+
+      - name: Ensure ECR repository exists
+        run: |
+          if aws ecr describe-repositories --repository-names ${PROJECT_NAME} >/dev/null 2>&1; then
+            echo "Repository exists."
+          else
+            echo "Repository does not exist. Creating repository..."
+            aws ecr create-repository --repository-name ${PROJECT_NAME}
+          fi
 
       - name: Build, tag, and push Docker image
         run: |
