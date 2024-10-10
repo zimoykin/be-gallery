@@ -92,6 +92,7 @@ jobs:
           "docker login -u AWS -p $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }}) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com && \
            docker pull ${REGISTRY_REPO} && \
            docker stop ${PROJECT_NAME} || true && \
+           docker rm ${PROJECT_NAME} || true && \
            docker run -d -p 3000:3000 --name ${PROJECT_NAME} --env-file .env ${REGISTRY_REPO} && \
            echo "successfully" && \
            docker image prune -a -f
