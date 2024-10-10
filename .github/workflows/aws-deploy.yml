@@ -67,4 +67,5 @@ jobs:
            docker pull $REGISTRY_REPO && \
            docker stop gallery || true && \
            docker rm gallery || true && \
-           docker run -d -p 3000:3000 --name gallery --env-file .env $REGISTRY_REPO"
+           docker run -d -p 3000:3000 --name gallery --env-file .env $REGISTRY_REPO && \
+           docker image prune -af"
