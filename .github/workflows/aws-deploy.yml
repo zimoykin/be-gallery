@@ -27,7 +27,11 @@ jobs:
           echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
           echo "BRANCH_NAME=$(echo $GITHUB_REF | sed 's|refs/heads/||')" >> $GITHUB_ENV
           echo "PROJECT_NAME=$(jq -r .name < package.json)" >> $GITHUB_ENV
-          echo "REGISTRY_REPO=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${PROJECT_NAME}:${{ github.run_id }}" >> $GITHUB_ENV
+          echo "IMAGE_ID=${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Set REGISTRY_REPO
+        run: |
+          echo "REGISTRY_REPO=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.PROJECT_NAME }}:${{ env.IMAGE_ID }}" >> $GITHUB_ENV
 
       - name: Log in to AWS ECR
         run: |
