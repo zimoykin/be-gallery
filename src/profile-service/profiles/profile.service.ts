@@ -4,7 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Profile } from '../../libs/models/models/profile.model';
+import { Profile } from '../../libs/models/profile/profile.model';
 import { S3BucketService } from '../../libs/s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from '../../libs/image-compressor/image-compressor.service';
 import { InjectS3Bucket } from '../../libs/s3-bucket/inject-s3-bucket.decorator';

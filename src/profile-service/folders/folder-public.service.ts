@@ -1,9 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '../../libs/dynamo-db/decorators/inject-model.decorator';
-import { Folder } from '../../libs/models/folder/folder.model';
-import { DynamoDbRepository } from '../../libs/dynamo-db/dynamo-db.repository';
 import { PhotoService } from '../../photo-service/photos/photo.service';
-import { FolderRepository } from 'src/libs/models/folder/folder.repository';
+import { FolderRepository } from '../../libs/models/folder/folder.repository';
 
 @Injectable()
 export class PublicFolderService {
@@ -26,7 +23,7 @@ export class PublicFolderService {
 
     return folders.map(folder => ({
       ...folder,
-      url: photos.find((photo) => photo.id === folder.favoriteFotoId)?.url ?? '',
+      url: photos.find((photo) => photo._id === folder.favoriteFotoId)?.url ?? '',
     }));
   }
 

@@ -3,19 +3,16 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PhotoType } from './enums/photo-type.enum';
-import { Model } from 'mongoose';
-import { PhotoModel } from '../../libs/models/models/photo.model';
-import { InjectModel } from '@nestjs/mongoose';
+import { PhotoModel } from '../../libs/models/photo/photo.model';
 import { PhotoService } from './photo.service';
 import { ProfileService } from '../../profile-service/profiles/profile.service';
+import { PhotoRepository } from 'src/libs/models/photo/photo.repository';
 @Injectable()
 export class PublicPhotoService {
   private readonly logger = new Logger(PublicPhotoService.name);
 
   constructor(
-    //@ts-ignore//
-    @InjectModel(PhotoModel.name)
-    private readonly photoRepo: Model<PhotoModel>,
+    private readonly photoRepository: PhotoRepository,
     private readonly photoService: PhotoService,
     private readonly profileService: ProfileService,
   ) { }
@@ -24,7 +21,7 @@ export class PublicPhotoService {
     profileId: string,
     folderId: string,
   ) {
-    const photos = await this.photoRepo.find({ profileId, folderId }).lean();
+    const photos = await this.photoRepository.find({ profileId, folderId });
     const profile = await this.profileService.findProfileById(profileId);
 
     for await (const photo of photos) {
@@ -43,12 +40,8 @@ export class PublicPhotoService {
 
 
   async getFavouritePhotos() {
-    const photos = await this.photoRepo.aggregate<PhotoModel>([
-      { $match: { privateAccess: 0 } },
-      { $sample: { size: 15 } }
-    ]);
-
-    const profileIds = [...new Set(photos.map((photo) => photo.profileId))];
+    const photos = await this.photoRepository.findRandomPublicPhotos();
+    const profileIds: string[] = [...new Set(photos.map((photo) => String(photo.profileId)))];
     const profiles = await this.profileService.findProfileByIds(profileIds);
 
     const result: PhotoModel[] = [];
