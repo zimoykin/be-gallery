@@ -4,26 +4,23 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '../../libs/dynamo-db/decorators/inject-model.decorator';
-import { DynamoDbRepository } from '../../libs/dynamo-db/dynamo-db.repository';
 import { Profile } from '../../libs/models/models/profile.model';
 import { S3BucketService } from '../../libs/s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from '../../libs/image-compressor/image-compressor.service';
 import { InjectS3Bucket } from '../../libs/s3-bucket/inject-s3-bucket.decorator';
-import { EquipmentService } from '../equipments/equipment.service';
+import { ProfileRepository } from '../../libs/models/profile/profile.repository';
+import { EquipmentRepository } from '../../libs/models/equipment/equipment.repository';
 
 @Injectable()
 export class ProfileService {
   private readonly logger = new Logger(ProfileService.name);
   constructor(
-    // @ts-ignore //
-    @InjectRepository(Profile)
-    private readonly profileRepository: DynamoDbRepository<Profile>,
+    private readonly profileRepository: ProfileRepository,
     // @ts-ignore //
     @InjectS3Bucket('profile')
     private readonly s3BucketService: S3BucketService,
     private readonly imageCompressorService: ImageCompressorService,
-    private readonly eqipmentService: EquipmentService,
+    private readonly eqipmentRepository: EquipmentRepository,
   ) { }
 
   private isFile(data: any): data is Express.Multer.File {
@@ -69,7 +66,7 @@ export class ProfileService {
   }
 
   async findProfileByUserId(userId: string) {
-    const profile = await this.profileRepository.findOneByFilter<Profile>({
+    const profile = await this.profileRepository.findOne({
       match: { userId: userId },
     });
 
@@ -77,7 +74,7 @@ export class ProfileService {
       throw new NotFoundException('could not find profile');
     }
 
-    const favoriteEquipment = await this.eqipmentService.findFavoriteEquipmentByProfileId(profile?.id);
+    const favoriteEquipment = await this.eqipmentRepository.findFavoriteEquipmentByProfileId(profile?.id);
 
     if (profile?.bucket?.key) {
       const signedUrl = await this.s3BucketService.generateSignedUrl(
@@ -94,12 +91,7 @@ export class ProfileService {
   }
 
   async readAllPublicProfiles() {
-    const profiles = await this.profileRepository.find(
-      {
-        match: { privateAccess: 0 },
-      },
-      'privateAccess',
-    );
+    const profiles = await this.profileRepository.findPublicProfiles();
     const result: Profile[] = [];
     for await (const profile of profiles) {
       if (profile.bucket?.key) {
@@ -162,15 +154,13 @@ export class ProfileService {
     if (!id) {
       throw new NotFoundException('Profile id not found');
     }
-    const profile = await this.profileRepository.findOneByFilter({
-      match: { id },
-    });
+    const profile = await this.profileRepository.findById(id);
 
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
 
-    const favoriteEquipment = await this.eqipmentService.findFavoriteEquipmentByProfileId(profile?.id);
+    const favoriteEquipment = await this.eqipmentRepository.findFavoriteEquipmentByProfileId(profile?.id);
 
     if (profile.bucket?.key) {
       const signedUrl = await this.s3BucketService.generateSignedUrl(
