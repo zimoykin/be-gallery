@@ -1,31 +1,38 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { DynamoDbRepository } from '../../libs/dynamo-db/dynamo-db.repository';
-import { Like } from '../../libs/models/models/like.model';
-import { InjectRepository } from '../../libs/dynamo-db/decorators/inject-model.decorator';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectSender } from '../../libs/amqp/decorators';
 import { AmqpSender } from '../../libs/amqp/amqp.sender';
+import { LikeRepository } from '../../libs/models/like/like.repository';
 
 @Injectable()
 export class LikesService {
   private readonly logger = new Logger(LikesService.name);
 
   constructor(
-    //@ts-ignore
-    @InjectRepository(Like)
-    private readonly repo: DynamoDbRepository<Like>,
+    private readonly likeRepository: LikeRepository,
     //@ts-ignore
     @InjectSender('like_added') private readonly sender: AmqpSender,
   ) { }
-
-  async getLikesCountByContentId(contentId: string) {
-    const count = await this.repo.countByFilter({
+  
+  async getLikesCountByContentIdAndProfileId(contentId: string, profileId: string) {
+    const count = await this.likeRepository.count({
       match: { contentId: contentId },
     });
-    return count ?? 0;
+
+    const yourLike = await this.likeRepository.find({
+      match: {
+        contentId: contentId,
+        profileId: profileId
+      }
+    });
+    return {
+      count: count ?? 0,
+      yourLike: yourLike.length > 0
+    };
+
   }
 
   async addLike(contentId: string, profileId: string) {
-    const like = await this.repo.create({
+    const like = await this.likeRepository.create({
       contentId: contentId,
       profileId: profileId,
     });
@@ -39,19 +46,12 @@ export class LikesService {
   }
 
   async deleteLike(contentId: string, profileId: string) {
-    const like = await this.repo.findOneByFilter({
-      match: { contentId: contentId, profileId: profileId },
-    });
-    if (!like) {
-      throw new NotFoundException('Like not found');
-    }
-    await this.repo.remove(like.id);
-
+    await this.likeRepository.remove(profileId, contentId);
     await this.sender.sendMessage({
       state: 'removed',
       contentId: contentId,
     });
 
-    return like;
+    return true;
   }
 }

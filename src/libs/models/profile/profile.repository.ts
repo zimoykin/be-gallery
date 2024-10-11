@@ -21,6 +21,15 @@ export class ProfileRepository {
         return profile;
     }
 
+    async findByIds(ids: string[]) {
+        return this.profileModel
+            .find({
+                or: {
+                    id: ids
+                }
+            });
+    }
+
     async findPublicProfiles() {
         const profiles = await this.profileModel.find(
             {

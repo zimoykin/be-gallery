@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { S3BucketService } from '../../libs/s3-bucket/s3-bucket.service';
 import { InjectS3Bucket } from '../../libs/s3-bucket/inject-s3-bucket.decorator';
 import { ImageCompressorService } from '../../libs/image-compressor/image-compressor.service';
@@ -7,8 +7,8 @@ import { PhotoType } from './enums/photo-type.enum';
 import { InjectSender } from '../../libs/amqp/decorators';
 import { AmqpSender } from '../../libs/amqp/amqp.sender';
 import { PhotoModel } from '../../libs/models/photo/photo.model';
-import { FolderService } from '../../profile-service/folders/folder.service';
 import { PhotoRepository } from '../../libs/models/photo/photo.repository';
+import { FolderRepository } from '../../libs/models/folder/folder.repository';
 
 @Injectable()
 export class PhotoService {
@@ -25,9 +25,7 @@ export class PhotoService {
     @InjectS3Bucket('compressed')
     private readonly s3BucketServiceCompressed: S3BucketService,
     private readonly imageCompressorService: ImageCompressorService,
-    //@ts-ignore
-    @Inject(forwardRef(() => FolderService))
-    private readonly folderService: FolderService,
+    private readonly folderRepository: FolderRepository,
     //@ts-ignore
     @InjectSender('folder_favorite_changed')
     private readonly sender: AmqpSender,
@@ -402,9 +400,16 @@ export class PhotoService {
     photoId: string
   ) {
 
-    const folder = await this.folderService.updateFolderByProfileId(folderId, {
+    const folder = await this.folderRepository.findOne({
+      match: {
+        id: folderId,
+        profileId: profileId
+      }
+    });
+
+    await this.folderRepository.update(folder.id, {
       favoriteFotoId: photoId
-    }, profileId);
+    });
 
     await this.sender.sendMessage({
       state: 'favorite_changed',

@@ -1,8 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { LikesService } from "./likes.service";
-import { PhotoService } from "../photos/photo.service";
 import { InjectConsumer } from "../../libs/amqp/decorators";
 import { AmqpConsumer } from "../../libs/amqp/amqp.consumer";
+import { PhotoRepository } from "../../libs/models/photo/photo.repository";
+import { LikeRepository } from "src/libs/models/like/like.repository";
 
 @Injectable()
 export class LikesConsumer implements OnModuleInit {
@@ -11,8 +12,8 @@ export class LikesConsumer implements OnModuleInit {
     constructor(
         // @ts-ignore
         @InjectConsumer('like_added') private readonly consumer: AmqpConsumer,
-        private readonly photoService: PhotoService,
-        private readonly likesService: LikesService
+        private readonly photoRepository: PhotoRepository,
+        private readonly likeRepository: LikeRepository
     ) { }
 
 
@@ -23,8 +24,8 @@ export class LikesConsumer implements OnModuleInit {
         }>(async (msg) => {
             this.logger.debug(JSON.stringify(msg));
             //new like added, we have to update the photo likes count
-            const count = await this.likesService.getLikesCountByContentId(msg.contentId);
-            await this.photoService.updatePhotoLikesCount(msg.contentId, count);
+            const count = await this.likeRepository.count({ match: { contentId: msg.contentId } });
+            await this.photoRepository.update(msg.contentId, { likes: count });
         });
     }
 }
