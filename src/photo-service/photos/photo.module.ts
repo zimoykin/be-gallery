@@ -2,7 +2,6 @@ import { forwardRef, Module } from '@nestjs/common';
 import { PhotoController } from './photo.controller';
 import { PhotoService } from './photo.service';
 import { DynamodbModule } from '../../libs/dynamo-db/dynamo-db.module';
-import PhotoSchema from '../../libs/models/models/photo.model';
 import { S3BucketModule } from '../../libs/s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from '../../libs/image-compressor/image-compressor.module';
 import { PhotoOfTheDay } from './photo-of-the-day.model';
@@ -11,11 +10,12 @@ import { PhotoPublicController } from './photo-public.controller';
 import { FolderModule } from '../../profile-service/folders/folder.module';
 import { PhotoConsumer } from './photo.consumer';
 import { AmqpModule } from '../../libs/amqp/amqp.module';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ProfileModule } from 'src/profile-service/profiles/profile.module';
+import { PhotoDatabaseModule } from 'src/libs/models/photo/photo.module';
+
 @Module({
   imports: [
-    MongooseModule.forFeature([PhotoSchema]),
+    PhotoDatabaseModule,
     DynamodbModule.forFeature(PhotoOfTheDay),
     S3BucketModule.forFeature('photos'),
     S3BucketModule.forFeature('preview'),

@@ -6,18 +6,15 @@ import { InternalServerError } from '@aws-sdk/client-dynamodb';
 import { PhotoType } from './enums/photo-type.enum';
 import { InjectSender } from '../../libs/amqp/decorators';
 import { AmqpSender } from '../../libs/amqp/amqp.sender';
-import { InjectModel } from '@nestjs/mongoose';
-import { PhotoModel } from '../../libs/models/models/photo.model';
-import { Model } from 'mongoose';
-import { FolderService } from 'src/profile-service/folders/folder.service';
+import { PhotoModel } from '../../libs/models/photo/photo.model';
+import { FolderService } from '../../profile-service/folders/folder.service';
+import { PhotoRepository } from '../../libs/models/photo/photo.repository';
 
 @Injectable()
 export class PhotoService {
   private readonly logger = new Logger(PhotoService.name);
   constructor(
-    // @ts-ignore //
-    @InjectModel(PhotoModel.name)
-    private readonly photoRepository: Model<PhotoModel>,
+    private readonly photoRepository: PhotoRepository,
     // @ts-ignore //
     @InjectS3Bucket('photos')
     private readonly s3BucketServiceOriginal: S3BucketService,
@@ -79,6 +76,7 @@ export class PhotoService {
       compressed,
       key,
     );
+    const compressedImageSize = await this.imageCompressorService.getImageSize(compressed);
 
     const signedUrlPreview = await this.s3BucketServiceOriginal.generateSignedUrl(
       bucketPreview.key,
@@ -87,22 +85,24 @@ export class PhotoService {
       bucketCompressed.key,
     );
 
-    await this.photoRepository
-      .findByIdAndUpdate(photoId, {
-        $set: {
-          compressed: bucketCompressed,
-          preview: {
-            ...bucketPreview,
-            width: previewWidth,
-            height: previewHeight,
-          },
-          previewUrl: signedUrlPreview.url,
-          previewUrlAvailableUntil: signedUrlPreview.expiresIn,
+    await this.photoRepository.update(photoId, {
+      compressed: {
+        ...bucketCompressed,
+        width: compressedImageSize.width,
+        height: compressedImageSize.height,
+      },
+      preview: {
+        ...bucketPreview,
+        width: previewWidth,
+        height: previewHeight,
+      },
+      previewUrl: signedUrlPreview.url,
+      previewUrlAvailableUntil: signedUrlPreview.expiresIn,
 
-          compressedUrl: signedUrlCompressed.url,
-          compressedUrlAvailableUntil: signedUrlCompressed.expiresIn,
-        }
-      })
+      compressedUrl: signedUrlCompressed.url,
+      compressedUrlAvailableUntil: signedUrlCompressed.expiresIn,
+
+    })
       .then((res) => {
         this.logger.log(`updated photo ${photoId}`, res);
       })
@@ -127,7 +127,7 @@ export class PhotoService {
         const signedUrl = await this.s3BucketServicePreview.generateSignedUrl(
           key,
         );
-        await this.photoRepository.findOneAndUpdate({ _id: id }, { $set: { previewUrl: signedUrl.url, previewUrlAvailableUntil: signedUrl.expiresIn } });
+        await this.photoRepository.update(id, { previewUrl: signedUrl.url, previewUrlAvailableUntil: signedUrl.expiresIn });
         return signedUrl;
       }
       case 'compressed': {
@@ -135,7 +135,7 @@ export class PhotoService {
         const signedUrl = await this.s3BucketServiceCompressed.generateSignedUrl(
           key,
         );
-        await this.photoRepository.findOneAndUpdate({ _id: id }, { $set: { compressedUrl: signedUrl.url, compressedUrlAvailableUntil: signedUrl.expiresIn } });
+        await this.photoRepository.update(id, { compressedUrl: signedUrl.url, compressedUrlAvailableUntil: signedUrl.expiresIn });
         return signedUrl;
       }
       case 'original': {
@@ -143,7 +143,7 @@ export class PhotoService {
         const signedUrl = await this.s3BucketServiceOriginal.generateSignedUrl(
           key,
         );
-        await this.photoRepository.findOneAndUpdate({ _id: id }, { $set: { originalUrl: signedUrl.url, originalUrlAvailableUntil: signedUrl.expiresIn } });
+        await this.photoRepository.update(id, { originalUrl: signedUrl.url, originalUrlAvailableUntil: signedUrl.expiresIn });
         return signedUrl;
       }
       default: throw new Error('Invalid type');
@@ -247,38 +247,6 @@ export class PhotoService {
       });
   }
 
-  // async getSpecificPhotoByIdByFolderId(
-  //   folderId: string,
-  //   profileId: string,
-  //   id: string,
-  //   type: PhotoType,
-  // ): Promise<Photo & { url?: string; isFavorite: boolean; }> {
-
-  //   const folder = await this.folderService.findByFolderId(folderId);
-  //   if (!folder) {
-  //     throw new NotFoundException();
-  //   }
-
-  //   const photo = await this.photoRepository.find<Photo>({
-  //     match: {
-  //       folderId: folderId,
-  //       id: id,
-  //       profileId: profileId,
-  //     },
-  //   });
-
-  //   const signedUrl = await this.getUrlByType(type, photo[0]);
-  //   if (photo.length === 0) {
-  //     throw new NotFoundException();
-  //   } else
-  //     return {
-  //       ...photo[0],
-  //       url: signedUrl?.url,
-  //       urlAvailableUntil: signedUrl?.expiresIn ?? 0,
-  //       isFavorite: folder.favoriteFotoId !== undefined && folder.favoriteFotoId === id,
-  //     };
-  // }
-
   async findPhotoById(id: string, profileId: string, type: PhotoType): Promise<PhotoModel> {
     const photo = await this.photoRepository.findOne({
       _id: id,
@@ -326,7 +294,7 @@ export class PhotoService {
 
     const photos = await this.photoRepository.find({
       ...filter
-    }).lean();
+    });
 
     if (photos.length === 0) {
       return [];
@@ -360,10 +328,8 @@ export class PhotoService {
     profileId: string,
   ): Promise<number> {
     const count = await this.photoRepository.count({
-      match: {
-        folderId: folderId,
-        profileId: profileId,
-      },
+      folderId: folderId,
+      profileId: profileId,
     });
 
     return count ?? 0;
@@ -384,15 +350,15 @@ export class PhotoService {
       throw new NotFoundException();
     }
 
-    return this.photoRepository.findByIdAndUpdate({ _id: id }, data);
+    return this.photoRepository.update(id, data);
   }
 
   async removePhoto(folderId: string, profileId: string, id: string) {
     const existingPhoto = await this.photoRepository.findOne({
-      id: id,
+      _id: id,
       folderId: folderId,
       profileId: profileId,
-    }).lean();
+    });
 
     if (!existingPhoto) {
       throw new NotFoundException();
@@ -407,9 +373,7 @@ export class PhotoService {
         existingPhoto.compressed?.key,
       );
 
-    return this.photoRepository.findByIdAndDelete({
-      _id: id
-    });
+    return this.photoRepository.remove(id);
   }
 
   async removePhotosByFolderId(folderId: string, profileId: string) {
@@ -420,12 +384,12 @@ export class PhotoService {
 
     for await (const photo of photos) {
       await this.s3BucketServiceOriginal.deleteFile(photo.original.key);
-      await this.photoRepository.remove(photo.id);
+      await this.photoRepository.remove(photo._id);
     }
   }
 
   async getTheLastPhoto(): Promise<PhotoModel | null> {
-    const photos = await this.photoRepository.find();
+    const photos = await this.photoRepository.find({});
     if (photos.length === 0) {
       return null;
     }
@@ -453,11 +417,7 @@ export class PhotoService {
 
   async findPhotosByIds(ids: string[]) {
     // Fetch photos from the repository
-    const photos = await this.photoRepository.find({
-      id: {
-        $or: ids
-      }
-    });
+    const photos = await this.photoRepository.findByIds(ids);
 
     // Map over the photos and resolve URLs asynchronously
     const photosWithUrls = await Promise.all(
@@ -474,7 +434,7 @@ export class PhotoService {
   }
 
   async updatePhotoLikesCount(id: string, count: number) {
-    return this.photoRepository.findByIdAndUpdate({ _id: id }, { likes: count });
+    return this.photoRepository.update(id, { likes: count });
   }
 
 }

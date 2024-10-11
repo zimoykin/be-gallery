@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { DynamoDbRepository, InjectRepository, IScanFilter } from "../../../libs/dynamo-db";
-import { Profile } from "../models/profile.model";
+import { Profile } from "./profile.model";
 
 @Injectable()
 export class ProfileRepository {

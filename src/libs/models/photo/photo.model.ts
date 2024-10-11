@@ -12,10 +12,10 @@ class Bucket {
   key: string;
 
   @Prop()
-  previewWidth: number;
+  width?: number;
 
   @Prop()
-  previewHeight: number;
+  height?: number;
 }
 const BucketSchema = SchemaFactory.createForClass(Bucket);
 
@@ -76,7 +76,7 @@ export class PhotoModel {
 
   @Prop({ required: false, schema: BucketSchema })
   original: Bucket;
-  
+
   @Prop({ required: false })
   originalUrl?: string;
 

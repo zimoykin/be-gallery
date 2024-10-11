@@ -14,8 +14,8 @@ import { InjectS3Bucket } from '../libs/s3-bucket/inject-s3-bucket.decorator';
 import { S3BucketService } from '../libs/s3-bucket/s3-bucket.service';
 import { Offer } from '../commercial-service/offers/models/offer.model';
 import { ImageCompressorService } from '../libs/image-compressor/image-compressor.service';
-import { Profile } from '../libs/models/models/profile.model';
-import { PhotoModel } from '../libs/models/models/photo.model';
+import { Profile } from '../libs/models/profile/profile.model';
+import { PhotoModel } from '../libs/models/photo/photo.model';
 import { Folder } from '../libs/models/folder/folder.model';
 
 @Injectable()
