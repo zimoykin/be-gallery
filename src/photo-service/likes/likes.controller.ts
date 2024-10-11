@@ -8,12 +8,14 @@ import { ProfileCookie, IProfileCookie } from 'src/libs/profile-cookie';
 export class LikesController {
   private readonly logger = new Logger(LikesController.name);
 
-  constructor(private readonly service: LikesService) {}
+  constructor(private readonly service: LikesService) { }
 
   @Get('/:contentId')
-  async getLikesByContentId(@Param('contentId') contentId: string) {
+  async getLikesByContentId(
+    @ProfileCookie() profile: IProfileCookie,
+    @Param('contentId') contentId: string) {
     return this.service
-      .getLikesCountByContentId(contentId)
+      .getLikesCountByContentIdAndProfileId(contentId, profile.profileId)
       .then((res) => {
         return res;
       })

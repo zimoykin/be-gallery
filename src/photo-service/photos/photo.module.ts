@@ -1,28 +1,26 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { PhotoController } from './photo.controller';
 import { PhotoService } from './photo.service';
-import { DynamodbModule } from '../../libs/dynamo-db/dynamo-db.module';
 import { S3BucketModule } from '../../libs/s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from '../../libs/image-compressor/image-compressor.module';
-import { PhotoOfTheDay } from './photo-of-the-day.model';
 import { PublicPhotoService } from './public-photo.service';
 import { PhotoPublicController } from './photo-public.controller';
-import { FolderModule } from '../../profile-service/folders/folder.module';
 import { PhotoConsumer } from './photo.consumer';
 import { AmqpModule } from '../../libs/amqp/amqp.module';
 import { ProfileModule } from 'src/profile-service/profiles/profile.module';
 import { PhotoDatabaseModule } from 'src/libs/models/photo/photo.module';
+import { FolderDatabaseModule } from 'src/libs/models/folder/folder.module';
+import { ProfileDatabaseModule } from 'src/libs/models/profile/profile.module';
 
 @Module({
   imports: [
     PhotoDatabaseModule,
-    DynamodbModule.forFeature(PhotoOfTheDay),
+    FolderDatabaseModule,
+    ProfileDatabaseModule,
     S3BucketModule.forFeature('photos'),
     S3BucketModule.forFeature('preview'),
     S3BucketModule.forFeature('compressed'),
     ImageCompressorModule,
-    ProfileModule,
-    forwardRef(() => FolderModule),
     AmqpModule.forFeature('folder_favorite_changed'),
     AmqpModule.forFeature('folder_dominant_color'),
   ],

@@ -5,8 +5,8 @@ import {
 import { PhotoType } from './enums/photo-type.enum';
 import { PhotoModel } from '../../libs/models/photo/photo.model';
 import { PhotoService } from './photo.service';
-import { ProfileService } from '../../profile-service/profiles/profile.service';
-import { PhotoRepository } from 'src/libs/models/photo/photo.repository';
+import { PhotoRepository } from '../../libs/models/photo/photo.repository';
+import { ProfileRepository } from '../../libs/models/profile/profile.repository';
 @Injectable()
 export class PublicPhotoService {
   private readonly logger = new Logger(PublicPhotoService.name);
@@ -14,7 +14,7 @@ export class PublicPhotoService {
   constructor(
     private readonly photoRepository: PhotoRepository,
     private readonly photoService: PhotoService,
-    private readonly profileService: ProfileService,
+    private readonly profileRepository: ProfileRepository,
   ) { }
 
   async getUsersPhotosByFolderIdAndProfileId(
@@ -22,7 +22,7 @@ export class PublicPhotoService {
     folderId: string,
   ) {
     const photos = await this.photoRepository.find({ profileId, folderId });
-    const profile = await this.profileService.findProfileById(profileId);
+    const profile = await this.profileRepository.findById(profileId);
 
     for await (const photo of photos) {
       const signedUrl = await this.photoService.getUrlByType(PhotoType.COMPRESSED, photo);
@@ -42,7 +42,7 @@ export class PublicPhotoService {
   async getFavouritePhotos() {
     const photos = await this.photoRepository.findRandomPublicPhotos();
     const profileIds: string[] = [...new Set(photos.map((photo) => String(photo.profileId)))];
-    const profiles = await this.profileService.findProfileByIds(profileIds);
+    const profiles = await this.profileRepository.findByIds(profileIds);
 
     const result: PhotoModel[] = [];
     for await (const photo of photos.sort(() => Math.random() - 0.5)) {
