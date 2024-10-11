@@ -46,7 +46,7 @@ export class FolderController {
     @ProfileCookie() profile: IProfileCookie,
     @Param('id') id: string
   ) {
-    return this.folderService.findFolderById(id, profile.profileId).then((data) => {
+    return this.folderService.findFolderByIdAndProfileId(id, profile.profileId).then((data) => {
       return plainToInstance(FolderOutputDto, data);
     }).catch((error) => {
       this.logger.error(error);

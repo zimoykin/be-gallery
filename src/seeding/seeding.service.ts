@@ -16,7 +16,7 @@ import { Offer } from '../commercial-service/offers/models/offer.model';
 import { ImageCompressorService } from '../libs/image-compressor/image-compressor.service';
 import { Profile } from '../libs/models/models/profile.model';
 import { PhotoModel } from '../libs/models/models/photo.model';
-import { Folder } from '../libs/models/models/folder.model';
+import { Folder } from '../libs/models/folder/folder.model';
 
 @Injectable()
 export class SeedingService implements OnApplicationBootstrap {

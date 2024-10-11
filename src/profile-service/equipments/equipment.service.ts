@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EquipmentInput } from '../../libs/models/eqiupment.interface';
-import { EquipmentRepository } from '../../libs/models/models/equipment/equipment.repository';
+import { EquipmentRepository } from '../../libs/models/equipment/equipment.repository';
 
 @Injectable()
 export class EquipmentService {

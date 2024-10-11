@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { DynamoDbRepository, InjectRepository, IScanFilter } from "../../../../libs/dynamo-db";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { DynamoDbRepository, InjectRepository, IScanFilter } from "../../../libs/dynamo-db";
 import { Equipment } from "./equipment.model";
-import { EquipmentInput, IEquipment } from "../../eqiupment.interface";
+import { IEquipment } from "../eqiupment.interface";
 
 
 @Injectable()
