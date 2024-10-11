@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { EquipmentController } from './equipment.controller';
 import { EquipmentService } from './equipment.service';
-import { EquipmentDatabaseModule } from '../../libs/models/models/equipment/equipment-database.module';
+import { EquipmentDatabaseModule } from '../..//libs/models/equipment/equipment-database.module';
 @Module({
   imports: [
     EquipmentDatabaseModule

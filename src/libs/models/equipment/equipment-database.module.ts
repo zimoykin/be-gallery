@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { DynamodbModule } from "../../../../libs/dynamo-db";
+import { DynamodbModule } from "../../../libs/dynamo-db";
 import { Equipment } from "./equipment.model";
 import { EquipmentRepository } from "./equipment.repository";
 

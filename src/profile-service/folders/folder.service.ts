@@ -3,25 +3,23 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '../../libs/dynamo-db/decorators/inject-model.decorator';
-import { DynamoDbRepository } from '../../libs/dynamo-db/dynamo-db.repository';
 import { FolderInputDto } from './dtos/folder-input.dto';
 import { ProfileService } from '../profiles/profile.service';
-import { Folder } from '../../libs/models/models/folder.model';
+import { Folder } from '../../libs/models/folder/folder.model';
+import { FolderRepository } from 'src/libs/models/folder/folder.repository';
 
 @Injectable()
 export class FolderService {
   private readonly logger = new Logger(FolderService.name);
 
   constructor(
-    // @ts-ignore //
-    @InjectRepository(Folder)
-    private readonly folderRepository: DynamoDbRepository<Folder>,
+    private readonly folderRepository: FolderRepository,
     private readonly profileService: ProfileService,
   ) { }
 
-  async findFolderById(id: string, profileId: string) {
-    const folder = await this.folderRepository.findOneByFilter({
+
+  async findFolderByIdAndProfileId(id: string, profileId: string) {
+    const folder = await this.folderRepository.findOne({
       match: { id, profileId },
     });
     if (!folder) {
@@ -32,14 +30,14 @@ export class FolderService {
   }
 
   async findByFolderId(id: string) {
-    return this.folderRepository.findOneByFilter<Folder>({
+    return this.folderRepository.findOne({
       match: { id },
     });
   }
 
 
   async findAllByProfileId(profileId: string) {
-    const folders = await this.folderRepository.find<Folder>({
+    const folders = await this.folderRepository.find({
       match: { profileId: profileId },
     });
     return folders;
