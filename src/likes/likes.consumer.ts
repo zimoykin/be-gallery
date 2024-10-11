@@ -1,8 +1,8 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { LikesService } from "./likes.service";
-import { PhotoService } from "src/photos/photo.service";
-import { InjectConsumer } from "src/lib/decorators";
-import { AmqpConsumer } from "src/lib/amqp.consumer";
+import { PhotoService } from "../photos/photo.service";
+import { InjectConsumer } from "../lib/decorators";
+import { AmqpConsumer } from "../lib/amqp.consumer";
 
 @Injectable()
 export class LikesConsumer implements OnModuleInit {

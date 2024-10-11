@@ -1,9 +1,9 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
+import { DynamoDbRepository } from '../dynamo-db/dynamo-db.repository';
 import { Like } from './models/like.model';
 import { InjectRepository } from '../dynamo-db/decorators/inject-model.decorator';
-import { InjectSender } from 'src/lib/decorators';
-import { AmqpSender } from 'src/lib/amqp.sender';
+import { InjectSender } from '../lib/decorators';
+import { AmqpSender } from '../lib/amqp.sender';
 
 @Injectable()
 export class LikesService {
