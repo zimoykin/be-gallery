@@ -21,8 +21,10 @@ jobs:
         with:
           node-version: '20.x'
           registry-url: https://npm.pkg.github.com/
-      - run: echo "//npm.pkg.github.com/:_authToken=\${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-      - run: cat ~/.npmrc
-      - run: npm ci
+      - run: |
+          echo "//npm.pkg.github.com/:_authToken=$NPM_TOKEN" > .npmrc && \
+          echo "@zimoykin:registry=https://npm.pkg.github.com" >> .npmrc && \
+          npm ci &&  \
+          rm -rf .npmrc
       - run: npm run build
       - run: npm run test
