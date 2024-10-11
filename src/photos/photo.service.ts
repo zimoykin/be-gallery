@@ -5,8 +5,8 @@ import { ImageCompressorService } from '../image-compressor/image-compressor.ser
 import { InternalServerError } from '@aws-sdk/client-dynamodb';
 import { PhotoType } from './enums/photo-type.enum';
 import { FolderService } from '../folders/folder.service';
-import { InjectSender } from 'src/lib/decorators';
-import { AmqpSender } from 'src/lib/amqp.sender';
+import { InjectSender } from '../lib/decorators';
+import { AmqpSender } from '../lib/amqp.sender';
 import { InjectModel } from '@nestjs/mongoose';
 import { PhotoModel } from './models/photo.model';
 import { Model } from 'mongoose';

@@ -1,10 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { InjectRepository } from "src/dynamo-db/decorators/inject-model.decorator";
-import { AmqpConsumer } from "src/lib/amqp.consumer";
-import { FolderDominantColor } from "src/lib/common/dtos/folder-favorite";
-import { InjectConsumer } from "src/lib/decorators";
+import { InjectRepository } from "../dynamo-db/decorators/inject-model.decorator";
+import { AmqpConsumer } from "../lib/amqp.consumer";
+import { FolderDominantColor } from "../lib/common/dtos/folder-favorite";
+import { InjectConsumer } from "../lib/decorators";
 import { Folder } from "./models/folder.model";
-import { DynamoDbRepository } from "src/dynamo-db/dynamo-db.repository";
+import { DynamoDbRepository } from "../dynamo-db/dynamo-db.repository";
 
 @Injectable()
 export class FolderConsumer {

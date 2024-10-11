@@ -2,22 +2,21 @@ import { BadRequestException, Injectable, Logger, OnApplicationBootstrap } from 
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { InjectRepository } from 'src/dynamo-db/decorators/inject-model.decorator';
-import { DynamoDbRepository } from 'src/dynamo-db/dynamo-db.repository';
-import { FolderService } from 'src/folders/folder.service';
-import { Folder } from 'src/folders/models/folder.model';
-import { folders } from 'src/folders/models/folder.seeds';
-import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
-import { AmqpSender } from 'src/lib/amqp.sender';
-import { InjectSender } from 'src/lib/decorators';
-import { Offer } from 'src/offers/models/offer.model';
-import { offers } from 'src/offers/models/offer.seed';
-import { PhotoModel } from 'src/photos/models/photo.model';
-import { seedPhotos } from 'src/photos/models/photo.seeds';
-import { Profile } from 'src/profiles/models/profile.model';
-import { profiles } from 'src/profiles/models/profile.seed';
-import { InjectS3Bucket } from 'src/s3-bucket/inject-s3-bucket.decorator';
-import { S3BucketService } from 'src/s3-bucket/s3-bucket.service';
+import { InjectRepository } from '../dynamo-db/decorators/inject-model.decorator';
+import { DynamoDbRepository } from '../dynamo-db/dynamo-db.repository';
+import { Folder } from '../folders/models/folder.model';
+import { folders } from '../folders/models/folder.seeds';
+import { ImageCompressorService } from '../image-compressor/image-compressor.service';
+import { AmqpSender } from '../lib/amqp.sender';
+import { InjectSender } from '../lib/decorators';
+import { Offer } from '../offers/models/offer.model';
+import { offers } from '../offers/models/offer.seed';
+import { PhotoModel } from '../photos/models/photo.model';
+import { seedPhotos } from '../photos/models/photo.seeds';
+import { Profile } from '../profiles/models/profile.model';
+import { profiles } from '../profiles/models/profile.seed';
+import { InjectS3Bucket } from '../s3-bucket/inject-s3-bucket.decorator';
+import { S3BucketService } from '../s3-bucket/s3-bucket.service';
 
 @Injectable()
 export class SeedingService implements OnApplicationBootstrap {
