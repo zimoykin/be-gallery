@@ -1,0 +1,105 @@
+name: Deploy to AWS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set envs
+        run: |
+          echo "EC2_INSTANCE_IP=${{ secrets.EC2_INSTANCE_IP }}" >> $GITHUB_ENV
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+          echo "AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
+          echo "REGISTRY_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com" >> $GITHUB_ENV
+          echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=$(echo $GITHUB_REF | sed 's|refs/heads/||')" >> $GITHUB_ENV
+          echo "PROJECT_NAME=$(jq -r .name < package.json)" >> $GITHUB_ENV
+          echo "IMAGE_ID=${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Set REGISTRY_REPO
+        run: |
+          echo "REGISTRY_REPO=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ env.PROJECT_NAME }}:${{ env.IMAGE_ID }}" >> $GITHUB_ENV
+
+      - name: Log in to AWS ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION \
+          | docker login -u AWS --password-stdin ${REGISTRY_URI}
+
+      - name: Ensure ECR repository exists
+        run: |
+          if aws ecr describe-repositories --repository-names ${PROJECT_NAME} >/dev/null 2>&1; then
+            echo "Repository exists."
+          else
+            echo "Repository does not exist. Creating repository..."
+            aws ecr create-repository --repository-name ${PROJECT_NAME}
+            sleep 10
+            if aws ecr describe-repositories --repository-names ${PROJECT_NAME} >/dev/null 2>&1; then
+              echo "Repository created successfully."
+            else
+              echo "Failed to create repository."
+              exit 1
+            fi
+          fi
+
+      - name: Build, tag, and push Docker image
+        run: |
+          echo "Project name: ${PROJECT_NAME}"
+          echo "Registry repo: ${REGISTRY_REPO}"
+          docker build --build-arg NPM_TOKEN=${NPM_TOKEN} -t ${PROJECT_NAME} .
+          docker tag ${PROJECT_NAME} ${REGISTRY_REPO}
+          docker push ${REGISTRY_REPO}
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${EC2_INSTANCE_IP} >> ~/.ssh/known_hosts
+
+      - name: Install Docker on EC2
+        run: |
+          ssh -o "StrictHostKeyChecking=no" ec2-user@${EC2_INSTANCE_IP} \
+          "if ! command -v docker &> /dev/null; then \
+             sudo yum update -y && \
+             sudo yum install docker -y && \
+             sudo service docker start && \
+             sudo usermod -aG docker ec2-user; \
+           fi"
+
+      - name: Generate Env
+        run: |
+          echo ${{ secrets.ENV_VARS }} > .env
+
+      - name: Deploy to EC2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          ssh -o "StrictHostKeyChecking=no" ec2-user@${{ secrets.EC2_INSTANCE_IP }} \
+          "docker login -u AWS -p $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }}) ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com && \
+           docker pull ${REGISTRY_REPO} && \
+           docker stop ${PROJECT_NAME} || true && \
+           docker rm ${PROJECT_NAME} || true && \
+           docker run -d -p 3000:3000 --name ${PROJECT_NAME} --env-file .env ${REGISTRY_REPO} && \
+           echo "successfully" && \
+           docker image prune -a -f
+           "
+
+        #  optional
+      - name: Clean up SSH key and Env
+        run: |
+          rm -f ~/.ssh/id_rsa
+          rm -f .env
