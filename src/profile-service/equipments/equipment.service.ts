@@ -4,8 +4,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { EquipmentInput, IEquipment } from 'src/libs/models/eqiupment.interface';
-import { EquipmentRepository } from 'src/libs/models/models/equipment/equipment.repository';
+import { EquipmentInput } from '../../libs/models/eqiupment.interface';
+import { EquipmentRepository } from '../../libs/models/models/equipment/equipment.repository';
 
 @Injectable()
 export class EquipmentService {
@@ -46,7 +46,6 @@ export class EquipmentService {
         favorite: 0
       });
     }
-
     const record = Object.assign(data, update);
     const result = await this.equipRepository.updateById(id, record);
 
@@ -60,6 +59,8 @@ export class EquipmentService {
         `You can't create more than 10 equipment. You have ${eqps}`,
       );
     }
+
+    this.logger.debug(`append ${JSON.stringify(equip)} to ${profileId}`);
     return this.equipRepository.create({ ...equip, profileId: profileId });
   }
 
@@ -70,6 +71,8 @@ export class EquipmentService {
     if (!data) {
       throw new NotFoundException();
     }
+
+    this.logger.debug(`remove ${id} from ${profileId}`);
     return this.equipRepository.remove(id);
 
   }
