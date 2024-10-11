@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { FolderController } from './folder.controller';
 import { FolderService } from './folder.service';
-import { DynamodbModule } from 'src/dynamo-db/dynamo-db.module';
+import { DynamodbModule } from '../dynamo-db/dynamo-db.module';
 import { Folder } from './models/folder.model';
 import { PhotoModule } from '../photos/photo.module';
 import { PublicFolderController } from './folder-public.controller';
@@ -10,7 +10,7 @@ import { ProfileModule } from '../profiles/profile.module';
 import { profiles } from '../profiles/models/profile.seed';
 import { folders } from './models/folder.seeds';
 import { FolderConsumer } from './folder.consumer';
-import { AmqpModule } from 'src/lib/amqp.module';
+import { AmqpModule } from '../lib/amqp.module';
 
 @Module({
   imports: [

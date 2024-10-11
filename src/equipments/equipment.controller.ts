@@ -9,8 +9,8 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { Profile } from 'src/decorators/cookie.decorator';
-import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
+import { Profile } from '../decorators/cookie.decorator';
+import { IProfileCookie } from '../middlewares/profile-cookie.interface';
 import { plainToInstance } from 'class-transformer';
 import { EquipmentInputDto } from './dtos/equipment-input.dto';
 import { UserAccess } from '@zimoykin/auth';

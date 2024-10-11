@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { LikesController } from './likes.controller';
 import { LikesService } from './likes.service';
 import { DynamodbModule } from '../dynamo-db/dynamo-db.module';
@@ -9,9 +9,11 @@ import { LikesConsumer } from './likes.consumer';
 import { AmqpModule } from '../lib/amqp.module';
 
 @Module({
-  imports: [PhotoModule,
+  imports: [
+    forwardRef(() => PhotoModule),
     AmqpModule.forFeature('like_added'),
-    DynamodbModule.forFeature(Like)],
+    DynamodbModule.forFeature(Like)
+  ],
   controllers: [LikesController, PublicLikesController],
   providers: [LikesService, LikesConsumer],
 })

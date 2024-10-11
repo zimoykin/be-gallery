@@ -15,8 +15,8 @@ import { AuthUser, IAuthUser, UserAccess } from '@zimoykin/auth';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { FolderOutputDto } from './dtos/folder-output.dto';
-import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
-import { Profile } from 'src/decorators/cookie.decorator';
+import { IProfileCookie } from '../middlewares/profile-cookie.interface';
+import { Profile } from '../decorators/cookie.decorator';
 import { FoldeWithTotalOutputDto } from './dtos/folder-with-total-output.dto';
 
 @UserAccess()

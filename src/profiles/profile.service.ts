@@ -8,7 +8,7 @@ import { InjectRepository } from '../dynamo-db/decorators/inject-model.decorator
 import { DynamoDbRepository } from '../dynamo-db/dynamo-db.repository';
 import { Profile } from './models/profile.model';
 import { S3BucketService } from '../s3-bucket/s3-bucket.service';
-import { ImageCompressorService } from 'src/image-compressor/image-compressor.service';
+import { ImageCompressorService } from '../image-compressor/image-compressor.service';
 import { InjectS3Bucket } from '../s3-bucket/inject-s3-bucket.decorator';
 import { EquipmentService } from '../equipments/equipment.service';
 

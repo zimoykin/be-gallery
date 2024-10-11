@@ -4,12 +4,10 @@ import {
 } from '@nestjs/common';
 import { PhotoService } from './photo.service';
 import { PhotoType } from './enums/photo-type.enum';
-import { ProfileService } from 'src/profiles/profile.service';
+import { ProfileService } from '../profiles/profile.service';
 import { Model } from 'mongoose';
 import { PhotoModel } from './models/photo.model';
 import { InjectModel } from '@nestjs/mongoose';
-import { random } from 'lodash';
-
 @Injectable()
 export class PublicPhotoService {
   private readonly logger = new Logger(PublicPhotoService.name);

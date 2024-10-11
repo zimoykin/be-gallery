@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Logger, Param, Post, Put } from '@nestjs/common';
 import { OffersService } from './offers.service';
-import { Profile } from 'src/decorators/cookie.decorator';
-import { IProfileCookie } from 'src/middlewares/profile-cookie.interface';
+import { Profile } from '../decorators/cookie.decorator';
+import { IProfileCookie } from '../middlewares/profile-cookie.interface';
 import { UserAccess } from '@zimoykin/auth';
 import { OfferInputDto } from './dtos/offer-input.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';

@@ -1,14 +1,3 @@
-// import { Injectable, Logger } from "@nestjs/common";
-// import { InjectRepository } from "src/dynamo-db/decorators/inject-model.decorator";
-// import { DynamoDbRepository } from "src/dynamo-db/dynamo-db.repository";
-// import { Photo } from "./models/photo.model";
-// import { FolderService } from "src/folders/folder.service";
-// import { profiles } from "src/profiles/models/profile.seed";
-// import { seedPhotos } from "./models/photo.seeds";
-// import { PhotoService } from "./photo.service";
-// import { S3BucketService } from "src/s3-bucket/s3-bucket.service";
-// import { ImageCompressorService } from "src/image-compressor/image-compressor.service";
-// import { InjectS3Bucket } from "src/s3-bucket/inject-s3-bucket.decorator";
 
 // @Injectable()
 // export class PhotoSeedingService {

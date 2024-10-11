@@ -1,8 +1,8 @@
-import { PrimaryKey } from 'src/dynamo-db/decorators/primary-key.decorator';
-import { SortKey } from 'src/dynamo-db/decorators/sort-key.decorator';
-import { Table } from 'src/dynamo-db/decorators/table.decorator';
-import { Index } from 'src/dynamo-db/decorators/index.decorator';
-import { Required } from 'src/dynamo-db/decorators/required.decorator';
+import { PrimaryKey } from '../../dynamo-db/decorators/primary-key.decorator';
+import { SortKey } from '../../dynamo-db/decorators/sort-key.decorator';
+import { Table } from '../../dynamo-db/decorators/table.decorator';
+import { Index } from '../../dynamo-db/decorators/index.decorator';
+import { Required } from '../../dynamo-db/decorators/required.decorator';
 
 @Table(Profile.name)
 export class Profile {
