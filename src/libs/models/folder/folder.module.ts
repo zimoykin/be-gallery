@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { DynamodbModule } from "src/libs/dynamo-db";
+import { DynamodbModule } from "../../../libs/dynamo-db";
 import { Folder } from "./folder.model";
 import { FolderRepository } from "./folder.repository";
 
