@@ -1,4 +1,4 @@
-import { Profile } from "../profile-service/profiles/models/profile.model";
+import { Profile } from "../libs/models/models/profile.model";
 
 export const profiles: Profile[] = [
   {

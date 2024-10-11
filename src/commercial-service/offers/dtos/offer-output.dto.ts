@@ -1,4 +1,4 @@
-import { IOfferOutput } from "../../../libs/interfaces/offer-output.interface";
+import { IOfferOutput } from "../../../libs/models/offer-output.interface";
 import { Exclude, Expose } from "class-transformer";
 
 @Exclude()

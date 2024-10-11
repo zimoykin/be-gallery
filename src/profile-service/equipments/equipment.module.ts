@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { EquipmentController } from './equipment.controller';
 import { EquipmentService } from './equipment.service';
-import { Equipment } from './models/equipment.model';
-import { DynamodbModule } from 'src/libs/dynamo-db';
+import { EquipmentDatabaseModule } from '../../libs/models/models/equipment/equipment-database.module';
 @Module({
   imports: [
-    DynamodbModule.forFeature(Equipment),
+    EquipmentDatabaseModule
   ],
   controllers: [EquipmentController],
   providers: [EquipmentService],

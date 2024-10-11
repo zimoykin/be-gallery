@@ -81,7 +81,7 @@ export class EquipmentController {
     @Param('id') id: string,
   ) {
     return this.equipmentService
-      .removeEquipment(id, profile.profileId)
+      .remove(id, profile.profileId)
       .then((data) => {
         return plainToInstance(EquipmentOutputDto, data);
       })

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { FolderDominantColor } from "../../libs/amqp/common/dtos/folder-favorite";
 import { AmqpConsumer } from "src/libs/amqp/amqp.consumer";
-import { Folder } from "./models/folder.model";
+import { Folder } from "../../libs/models/models/folder.model";
 import { DynamoDbRepository, InjectRepository } from "../../libs/dynamo-db";
 import { InjectConsumer } from "../../libs/amqp/decorators";
 
@@ -12,7 +12,7 @@ export class FolderConsumer {
         //@ts-ignore
         @InjectConsumer('folder_dominant_color') private readonly consumer: AmqpConsumer,
         //@ts-ignore
-        @InjectRepository(Folder.name) private readonly folderRepository: DynamoDbRepository<Folder>
+        @InjectRepository(Folder) private readonly folderRepository: DynamoDbRepository<Folder>
     ) { }
 
     onModuleInit() {

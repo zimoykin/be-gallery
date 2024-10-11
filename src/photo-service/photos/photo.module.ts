@@ -2,7 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { PhotoController } from './photo.controller';
 import { PhotoService } from './photo.service';
 import { DynamodbModule } from '../../libs/dynamo-db/dynamo-db.module';
-import PhotoSchema from './models/photo.model';
+import PhotoSchema from '../../libs/models/models/photo.model';
 import { S3BucketModule } from '../../libs/s3-bucket/s3-bucket.module';
 import { ImageCompressorModule } from '../../libs/image-compressor/image-compressor.module';
 import { PhotoOfTheDay } from './photo-of-the-day.model';
