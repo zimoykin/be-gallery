@@ -1,22 +1,22 @@
-import { BadRequestException, Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { InjectRepository } from '../dynamo-db/decorators/inject-model.decorator';
-import { DynamoDbRepository } from '../dynamo-db/dynamo-db.repository';
-import { Folder } from '../folders/models/folder.model';
-import { folders } from '../folders/models/folder.seeds';
-import { ImageCompressorService } from '../image-compressor/image-compressor.service';
-import { AmqpSender } from '../lib/amqp.sender';
-import { InjectSender } from '../lib/decorators';
-import { Offer } from '../offers/models/offer.model';
-import { offers } from '../offers/models/offer.seed';
-import { PhotoModel } from '../photos/models/photo.model';
-import { seedPhotos } from '../photos/models/photo.seeds';
-import { Profile } from '../profiles/models/profile.model';
-import { profiles } from '../profiles/models/profile.seed';
-import { InjectS3Bucket } from '../s3-bucket/inject-s3-bucket.decorator';
-import { S3BucketService } from '../s3-bucket/s3-bucket.service';
+import { InjectRepository } from '../libs/dynamo-db/decorators/inject-model.decorator';
+import { DynamoDbRepository } from '../libs/dynamo-db/dynamo-db.repository';
+import { AmqpSender } from '../libs/amqp/amqp.sender';
+import { InjectSender } from '../libs/amqp/decorators';
+import { PhotoModel } from '../photo-service/photos/models/photo.model';
+import { seedPhotos } from './photo.seeds';
+import { folders } from './folder.seeds';
+import { offers } from '../commercial-service/offers/models/offer.seed';
+import { profiles } from './profile.seed';
+import { InjectS3Bucket } from '../libs/s3-bucket/inject-s3-bucket.decorator';
+import { S3BucketService } from '../libs/s3-bucket/s3-bucket.service';
+import { Offer } from '../commercial-service/offers/models/offer.model';
+import { ImageCompressorService } from 'src/libs/image-compressor/image-compressor.service';
+import { Folder } from 'src/profile-service/folders/models/folder.model';
+import { Profile } from '../profile-service/profiles/models/profile.model';
 
 @Injectable()
 export class SeedingService implements OnApplicationBootstrap {
@@ -31,7 +31,7 @@ export class SeedingService implements OnApplicationBootstrap {
         // @ts-ignore
         @InjectRepository(Folder.name)
         private readonly folderRepo: DynamoDbRepository<Folder>,
-        // @ts-ignore //
+        // @ts-ignore
         @InjectS3Bucket('photos')
         private readonly s3BucketServiceOriginal: S3BucketService,
         // @ts-ignore //
@@ -42,7 +42,7 @@ export class SeedingService implements OnApplicationBootstrap {
         private readonly s3BucketServiceCompressed: S3BucketService,
         private readonly imageCompressorService: ImageCompressorService,
         private readonly config: ConfigService,
-        //@ts-ignore
+        // @ts-ignore
         @InjectSender('folder_favorite_changed')
         private readonly sender: AmqpSender,
         //@ts-ignore

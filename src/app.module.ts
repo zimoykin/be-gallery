@@ -3,22 +3,22 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ConfigVariables, serviceSchema } from './service-config';
-import { FolderModule } from './folders/folder.module';
-import { DynamodbModule } from './dynamo-db/dynamo-db.module';
+import { FolderModule } from './profile-service/folders/folder.module';
+import { DynamodbModule } from './libs/dynamo-db/dynamo-db.module';
 import { JwtModule } from '@zimoykin/auth';
-import { PhotoModule } from './photos/photo.module';
-import { S3BucketModule } from './s3-bucket/s3-bucket.module';
-import { ImageCompressorModule } from './image-compressor/image-compressor.module';
-import { ProfileModule } from './profiles/profile.module';
-import { ProfileAuthMiddleware } from './middlewares/profile-auth.middleware';
-import { OffersModule } from './offers/offers.module';
-import { TopicModule } from './topics/topic.module';
-import { MessagesModule } from './messages/messages.module';
-import { EquipmentModule } from './equipments/equipment.module';
-import { LikesModule } from './likes/likes.module';
-import { AmqpModule } from './lib/amqp.module';
+import { PhotoModule } from './photo-service/photos/photo.module';
+import { S3BucketModule } from './libs/s3-bucket/s3-bucket.module';
+import { ImageCompressorModule } from './libs/image-compressor/image-compressor.module';
+import { ProfileModule } from './profile-service/profiles/profile.module';
+import { ProfileAuthMiddleware } from './libs/profile-cookie/middlewares/profile-auth.middleware';
+import { TopicModule } from './commercial-service/topics/topic.module';
+import { LikesModule } from './photo-service/likes/likes.module';
+import { AmqpModule } from './libs/amqp/amqp.module';
 import { SeedingModule } from './seeding/seeding.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { OffersModule } from './commercial-service/offers/offers.module';
+import { MessagesModule } from './chat-service/messages.module';
+import { EquipmentModule } from './profile-service/equipments/equipment.module';
 
 @Module({
   imports: [
