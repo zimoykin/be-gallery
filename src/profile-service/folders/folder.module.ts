@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { FolderController } from './folder.controller';
 import { FolderService } from './folder.service';
 import { DynamodbModule } from '../../libs/dynamo-db/dynamo-db.module';
-import { Folder } from '../../libs/interfaces/models/folder.model';
+import { Folder } from '../../libs/models/models/folder.model';
 import { PhotoModule } from '../../photo-service/photos/photo.module';
 import { PublicFolderController } from './folder-public.controller';
 import { ProfileModule } from '../profiles/profile.module';

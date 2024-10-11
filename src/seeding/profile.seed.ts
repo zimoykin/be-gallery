@@ -1,4 +1,4 @@
-import { Profile } from "../libs/interfaces/models/profile.model";
+import { Profile } from "../libs/models/models/profile.model";
 
 export const profiles: Profile[] = [
   {

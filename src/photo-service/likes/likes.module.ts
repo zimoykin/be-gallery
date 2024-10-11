@@ -6,7 +6,7 @@ import { PhotoModule } from '../photos/photo.module';
 import { LikesConsumer } from './likes.consumer';
 import { AmqpModule } from '../../libs/amqp/amqp.module';
 import { PublicLikesController } from './public-likes.controller';
-import { Like } from '../../libs/interfaces/models/like.model';
+import { Like } from '../../libs/models/models/like.model';
 
 @Module({
   imports: [

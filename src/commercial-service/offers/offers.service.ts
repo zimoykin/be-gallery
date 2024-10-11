@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Offer } from './models/offer.model';
-import { IOfferInput } from '../../libs/interfaces/offer-input.interface';
+import { IOfferInput } from '../../libs/models/offer-input.interface';
 import { DynamoDbRepository, InjectRepository } from "../../libs/dynamo-db";
 
 @Injectable()

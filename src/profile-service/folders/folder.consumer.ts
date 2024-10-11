@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { FolderDominantColor } from "../../libs/amqp/common/dtos/folder-favorite";
 import { AmqpConsumer } from "src/libs/amqp/amqp.consumer";
-import { Folder } from "../../libs/interfaces/models/folder.model";
+import { Folder } from "../../libs/models/models/folder.model";
 import { DynamoDbRepository, InjectRepository } from "../../libs/dynamo-db";
 import { InjectConsumer } from "../../libs/amqp/decorators";
 

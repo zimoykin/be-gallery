@@ -1,5 +1,5 @@
 import { IsIn, IsString } from "class-validator";
-import { IOfferInput } from "../../../libs/interfaces/offer-input.interface";
+import { IOfferInput } from "../../../libs/models/offer-input.interface";
 
 export class OfferInputDto implements IOfferInput {
 

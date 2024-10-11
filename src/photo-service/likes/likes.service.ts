@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DynamoDbRepository } from '../../libs/dynamo-db/dynamo-db.repository';
-import { Like } from '../../libs/interfaces/models/like.model';
+import { Like } from '../../libs/models/models/like.model';
 import { InjectRepository } from '../../libs/dynamo-db/decorators/inject-model.decorator';
 import { InjectSender } from '../../libs/amqp/decorators';
 import { AmqpSender } from '../../libs/amqp/amqp.sender';

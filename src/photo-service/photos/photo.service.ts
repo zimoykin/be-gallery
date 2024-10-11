@@ -7,7 +7,7 @@ import { PhotoType } from './enums/photo-type.enum';
 import { InjectSender } from '../../libs/amqp/decorators';
 import { AmqpSender } from '../../libs/amqp/amqp.sender';
 import { InjectModel } from '@nestjs/mongoose';
-import { PhotoModel } from '../../libs/interfaces/models/photo.model';
+import { PhotoModel } from '../../libs/models/models/photo.model';
 import { Model } from 'mongoose';
 import { FolderService } from 'src/profile-service/folders/folder.service';
 

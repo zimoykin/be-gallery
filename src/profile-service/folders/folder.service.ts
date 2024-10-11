@@ -7,7 +7,7 @@ import { InjectRepository } from '../../libs/dynamo-db/decorators/inject-model.d
 import { DynamoDbRepository } from '../../libs/dynamo-db/dynamo-db.repository';
 import { FolderInputDto } from './dtos/folder-input.dto';
 import { ProfileService } from '../profiles/profile.service';
-import { Folder } from '../../libs/interfaces/models/folder.model';
+import { Folder } from '../../libs/models/models/folder.model';
 
 @Injectable()
 export class FolderService {

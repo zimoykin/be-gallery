@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import { PhotoType } from './enums/photo-type.enum';
 import { Model } from 'mongoose';
-import { PhotoModel } from '../../libs/interfaces/models/photo.model';
+import { PhotoModel } from '../../libs/models/models/photo.model';
 import { InjectModel } from '@nestjs/mongoose';
 import { PhotoService } from './photo.service';
 import { ProfileService } from '../../profile-service/profiles/profile.service';

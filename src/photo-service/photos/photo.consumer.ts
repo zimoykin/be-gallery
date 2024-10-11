@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { PhotoModel } from "../../libs/interfaces/models/photo.model";
+import { PhotoModel } from "../../libs/models/models/photo.model";
 import { InjectS3Bucket } from "../../libs/s3-bucket/inject-s3-bucket.decorator";
 import { S3BucketService } from "../../libs/s3-bucket/s3-bucket.service";
 import { ImageCompressorService } from "../../libs/image-compressor/image-compressor.service";

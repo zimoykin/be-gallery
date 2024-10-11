@@ -4,17 +4,14 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { IEquipment } from '../../libs/interfaces/eqiupment.interface';
-import { Equipment } from '../../libs/interfaces/models/equipment.model';
-import { DynamoDbRepository, InjectRepository } from '../../libs/dynamo-db';
+import { EquipmentInput, IEquipment } from 'src/libs/models/eqiupment.interface';
+import { EquipmentRepository } from 'src/libs/models/models/equipment/equipment.repository';
 
 @Injectable()
 export class EquipmentService {
   private readonly logger = new Logger(EquipmentService.name);
   constructor(
-    // @ts-ignore //
-    @InjectRepository(Equipment)
-    private readonly equipRepository: DynamoDbRepository<Equipment>,
+    private readonly equipRepository: EquipmentRepository
   ) { }
 
   async findEquipmentProfileById(profileId: string) {
@@ -24,7 +21,6 @@ export class EquipmentService {
     return eqps ?? [];
   }
 
-
   async findFavoriteEquipmentByProfileId(profileId: string) {
     const eqps = await this.equipRepository.find({
       match: { profileId: profileId, favorite: 1 },
@@ -32,60 +28,50 @@ export class EquipmentService {
     return eqps ?? [];
   }
 
-  async updateEquipment(profileId: string, id: string, update: IEquipment) {
-    const data = await this.equipRepository.findOneByFilter({
+  async updateEquipment(profileId: string, id: string, update: EquipmentInput) {
+    //ensure it exists
+    const data = await this.equipRepository.findOne({
       match: { id: id, profileId: profileId },
     });
-    if (!data) {
-      throw new NotFoundException();
-    }
 
     if (update.favorite === 1) {
       //we can only have one favorite
       //so we have to update all others to false
-      await this.equipRepository.updateByFilter(
-        {
-          match: {
-            profileId: profileId,
-            category: update.category,
-          },
-        },
-        { favorite: 0 },
-      );
+      await this.equipRepository.updateAllByFilter({
+        match: {
+          profileId: profileId,
+          category: update.category,
+        }
+      }, {
+        favorite: 0
+      });
     }
 
     const record = Object.assign(data, update);
-    const result = await this.equipRepository.update(id, record);
+    const result = await this.equipRepository.updateById(id, record);
 
     return result;
   }
-  async appendEquipment(profileId: string, equip: IEquipment) {
-    const eqps = await this.equipRepository.countByFilter({
-      match: { profileId: profileId },
-    });
 
+  async appendEquipment(profileId: string, equip: EquipmentInput) {
+    const eqps = await this.equipRepository.countByProfileId(profileId);
     if (eqps >= 10) {
       throw new BadRequestException(
         `You can't create more than 10 equipment. You have ${eqps}`,
       );
     }
-
-    return this.equipRepository.create({
-      profileId: profileId,
-      name: equip.name,
-      category: equip.category,
-      favorite: equip.favorite,
-    });
+    return this.equipRepository.create({ ...equip, profileId: profileId });
   }
 
-  async removeEquipment(id: string, profileId: string) {
-    const data = await this.equipRepository.findOneByFilter({
+  async remove(id: string, profileId: string) {
+    const data = await this.equipRepository.findOne({
       match: { id: id, profileId: profileId },
     });
     if (!data) {
       throw new NotFoundException();
     }
-    await this.equipRepository.remove(id);
-    return data;
+    return this.equipRepository.remove(id);
+
   }
+
 }
