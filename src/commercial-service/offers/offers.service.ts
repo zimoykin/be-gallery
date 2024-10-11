@@ -8,7 +8,7 @@ export class OffersService {
     private readonly logger = new Logger(OffersService.name);
     constructor(
         // @ts-ignore
-        @InjectRepository(Offer.name) private repo: DynamoDbRepository<Offer>,
+        @InjectRepository(Offer) private repo: DynamoDbRepository<Offer>,
     ) { }
 
 

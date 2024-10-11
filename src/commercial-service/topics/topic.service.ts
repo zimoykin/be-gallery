@@ -8,7 +8,7 @@ export class TopicService {
   private readonly logger = new Logger(TopicService.name);
   constructor(
     // @ts-ignore //
-    @InjectRepository(Topic.name)
+    @InjectRepository(Topic)
     private readonly topicRepository: DynamoDbRepository<Topic>,
   ) {}
 }

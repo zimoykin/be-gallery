@@ -4,10 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '../../libs/dynamo-db/decorators/inject-model.decorator';
-import { Folder } from './models/folder.model';
 import { DynamoDbRepository } from '../../libs/dynamo-db/dynamo-db.repository';
 import { FolderInputDto } from './dtos/folder-input.dto';
 import { ProfileService } from '../profiles/profile.service';
+import { Folder } from '../../libs/interfaces/models/folder.model';
 
 @Injectable()
 export class FolderService {
@@ -15,7 +15,7 @@ export class FolderService {
 
   constructor(
     // @ts-ignore //
-    @InjectRepository(Folder.name)
+    @InjectRepository(Folder)
     private readonly folderRepository: DynamoDbRepository<Folder>,
     private readonly profileService: ProfileService,
   ) { }

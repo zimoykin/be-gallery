@@ -1,4 +1,4 @@
-import { Index, PrimaryKey, Required, SortKey, Table } from "../../../libs/dynamo-db";
+import { Index, PrimaryKey, Required, SortKey, Table } from "../../dynamo-db";
 
 @Table(Equipment.name)
 export class Equipment {

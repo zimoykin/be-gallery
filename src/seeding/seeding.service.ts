@@ -6,7 +6,6 @@ import { InjectRepository } from '../libs/dynamo-db/decorators/inject-model.deco
 import { DynamoDbRepository } from '../libs/dynamo-db/dynamo-db.repository';
 import { AmqpSender } from '../libs/amqp/amqp.sender';
 import { InjectSender } from '../libs/amqp/decorators';
-import { PhotoModel } from '../photo-service/photos/models/photo.model';
 import { seedPhotos } from './photo.seeds';
 import { folders } from './folder.seeds';
 import { offers } from '../commercial-service/offers/models/offer.seed';
@@ -14,9 +13,10 @@ import { profiles } from './profile.seed';
 import { InjectS3Bucket } from '../libs/s3-bucket/inject-s3-bucket.decorator';
 import { S3BucketService } from '../libs/s3-bucket/s3-bucket.service';
 import { Offer } from '../commercial-service/offers/models/offer.model';
-import { ImageCompressorService } from 'src/libs/image-compressor/image-compressor.service';
-import { Folder } from 'src/profile-service/folders/models/folder.model';
-import { Profile } from '../profile-service/profiles/models/profile.model';
+import { ImageCompressorService } from '../libs/image-compressor/image-compressor.service';
+import { Profile } from '../libs/interfaces/models/profile.model';
+import { PhotoModel } from '../libs/interfaces/models/photo.model';
+import { Folder } from '../libs/interfaces/models/folder.model';
 
 @Injectable()
 export class SeedingService implements OnApplicationBootstrap {
@@ -26,10 +26,10 @@ export class SeedingService implements OnApplicationBootstrap {
         @InjectModel(PhotoModel.name)
         private readonly photoRepo: Model<PhotoModel>,
         // @ts-ignore
-        @InjectRepository(Profile.name)
+        @InjectRepository(Profile)
         private readonly profileRepo: DynamoDbRepository<Profile>,
         // @ts-ignore
-        @InjectRepository(Folder.name)
+        @InjectRepository(Folder)
         private readonly folderRepo: DynamoDbRepository<Folder>,
         // @ts-ignore
         @InjectS3Bucket('photos')
@@ -46,7 +46,7 @@ export class SeedingService implements OnApplicationBootstrap {
         @InjectSender('folder_favorite_changed')
         private readonly sender: AmqpSender,
         //@ts-ignore
-        @InjectRepository(Offer.name) private repo: DynamoDbRepository<Offer>,
+        @InjectRepository(Offer) private repo: DynamoDbRepository<Offer>,
 
     ) { }
 

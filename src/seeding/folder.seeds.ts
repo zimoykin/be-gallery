@@ -1,4 +1,4 @@
-import { Folder } from '../profile-service/folders/models/folder.model';
+import { Folder } from "../libs/interfaces/models/folder.model";
 
 export const folders = (profileId: string): Omit<Folder, 'id'>[] => [
   {

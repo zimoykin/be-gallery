@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { IEquipment } from '../../libs/interfaces/eqiupment.interface';
-import { Equipment } from './models/equipment.model';
+import { Equipment } from '../../libs/interfaces/models/equipment.model';
 import { DynamoDbRepository, InjectRepository } from '../../libs/dynamo-db';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class EquipmentService {
   private readonly logger = new Logger(EquipmentService.name);
   constructor(
     // @ts-ignore //
-    @InjectRepository(Equipment.name)
+    @InjectRepository(Equipment)
     private readonly equipRepository: DynamoDbRepository<Equipment>,
   ) { }
 
