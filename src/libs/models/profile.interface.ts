@@ -5,11 +5,16 @@ export interface IProfile {
   userId: string;
   name?: string;
   email?: string;
-  location?: string;
+  location?: {
+    lat: number;
+    long: number;
+    title: string;
+    distance: number;
+  };
   bio?: string;
   website?: string;
   privateAccess: number;
-  bucket?: { url: string; key: string; bucketName: string; folder: string };
+  bucket?: { url: string; key: string; bucketName: string; folder: string; };
   equipment?: IEquipment[];
   url?: string;
 }

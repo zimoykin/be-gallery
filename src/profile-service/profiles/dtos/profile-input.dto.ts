@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class ProfileInDto {
   @IsString()
@@ -12,9 +12,14 @@ export class ProfileInDto {
   @IsOptional()
   bio?: string;
 
-  @IsString()
+  @IsObject()
   @IsOptional()
-  location?: string;
+  location?: {
+    lat: number;
+    long: number;
+    title: string;
+    distance: number;
+  };
 
   @IsString()
   @IsOptional()
