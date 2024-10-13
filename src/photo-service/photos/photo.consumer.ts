@@ -5,7 +5,7 @@ import { ImageCompressorService } from "../../libs/image-compressor/image-compre
 import { InjectConsumer, InjectSender } from "../../libs/amqp/decorators";
 import { AmqpSender } from "../../libs/amqp/amqp.sender";
 import { AmqpConsumer } from "../../libs/amqp/amqp.consumer";
-import { FolderDominantColor, FolderFavoriteChanged } from "../../libs/amqp/common/dtos/folder-favorite";
+import { FolderDominantColor, FolderFavoriteChanged } from "../../libs/amqp/common/dtos/folder-favorite.dto";
 import { PhotoRepository } from "../../libs/models/photo/photo.repository";
 
 

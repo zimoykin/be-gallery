@@ -9,7 +9,6 @@ import { S3BucketService } from '../../libs/s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from '../../libs/image-compressor/image-compressor.service';
 import { InjectS3Bucket } from '../../libs/s3-bucket/inject-s3-bucket.decorator';
 import { ProfileRepository } from '../../libs/models/profile/profile.repository';
-import { EquipmentRepository } from '../../libs/models/equipment/equipment.repository';
 
 @Injectable()
 export class ProfileService {
@@ -19,8 +18,7 @@ export class ProfileService {
     // @ts-ignore //
     @InjectS3Bucket('profile')
     private readonly s3BucketService: S3BucketService,
-    private readonly imageCompressorService: ImageCompressorService,
-    private readonly eqipmentRepository: EquipmentRepository,
+    private readonly imageCompressorService: ImageCompressorService
   ) { }
 
   private isFile(data: any): data is Express.Multer.File {
@@ -74,16 +72,13 @@ export class ProfileService {
       throw new NotFoundException('could not find profile');
     }
 
-    const favoriteEquipment = await this.eqipmentRepository.findFavoriteEquipmentByProfileId(profile?.id);
-
     if (profile?.bucket?.key) {
       const signedUrl = await this.s3BucketService.generateSignedUrl(
         profile.bucket.key,
       );
       return {
         ...profile,
-        url: signedUrl.url,
-        favoriteEquipment
+        url: signedUrl.url
       };
     }
 
@@ -160,16 +155,13 @@ export class ProfileService {
       throw new NotFoundException('Profile not found');
     }
 
-    const favoriteEquipment = await this.eqipmentRepository.findFavoriteEquipmentByProfileId(profile?.id);
-
     if (profile.bucket?.key) {
       const signedUrl = await this.s3BucketService.generateSignedUrl(
         profile.bucket.key,
       );
       return {
         ...profile,
-        url: signedUrl.url,
-        favoriteEquipment
+        url: signedUrl.url
       };
     }
 

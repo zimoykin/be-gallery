@@ -39,5 +39,8 @@ export class ProfileOutputDto {
   url: string;
 
   @Expose()
-  favoriteEquipment?: Array<IEquipment>;
+  favoriteCamera?: IEquipment;
+
+  @Expose()
+  favoriteLens?: IEquipment;
 }

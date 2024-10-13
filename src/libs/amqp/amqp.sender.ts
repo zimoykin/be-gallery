@@ -2,8 +2,6 @@ import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nest
 import * as amqplib from 'amqplib';
 import { AMQP_TOPICS, AMQPTopics } from './common';
 import { validate } from 'class-validator';
-import { plainToInstance } from 'class-transformer';
-import { PayloadDto } from './common/dtos/base-payload';
 
 @Injectable()
 export class AmqpSender implements OnModuleDestroy, OnModuleInit {

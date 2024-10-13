@@ -6,12 +6,14 @@ import {
 } from '@nestjs/common';
 import { EquipmentInput } from '../../libs/models/eqiupment.interface';
 import { EquipmentRepository } from '../../libs/models/equipment/equipment.repository';
+import { EquipmentSender } from './equipment.sender';
 
 @Injectable()
 export class EquipmentService {
   private readonly logger = new Logger(EquipmentService.name);
   constructor(
-    private readonly equipRepository: EquipmentRepository
+    private readonly equipRepository: EquipmentRepository,
+    private readonly sender: EquipmentSender
   ) { }
 
   async findEquipmentProfileById(profileId: string) {
@@ -46,6 +48,12 @@ export class EquipmentService {
         favorite: 0
       });
     }
+
+    if (update.favorite === 1 && data.favorite !== update.favorite) {
+      this.logger.debug(`change favorite from ${data.favorite} to ${update.favorite}`);
+      await this.sender.sendEquipmentChanged(profileId, data);
+    }
+
     const record = Object.assign(data, update);
     const result = await this.equipRepository.updateById(id, record);
 

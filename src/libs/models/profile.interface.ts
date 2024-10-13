@@ -17,4 +17,7 @@ export interface IProfile {
   bucket?: { url: string; key: string; bucketName: string; folder: string; };
   equipment?: IEquipment[];
   url?: string;
+
+  favoriteCamera?: IEquipment;
+  favoriteLens?: IEquipment;
 }

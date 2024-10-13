@@ -1,8 +1,9 @@
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
-import { FolderDominantColor, FolderFavoriteChanged } from "./dtos/folder-favorite";
+import { FolderDominantColor, FolderFavoriteChanged } from "./dtos/folder-favorite.dto";
 import { UserCreatedDto } from "./dtos/user-created.dto";
 import { LikeAddedDto } from "./dtos/like-added.dto";
+import { EquipmentFavoriteDto } from "./dtos/equipment.dto";
 
 
 export type AMQPTopics = keyof typeof AMQP_TOPICS;
@@ -24,6 +25,10 @@ export const AMQP_TOPICS = {
         topic: 'like:added',
         payload: LikeAddedDto
     },
+    favorite_equipment: {
+        topic: 'favorite:equipment',
+        payload: EquipmentFavoriteDto
+    }
 
 } as const;
 
