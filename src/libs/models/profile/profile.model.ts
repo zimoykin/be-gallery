@@ -11,7 +11,12 @@ export class Profile {
   name?: string;
   email?: string;
 
-  location?: string;
+  location?: {
+    lat: number;
+    long: number;
+    title: string;
+    distance: number;
+  };
   bio?: string;
   website?: string;
 
@@ -22,6 +27,6 @@ export class Profile {
   @Required()
   privateAccess = 0; // 0: public, 1: private
 
-  bucket?: { url: string; key: string; bucketName: string; folder: string };
+  bucket?: { url: string; key: string; bucketName: string; folder: string; };
 
 }

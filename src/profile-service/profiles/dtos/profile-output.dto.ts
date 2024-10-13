@@ -19,7 +19,12 @@ export class ProfileOutputDto {
   userId: string;
 
   @Expose()
-  location?: string;
+  location?: {
+    lat: number;
+    long: number;
+    title: string;
+    distance: number;
+  };
 
   @Expose()
   bio?: string;

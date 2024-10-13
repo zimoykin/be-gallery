@@ -23,7 +23,6 @@ export async function createTable(
     if (tables.TableNames?.includes(tableName)) {
       return false;
     }
-    return false;
   } catch (error) {
     logger.error(error);
   }
