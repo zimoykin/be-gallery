@@ -1,9 +1,11 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Transform } from 'class-transformer';
 import { IEquipment } from '../../../libs/models/equipment/eqiupment.interface';
 
 @Exclude()
 export class ProfileOutputDto {
-  @Expose()
+
+  @Transform((value) => value.obj._id)
+  @Expose({ name: 'id' })
   id: string;
 
   @Expose()

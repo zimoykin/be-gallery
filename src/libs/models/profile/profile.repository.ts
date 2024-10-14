@@ -1,20 +1,21 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { DynamoDbRepository, InjectRepository, IScanFilter } from "../../../libs/dynamo-db";
 import { Profile } from "./profile.model";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
 
 @Injectable()
 export class ProfileRepository {
     private readonly logger = new Logger(ProfileRepository.name);
     constructor(
-        @InjectRepository(Profile) private readonly profileModel: DynamoDbRepository<Profile>
+        // @ts-ignore
+        @InjectModel(Profile.name) private readonly profileModel: Model<Profile>,
     ) { }
 
-
-    async find(filter: IScanFilter<Profile>) {
+    async find(filter: Partial<Profile>) {
         return this.profileModel.find(filter);
     }
     async findById(id: string) {
-        const profile = await this.profileModel.findById(id);
+        const profile = await this.profileModel.findById(id).lean();
         if (!profile) {
             throw new NotFoundException();
         }
@@ -23,26 +24,19 @@ export class ProfileRepository {
 
     async findByIds(ids: string[]) {
         return this.profileModel
-            .find({
-                or: {
-                    id: ids
-                }
-            });
+            .find({ _id: { $in: ids } }).lean();
     }
 
     async findPublicProfiles() {
         const profiles = await this.profileModel.find(
-            {
-                match: { privateAccess: 0 },
-            },
-            'privateAccess',
-        );
+            { privateAccess: false },
+        ).lean();
 
         return profiles;
     }
 
-    async findOne(filter: IScanFilter<Profile>) {
-        const data = await this.profileModel.findOneByFilter(filter);
+    async findOne(filter: Partial<Profile>) {
+        const data = await this.profileModel.findOne(filter).lean();
         if (!data) {
             throw new NotFoundException();
         }
@@ -55,6 +49,6 @@ export class ProfileRepository {
     }
 
     async update(id: string, data: Partial<Profile>) {
-        return this.profileModel.update(id, data);
+        return this.profileModel.findOneAndUpdate({ _id: id }, data).lean();
     }
 }

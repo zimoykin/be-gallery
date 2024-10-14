@@ -1,36 +1,187 @@
-import { Index, PrimaryKey, Required, SortKey, Table } from "../../dynamo-db";
-import { IEquipment } from "../equipment/eqiupment.interface";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { ObjectId } from "mongoose";
 
-@Table(Profile.name)
-export class Profile {
-  @PrimaryKey()
+@Schema({
+  _id: false,
+  timestamps: false,
+  versionKey: false
+})
+class Location {
+
+  @Prop({
+    required: true,
+    type: Number,
+  })
+  lat: number;
+
+  @Prop({
+    required: true,
+    type: Number,
+  })
+  long: number;
+
+  @Prop({
+    required: true,
+    type: String
+  })
+  title: string;
+
+  @Prop({
+    required: true,
+    type: Number
+  })
+  distance: number; //radius
+}
+const LocationSchema = SchemaFactory.createForClass(Location);
+
+@Schema({
+  _id: false,
+  timestamps: false,
+  versionKey: false
+})
+class Bucket {
+  @Prop({
+    required: true,
+    type: String,
+  })
+  url: string;
+
+  @Prop({
+    required: true,
+    type: String,
+  })
+  key: string;
+
+  @Prop({
+    required: true,
+    type: String,
+  })
+  bucketName: string;
+
+  @Prop({
+    required: true,
+    type: String,
+  })
+  folder: string;
+}
+
+const BucketSchema = SchemaFactory.createForClass(Bucket);
+
+@Schema({
+  _id: false,
+  timestamps: false,
+  versionKey: false
+})
+class Equipment {
+  @Prop({
+    required: true,
+    type: String,
+  })
   id: string;
 
-  @SortKey('S')
+  @Prop({
+    required: true,
+    type: String,
+  })
+  profileId: string;
+
+  @Prop({
+    required: true,
+    type: String,
+  })
+  name: string;
+
+  @Prop({
+    required: true,
+    type: String,
+  })
+  favorite: number;
+
+  @Prop({
+    required: true,
+    type: String,
+  })
+  category: 'camera' | 'lens' | 'other';
+}
+
+export const EquipmentSchema = SchemaFactory.createForClass(Equipment);
+
+@Schema({
+  collection: 'gallery_profiles',
+  timestamps: true,
+  versionKey: false
+})
+export class Profile {
+
+  _id: ObjectId;
+
+  @Prop({
+    required: true
+  })
   userId: string;
 
-  name?: string;
-  email?: string;
+  @Prop({
+    required: true
+  })
+  name: string;
 
-  location?: {
-    lat: number;
-    long: number;
-    title: string;
-    distance: number;
-  };
+  @Prop({
+    required: true
+  })
+  email: string;
+
+  @Prop({
+    type: LocationSchema,
+    required: false
+  })
+  location?: Location;
+
+  @Prop()
   bio?: string;
+
+  @Prop()
   website?: string;
 
-  url?: string;
-  urlAvailableUntil?: number;
+  @Prop()
+  url?: string; //profile avatar
 
-  @Index('N')
-  @Required()
-  privateAccess = 0; // 0: public, 1: private
+  @Prop()
+  urlAvailableUntil?: Date; //profile avatar
 
-  bucket?: { url: string; key: string; bucketName: string; folder: string; };
+  @Prop({
+    required: true,
+    type: Boolean,
+    default: false
+  })
+  privateAccess: boolean;
 
-  favoriteCamera?: IEquipment;
-  favoriteLens?: IEquipment;
+  @Prop({
+    type: BucketSchema,
+    required: false
+  })
+  bucket?: Bucket;
+
+  @Prop({
+    type: EquipmentSchema,
+    required: false
+  })
+  favoriteCamera?: Equipment;
+
+  @Prop({
+    type: EquipmentSchema,
+    required: false
+  })
+  favoriteLens?: Equipment;
 
 }
+
+
+export const ProfileSchema = SchemaFactory.createForClass(Profile)
+  .index({ userId: 1 }, { unique: true });
+
+export type PhotoDocument = Profile & Document;
+
+export default {
+  schema: ProfileSchema,
+  name: Profile.name,
+};

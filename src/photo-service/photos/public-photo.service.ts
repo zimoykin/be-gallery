@@ -46,16 +46,16 @@ export class PublicPhotoService {
 
     const result: PhotoModel[] = [];
     for await (const photo of photos.sort(() => Math.random() - 0.5)) {
-      const signedUrl = await this.photoService.getUrlByType(PhotoType.ORIGINAL, photo);
+      const signedUrl = await this.photoService.getUrlByType(PhotoType.COMPRESSED, photo);
       if (signedUrl) {
-        result.push({ ...photo, originalUrl: signedUrl.url, originalUrlAvailableUntil: signedUrl.expiresIn });
+        result.push({ ...photo, compressedUrl: signedUrl.url, compressedUrlAvailableUntil: signedUrl.expiresIn });
       }
     }
 
     return result.map((photo) => {
       return {
         photo: { ...photo },
-        profile: profiles.find((profile) => profile.id === photo.profileId),
+        profile: profiles.find((profile) => `${profile._id}` === photo.profileId),
       };
     });
   }

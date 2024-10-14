@@ -1,14 +1,17 @@
+import { MongooseModule } from "@nestjs/mongoose";
 import { Module } from "@nestjs/common";
-import { DynamodbModule } from "src/libs/dynamo-db";
-import { Profile } from "./profile.model";
 import { ProfileRepository } from "./profile.repository";
+import { Profile, ProfileSchema } from "./profile.model";
 
 @Module({
     imports: [
-        DynamodbModule.forFeature(Profile),
+        MongooseModule.forFeature([{
+            name: Profile.name,
+            schema: ProfileSchema
+        }])
     ],
     providers: [
-        ProfileRepository,
+        ProfileRepository
     ],
     exports: [
         ProfileRepository

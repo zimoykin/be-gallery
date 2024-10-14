@@ -42,11 +42,7 @@ export class ProfileService {
 
 
   async findProfileByIds(profileIds: string[]) {
-    const profiles = await this.profileRepository.find({
-      or: {
-        id: profileIds,
-      }
-    });
+    const profiles = await this.profileRepository.findByIds(profileIds);
     //get all avatars
     const result: Profile[] = [];
     for await (const profile of profiles) {
@@ -64,9 +60,9 @@ export class ProfileService {
   }
 
   async findProfileByUserId(userId: string) {
-    const profile = await this.profileRepository.findOne({
-      match: { userId: userId },
-    });
+    const profile = await this.profileRepository.findOne(
+      { userId: userId },
+    );
 
     if (!profile) {
       throw new NotFoundException('could not find profile');
@@ -108,7 +104,7 @@ export class ProfileService {
       throw new NotFoundException('Profile not found');
     } else {
       const updatedProfile = Object.assign(profile, dto);
-      return this.profileRepository.update(profile.id, updatedProfile);
+      return this.profileRepository.update(profile._id.toString(), updatedProfile);
     }
   }
 
@@ -136,11 +132,11 @@ export class ProfileService {
     //upload new avatar
     const bucket = await this.s3BucketService.upload(
       resized,
-      `${profile.id}/${profile.id}${'.jpeg'}`,
+      `${profile._id}/${profile._id}${'.jpeg'}`,
     );
 
     //update profile
-    const result = await this.profileRepository.update(profile.id, { bucket });
+    const result = await this.profileRepository.update(profile._id.toString(), { bucket });
 
     return result;
   }

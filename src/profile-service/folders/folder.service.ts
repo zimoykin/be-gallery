@@ -52,7 +52,7 @@ export class FolderService {
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
-    return this.folderRepository.update(id, { ...data, profileId: profile.id });
+    return this.folderRepository.update(id, { ...data, profileId: `${profile._id}` });
   }
   async updateFolderByProfileId(id: string, data: Partial<Folder>, profileId: string) {
     return this.folderRepository.update(id, { ...data, profileId: profileId });
