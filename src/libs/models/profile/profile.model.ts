@@ -1,4 +1,5 @@
 import { Index, PrimaryKey, Required, SortKey, Table } from "../../dynamo-db";
+import { IEquipment } from "../equipment/eqiupment.interface";
 
 @Table(Profile.name)
 export class Profile {
@@ -28,5 +29,8 @@ export class Profile {
   privateAccess = 0; // 0: public, 1: private
 
   bucket?: { url: string; key: string; bucketName: string; folder: string; };
+
+  favoriteCamera?: IEquipment;
+  favoriteLens?: IEquipment;
 
 }

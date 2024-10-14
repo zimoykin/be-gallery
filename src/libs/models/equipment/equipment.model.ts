@@ -13,7 +13,7 @@ export class Equipment {
 
   @Required()
   @Index('S')
-  category: string;
+  category: 'camera' | 'lens' | 'other';
 
   @Required()
   @Index('N')

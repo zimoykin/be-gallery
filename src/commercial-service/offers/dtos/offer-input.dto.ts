@@ -1,8 +1,8 @@
-import { IsIn, IsString } from "class-validator";
-import { IOfferInput } from "../../../libs/models/offer-input.interface";
+import { IsEnum, IsNumber, IsNumberString, IsString } from "class-validator";
+import { OfferCategory } from "../../../libs/models/offers/offer-category.enum";
+import { Type } from "class-transformer";
 
-export class OfferInputDto implements IOfferInput {
-
+export class OfferInputDto {
     @IsString()
     title: string;
 
@@ -10,21 +10,14 @@ export class OfferInputDto implements IOfferInput {
     text?: string;
 
     @IsString()
+    location?: string;
+
+    @Type(() => Number)
+    @IsNumber()
     price?: number;
 
     @IsString()
-    image?: string;
+    @IsEnum(OfferCategory)
+    category?: OfferCategory;
 
-    @IsString()
-    preview: string;
-
-    @IsString()
-    location?: string;
-
-    @IsString()
-    @IsIn(['trip', 'hotel', 'restaurant', 'camera', 'lens', 'other'])
-    category?: 'trip' | 'hotel' | 'restaurant' | 'camera' | 'lens' | 'other';
-
-    @IsString()
-    url?: string;
 }

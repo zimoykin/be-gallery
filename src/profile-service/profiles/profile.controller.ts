@@ -18,7 +18,7 @@ import { Response } from 'express';
 import { ProfileService } from './profile.service';
 import { ProfileInDto } from './dtos/profile-input.dto';
 import { ProfileOutputDto } from './dtos/profile-output.dto';
-import { IProfile } from '../../libs/models/profile.interface';
+import { IProfile } from '../../libs/models/profile/profile.interface';
 import { cookieProfileAuth, IProfileCookie, ProfileCookie } from '../../libs/profile-cookie';
 
 @ApiBearerAuth('Authorization')

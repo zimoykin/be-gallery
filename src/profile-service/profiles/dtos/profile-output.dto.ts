@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { IEquipment } from '../../../libs/models/eqiupment.interface';
+import { IEquipment } from '../../../libs/models/equipment/eqiupment.interface';
 
 @Exclude()
 export class ProfileOutputDto {
@@ -39,5 +39,8 @@ export class ProfileOutputDto {
   url: string;
 
   @Expose()
-  favoriteEquipment?: Array<IEquipment>;
+  favoriteCamera?: IEquipment;
+
+  @Expose()
+  favoriteLens?: IEquipment;
 }

@@ -6,16 +6,15 @@ import { ImageCompressorModule } from '../../libs/image-compressor/image-compres
 import { ProfileConsumer } from './profile.consumer';
 import { AmqpModule } from '../../libs/amqp/amqp.module';
 import { ProfileService } from './profile.service';
-import { ProfileDatabaseModule } from 'src/libs/models/profile/profile.module';
-import { EquipmentDatabaseModule } from 'src/libs/models/equipment/equipment-database.module';
+import { ProfileDatabaseModule } from '../../libs/models/profile/profile.module';
 
 @Module({
   imports: [
     ProfileDatabaseModule,
-    EquipmentDatabaseModule,
     S3BucketModule.forFeature('profile'),
     ImageCompressorModule,
     AmqpModule.forFeature('user_created'),
+    AmqpModule.forFeature('favorite_equipment')
   ],
   controllers: [ProfileController, PublicProfileController],
   providers: [ProfileService, ProfileConsumer],

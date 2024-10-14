@@ -1,4 +1,4 @@
-import { IEquipment } from './eqiupment.interface';
+import { IEquipment } from '../equipment/eqiupment.interface';
 
 export interface IProfile {
   id: string;
@@ -17,4 +17,7 @@ export interface IProfile {
   bucket?: { url: string; key: string; bucketName: string; folder: string; };
   equipment?: IEquipment[];
   url?: string;
+
+  favoriteCamera?: IEquipment;
+  favoriteLens?: IEquipment;
 }

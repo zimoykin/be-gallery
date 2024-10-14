@@ -19,6 +19,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { OffersModule } from './commercial-service/offers/offers.module';
 import { MessagesModule } from './chat-service/messages.module';
 import { EquipmentModule } from './profile-service/equipments/equipment.module';
+import { SettingsModule } from './commercial-service/settings/settings.module';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { EquipmentModule } from './profile-service/equipments/equipment.module';
     EquipmentModule,
     LikesModule,
     SeedingModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
