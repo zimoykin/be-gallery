@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { IEquipment } from '../../../libs/models/eqiupment.interface';
+import { IEquipment } from '../../../libs/models/equipment/eqiupment.interface';
 
 @Exclude()
 export class ProfileOutputDto {

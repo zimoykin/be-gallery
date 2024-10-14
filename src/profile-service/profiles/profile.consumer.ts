@@ -4,7 +4,7 @@ import { InjectConsumer } from 'src/libs/amqp/decorators';
 import { AmqpConsumer } from 'src/libs/amqp/amqp.consumer';
 import { UserCreatedDto } from 'src/libs/amqp/common/dtos/user-created.dto';
 import { EquipmentFavoriteDto } from 'src/libs/amqp/common/dtos/equipment.dto';
-import { IProfile } from 'src/libs/models/profile.interface';
+import { IProfile } from 'src/libs/models/profile/profile.interface';
 
 @Injectable()
 export class ProfileConsumer implements OnModuleInit {

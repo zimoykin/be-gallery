@@ -6,10 +6,10 @@ import { ImageCompressorModule } from '../libs/image-compressor/image-compressor
 import { Profile } from '../libs/models/profile/profile.model';
 import { Topic } from '../commercial-service/topics/models/topic.model';
 import { AmqpModule } from '../libs/amqp/amqp.module';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Offer } from '../commercial-service/offers/models/offer.model';
 import PhotoSchema from '../libs/models/photo/photo.model';
 import { Folder } from '../libs/models/folder/folder.model';
+import { Offer } from '../libs/models/offers/offer.model';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [

@@ -1,8 +1,8 @@
-import { IOfferOutput } from "../../../libs/models/offer-output.interface";
+import { OfferCategory } from "../../../libs/models/offers/offer-category.enum";
 import { Exclude, Expose } from "class-transformer";
 
 @Exclude()
-export class OfferOutputDto implements IOfferOutput {
+export class OfferOutputDto {
     @Expose()
     id: string;
 
@@ -19,16 +19,16 @@ export class OfferOutputDto implements IOfferOutput {
     image?: string;
 
     @Expose()
-    preview: string;
+    previewUrl: string;
+
+    @Expose()
+    compressedUrl: string;
+
+    @Expose()
+    category?: OfferCategory;
 
     @Expose()
     location?: string;
-
-    @Expose()
-    category?: 'trip' | 'hotel' | 'restaurant' | 'camera' | 'lens' | 'other';
-
-    @Expose()
-    url?: string;
 
     @Expose()
     profileId: string;

@@ -1,5 +1,5 @@
 import { Index, PrimaryKey, Required, SortKey, Table } from "../../dynamo-db";
-import { IEquipment } from "../eqiupment.interface";
+import { IEquipment } from "../equipment/eqiupment.interface";
 
 @Table(Profile.name)
 export class Profile {

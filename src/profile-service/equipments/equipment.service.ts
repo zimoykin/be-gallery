@@ -4,7 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { EquipmentInput } from '../../libs/models/eqiupment.interface';
+import { EquipmentInput } from '../../libs/models/equipment/eqiupment.interface';
 import { EquipmentRepository } from '../../libs/models/equipment/equipment.repository';
 import { EquipmentSender } from './equipment.sender';
 

@@ -1,4 +1,4 @@
-import { IEquipment } from './eqiupment.interface';
+import { IEquipment } from '../equipment/eqiupment.interface';
 
 export interface IProfile {
   id: string;
