@@ -13,7 +13,7 @@ export interface IProfile {
   };
   bio?: string;
   website?: string;
-  privateAccess: number;
+  privateAccess: boolean;
   bucket?: { url: string; key: string; bucketName: string; folder: string; };
   equipment?: IEquipment[];
   url?: string;

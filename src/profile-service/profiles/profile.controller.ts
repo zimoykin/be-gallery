@@ -18,8 +18,8 @@ import { Response } from 'express';
 import { ProfileService } from './profile.service';
 import { ProfileInDto } from './dtos/profile-input.dto';
 import { ProfileOutputDto } from './dtos/profile-output.dto';
-import { IProfile } from '../../libs/models/profile/profile.interface';
 import { cookieProfileAuth, IProfileCookie, ProfileCookie } from '../../libs/profile-cookie';
+import { Profile } from '../../libs/models/profile/profile.model';
 
 @ApiBearerAuth('Authorization')
 @UserAccess()
@@ -110,7 +110,7 @@ export class ProfileController {
     @AuthUser() authUser: IAuthUser,
     @Res() res: Response,
   ) {
-    let profile: IProfile;
+    let profile: Profile;
     try {
       res.clearCookie(cookieProfileAuth);
       profile =
@@ -133,7 +133,7 @@ export class ProfileController {
     }
 
     const profileCookieData = JSON.stringify({
-      profileId: profile.id,
+      profileId: String(profile._id),
       userId: authUser.id,
     });
     this.logger.debug('Profile cookie data:', profileCookieData);

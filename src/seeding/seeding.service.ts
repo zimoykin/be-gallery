@@ -26,8 +26,8 @@ export class SeedingService implements OnApplicationBootstrap {
         @InjectModel(PhotoModel.name)
         private readonly photoRepo: Model<PhotoModel>,
         // @ts-ignore
-        @InjectRepository(Profile)
-        private readonly profileRepo: DynamoDbRepository<Profile>,
+        @InjectModel(Profile.name)
+        private readonly profileRepo: Model<Profile>,
         // @ts-ignore
         @InjectRepository(Folder)
         private readonly folderRepo: DynamoDbRepository<Folder>,
@@ -72,25 +72,30 @@ export class SeedingService implements OnApplicationBootstrap {
         const photos = seedPhotos();
         let photoIndex = 0;
 
+        const createdProfiles: Profile[] = [];
+
         for await (const prof of profiles) {
             await new Promise((resolve) => setTimeout(resolve, 2000));
-            const profile = await this.profileRepo.findById(prof.id).catch(() => null);
+            const profile = await this.profileRepo.findOne({ userId: prof.userId })
+                .catch(() => null);
             if (profile) {
                 continue;
             }
-            const createdProfile = await this.profileRepo.create({
+            const newProfile = await this.profileRepo.create({
                 ...prof
             });
-            this.logger.log(`Profile created: ${createdProfile}`);
+
+            createdProfiles.push(newProfile);
+            this.logger.log(`Profile created: ${newProfile._id}`);
             await new Promise((resolve) => setTimeout(resolve, 1000));
 
-            const hisFolder = folders(createdProfile);
+            const hisFolder = folders(newProfile._id.toString());
             const twoRndomFolders = this.getTwoRandomInt(0, hisFolder.length - 1);
             for await (const folderId of twoRndomFolders) {
-                const folder = folders(createdProfile)[folderId];
+                const folder = folders(newProfile._id.toString())[folderId];
                 const createdFolder = await this.folderRepo.create({
                     ...folder,
-                    profileId: createdProfile
+                    profileId: newProfile._id.toString()
                 });
                 this.logger.log(`Folder created: ${createdFolder}`);
                 await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -103,9 +108,9 @@ export class SeedingService implements OnApplicationBootstrap {
                     }
                     const photo = photos[index];
                     const imageBuffer = await this.imageCompressorService.getImageBufferFromUrl(photo.url);
-                    const originalname = photo.url.split('/').find((x) => x.includes('.jpeg')) ?? `${createdProfile}-${createdFolder}-${index}.jpg`;
+                    const originalname = photo.url.split('/').find((x) => x.includes('.jpeg')) ?? `${newProfile._id.toString()}-${createdFolder}-${index}.jpg`;
 
-                    const key = `${createdProfile}/${folderId}/${originalname}`;
+                    const key = `${newProfile._id.toString()}/${folderId}/${originalname}`;
                     const bucket = await this.s3BucketServiceOriginal.upload(
                         imageBuffer,
                         key
@@ -148,7 +153,7 @@ export class SeedingService implements OnApplicationBootstrap {
                         .create({
                             ...photo,
                             folderId: createdFolder,
-                            profileId: createdProfile,
+                            profileId: newProfile._id.toString(),
                             original: bucket,
                             camera: photo.camera ?? 'no info',
                             sortOrder: photo.sortOrder,
@@ -194,7 +199,7 @@ export class SeedingService implements OnApplicationBootstrap {
         const profile1 = profiles[randomProfilesNumbers[0]];
         const profile2 = profiles[randomProfilesNumbers[1]];
 
-        for await (const offer of offers(profile1.id, profile2.id)) {
+        for await (const offer of offers(createdProfiles[0]._id.toString(), createdProfiles[0]._id.toString())) {
             await this.repo.create({
                 ...offer
             });

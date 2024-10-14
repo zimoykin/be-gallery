@@ -56,7 +56,7 @@ export class ProfileAuthMiddleware implements NestMiddleware {
             .then(async (profile) => {
               if (profile) {
                 const profileCookie = JSON.stringify({
-                  profileId: profile.id,
+                  profileId: profile._id.toString(),
                   userId: userData.id,
                 });
                 this.setCookie(res, profileCookie);

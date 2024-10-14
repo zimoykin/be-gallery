@@ -1,12 +1,12 @@
-import { IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class ProfileInDto {
   @IsString()
   name: string;
 
-  @IsNumber()
+  @IsBoolean()
   @IsOptional()
-  privateAccess?: number;
+  privateAccess?: boolean;
 
   @IsString()
   @IsOptional()
