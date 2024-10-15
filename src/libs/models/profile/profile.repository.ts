@@ -1,7 +1,8 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { Profile } from "./profile.model";
+import { Profile } from "./models/profile.model";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import { gte } from "lodash";
 
 @Injectable()
 export class ProfileRepository {
@@ -44,11 +45,59 @@ export class ProfileRepository {
     }
 
     async create(data: Partial<Profile>) {
+        // we list the longitude first, and then latitude.
+        if (data.location?.lat && data.location?.long) {
+            data.location.point = {
+                type: "Point",
+                coordinates: [data.location.long, data.location.lat],
+            };
+        }
         const createdId = await this.profileModel.create(data);
         return createdId;
     }
 
     async update(id: string, data: Partial<Profile>) {
+        if (data.location?.lat && data.location?.long) {
+            data.location.point = {
+                type: "Point",
+                coordinates: [data.location.long, data.location.lat],
+            };
+        }
         return this.profileModel.findOneAndUpdate({ _id: id }, data).lean();
     }
+
+
+    async geoSearch(filter: { lat: number, lng: number, radius: number; }) {
+        const { lat, lng, radius } = filter;
+
+        const results = await this.profileModel.aggregate([
+            {
+                $geoNear: {
+                    near: {
+                        "type": "Point",
+                        "coordinates": [lng, lat]
+                    },
+                    "distanceField": "distance",
+                    "distanceMultiplier": 0.001,
+                    "maxDistance": 1000000,
+                    "spherical": true
+                }
+            },
+            {
+                $addFields: {
+                    "total_distance": {
+                        "$subtract": [{ "$subtract": ["$distance", "$location.distance"] }, radius]
+                    }
+                }
+            },
+            {
+                $match: {
+                    total_distance: { $lte: 0 }
+                }
+            }
+        ]);
+
+        return results;
+    }
+
 }

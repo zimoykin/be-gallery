@@ -6,6 +6,10 @@ export interface IProfile {
   name?: string;
   email?: string;
   location?: {
+    coordinates?: {
+      type: string;
+      coordinates: number[];
+    };
     lat: number;
     long: number;
     title: string;
@@ -17,6 +21,7 @@ export interface IProfile {
   bucket?: { url: string; key: string; bucketName: string; folder: string; };
   equipment?: IEquipment[];
   url?: string;
+
 
   favoriteCamera?: IEquipment;
   favoriteLens?: IEquipment;

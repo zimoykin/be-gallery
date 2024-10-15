@@ -19,7 +19,7 @@ import { ProfileService } from './profile.service';
 import { ProfileInDto } from './dtos/profile-input.dto';
 import { ProfileOutputDto } from './dtos/profile-output.dto';
 import { cookieProfileAuth, IProfileCookie, ProfileCookie } from '../../libs/profile-cookie';
-import { Profile } from '../../libs/models/profile/profile.model';
+import { Profile } from '../../libs/models/profile/models/profile.model';
 
 @ApiBearerAuth('Authorization')
 @UserAccess()
