@@ -12,11 +12,12 @@ import { profiles } from './profile.seed';
 import { InjectS3Bucket } from '../libs/s3-bucket/inject-s3-bucket.decorator';
 import { S3BucketService } from '../libs/s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from '../libs/image-compressor/image-compressor.service';
-import { Profile } from '../libs/models/profile/profile.model';
+import { Profile } from '../libs/models/profile/models/profile.model';
 import { PhotoModel } from '../libs/models/photo/photo.model';
 import { Folder } from '../libs/models/folder/folder.model';
 import { offers } from './offer.seed';
 import { Offer } from '../libs/models/offers/offer.model';
+import { ProfileRepository } from 'src/libs/models/profile/profile.repository';
 
 @Injectable()
 export class SeedingService implements OnApplicationBootstrap {
@@ -25,9 +26,7 @@ export class SeedingService implements OnApplicationBootstrap {
         // @ts-ignore
         @InjectModel(PhotoModel.name)
         private readonly photoRepo: Model<PhotoModel>,
-        // @ts-ignore
-        @InjectModel(Profile.name)
-        private readonly profileRepo: Model<Profile>,
+        private readonly profileRepo: ProfileRepository,
         // @ts-ignore
         @InjectRepository(Folder)
         private readonly folderRepo: DynamoDbRepository<Folder>,

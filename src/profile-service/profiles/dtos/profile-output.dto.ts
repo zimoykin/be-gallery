@@ -26,6 +26,7 @@ export class ProfileOutputDto {
     long: number;
     title: string;
     distance: number;
+    coordinates: number[];
   };
 
   @Expose()

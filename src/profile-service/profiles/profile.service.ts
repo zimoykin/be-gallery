@@ -4,11 +4,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Profile } from '../../libs/models/profile/profile.model';
+import { Profile } from '../../libs/models/profile/models/profile.model';
 import { S3BucketService } from '../../libs/s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from '../../libs/image-compressor/image-compressor.service';
 import { InjectS3Bucket } from '../../libs/s3-bucket/inject-s3-bucket.decorator';
 import { ProfileRepository } from '../../libs/models/profile/profile.repository';
+import { GeoSearchDto } from './dtos/geo-search.dto';
 
 @Injectable()
 export class ProfileService {
@@ -40,6 +41,10 @@ export class ProfileService {
     return this.findProfileByUserId(userId);
   }
 
+
+  async geoSearch(filter: GeoSearchDto) {
+    return this.profileRepository.geoSearch(filter);
+  }
 
   async findProfileByIds(profileIds: string[]) {
     const profiles = await this.profileRepository.findByIds(profileIds);
