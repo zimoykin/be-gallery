@@ -1,5 +1,7 @@
 import { Exclude, Expose, Transform } from 'class-transformer';
 import { IEquipment } from '../../../libs/models/equipment/eqiupment.interface';
+import { Offer } from 'src/libs/models/offers/offer.model';
+import { ServiceCategory } from 'src/libs/models/offers/offer-category.enum';
 
 @Exclude()
 export class ProfileOutputDto {
@@ -46,4 +48,10 @@ export class ProfileOutputDto {
 
   @Expose()
   favoriteLens?: IEquipment;
+
+  @Expose()
+  categories?: ServiceCategory[];
+
+  @Expose()
+  distance: number;
 }

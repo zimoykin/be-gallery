@@ -1,4 +1,4 @@
-import { OfferCategory } from "../../../libs/models/offers/offer-category.enum";
+import { ServiceCategory } from "../../../libs/models/offers/offer-category.enum";
 import { Exclude, Expose } from "class-transformer";
 
 @Exclude()
@@ -25,7 +25,7 @@ export class OfferOutputDto {
     compressedUrl: string;
 
     @Expose()
-    category?: OfferCategory;
+    categories?: ServiceCategory[];
 
     @Expose()
     location?: string;

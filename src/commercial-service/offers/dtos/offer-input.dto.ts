@@ -1,5 +1,5 @@
-import { IsEnum, IsNumber, IsNumberString, IsString } from "class-validator";
-import { OfferCategory } from "../../../libs/models/offers/offer-category.enum";
+import { IsEnum, IsNumber, IsString } from "class-validator";
+import { ServiceCategory } from "../../../libs/models/offers/offer-category.enum";
 import { Type } from "class-transformer";
 
 export class OfferInputDto {
@@ -17,7 +17,7 @@ export class OfferInputDto {
     price?: number;
 
     @IsString()
-    @IsEnum(OfferCategory)
-    category?: OfferCategory;
+    @IsEnum(ServiceCategory, { each: true })
+    categories?: ServiceCategory[];
 
 }

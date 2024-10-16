@@ -26,6 +26,35 @@ export class ProfileService {
     return data.mimetype !== undefined;
   }
 
+  private async generateAvatarsSignedLink(...profiles: Profile[]) {
+    const result: Profile[] = [];
+    for await (const profile of profiles) {
+      if (profile.url && profile.urlAvailableUntil && new Date < profile.urlAvailableUntil) {
+        result.push(profile);
+        continue;
+      }
+
+      //generate signed url
+      if (profile.bucket?.key) {
+        const signedUrl = await this.s3BucketService.generateSignedUrl(
+          profile.bucket.key,
+        );
+
+        if (signedUrl.expiresIn)
+          await this.profileRepository.update(profile._id.toString(), {
+            url: signedUrl.url,
+            urlAvailableUntil: new Date(signedUrl.expiresIn),
+          });
+
+        profile.url = signedUrl.url;
+        result.push({ ...profile });
+      } else {
+        result.push(profile);
+      }
+    }
+    return result;
+  }
+
   async createProfile(userId: string, userName: string, email?: string) {
     this.logger.log(`creating profile for user ${userId}`);
     const profile = await this.profileRepository.create({
@@ -43,25 +72,13 @@ export class ProfileService {
 
 
   async geoSearch(filter: GeoSearchDto) {
-    return this.profileRepository.geoSearch(filter);
+    const profiles = await this.profileRepository.geoSearch(filter);
+    return this.generateAvatarsSignedLink(...profiles);
   }
 
   async findProfileByIds(profileIds: string[]) {
     const profiles = await this.profileRepository.findByIds(profileIds);
-    //get all avatars
-    const result: Profile[] = [];
-    for await (const profile of profiles) {
-      if (profile.bucket?.key) {
-        const signedUrl = await this.s3BucketService.generateSignedUrl(
-          profile.bucket.key,
-        );
-        profile.url = signedUrl.url;
-        result.push({ ...profile });
-      } else {
-        result.push(profile);
-      }
-    }
-    return result;
+    return this.generateAvatarsSignedLink(...profiles);
   }
 
   async findProfileByUserId(userId: string) {
@@ -104,13 +121,8 @@ export class ProfileService {
   }
 
   async updateProfile(id: string, dto: Partial<Profile>) {
-    const profile = await this.profileRepository.findById(id);
-    if (!profile) {
-      throw new NotFoundException('Profile not found');
-    } else {
-      const updatedProfile = Object.assign(profile, dto);
-      return this.profileRepository.update(profile._id.toString(), updatedProfile);
-    }
+    return this.profileRepository.update(id, dto);
+
   }
 
   async createProfilePhoto(profileId: string, file: unknown) {

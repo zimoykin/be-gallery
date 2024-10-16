@@ -1,4 +1,4 @@
-import { OfferCategory } from "./offer-category.enum";
+import { ServiceCategory } from "./offer-category.enum";
 
 export interface IOfferOutput {
   title: string;
@@ -6,6 +6,6 @@ export interface IOfferOutput {
   price?: number;
   previewUrl: string;
   compressedUrl: string;
-  category?: OfferCategory;
+  category?: ServiceCategory;
   url?: string;
 }

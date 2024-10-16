@@ -1,15 +1,10 @@
-import { OfferCategory } from "./offer-category.enum";
+import { ServiceCategory } from "./offer-category.enum";
 
 export interface IOfferInput {
   title: string;
-
   text?: string;
-
   price?: number;
-
   location?: string;
-  
-  category?: OfferCategory;
-
+  category?: ServiceCategory[];
   profileId: string;
 }

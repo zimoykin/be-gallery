@@ -1,10 +1,18 @@
-export enum OfferCategory {
-    camera = 'camera',
-    lens = 'lens',
-    other = 'other',
-    trip = 'trip',
-    room = 'room',
-    place = 'place',
-    appartment = 'apartment',
-    restaurant = 'restaurant'
+export enum ServiceCategory {
+    CAMERA_OPERATOR = 'camera operator',
+    VIDEOGRAPHY = 'videography',
+    LIGHTING = 'lighting',
+    PHOTOGRAPHY = 'photography',
+    VIDEO_EDITING = 'video editing',
+    VIDEO_PRODUCTION = 'video production',
+    LOCATION_RENTAL = 'location rental',
+    PHOTO_TOUR = 'photo tour',
+    DRONE_PHOTOGRAPHY = 'drone photography',
+    DRONE_VIDEOGRAPHY = 'drone videography',
+    MAKEUP_ARTISTRY = 'makeup artistry',
+    STYLING = 'styling',
+    SET_DESIGN = 'set design',
+    POST_PRODUCTION = 'post production',
+    LIVE_STREAMING = 'live streaming',
+    PHOTO_EDITING = 'photo editing',
 }
