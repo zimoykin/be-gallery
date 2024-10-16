@@ -1,6 +1,6 @@
 import * as luxon from 'luxon';
 import { Index, PrimaryKey, Required, SortKey, Table } from '../../../libs/dynamo-db';
-import { OfferCategory } from './offer-category.enum';
+import { ServiceCategory } from './offer-category.enum';
 
 @Table('offers')
 export class Offer {
@@ -41,7 +41,8 @@ export class Offer {
   compressedUrl?: string;
   compressedExpriredAt?: number;
 
-  category?: OfferCategory;
+  //services in the offer
+  categories?: ServiceCategory[];
 
   @Index('N')
   privateAccess = 0; // 0: public, 1: private

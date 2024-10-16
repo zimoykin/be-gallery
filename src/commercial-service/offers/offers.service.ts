@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { IOfferInput } from '../../libs/models/offers/offer-input.interface';
 import { OfferRepository } from '../../libs/models/offers/offer.repository';
 import { Offer } from '../../libs/models/offers/offer.model';

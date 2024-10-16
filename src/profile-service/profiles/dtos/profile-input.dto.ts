@@ -1,6 +1,8 @@
-import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsObject, IsOptional, IsString } from 'class-validator';
+import { ServiceCategory } from 'src/libs/models/offers/offer-category.enum';
 
 export class ProfileInDto {
+  @IsOptional()
   @IsString()
   name: string;
 
@@ -28,4 +30,9 @@ export class ProfileInDto {
   @IsString()
   @IsOptional()
   email?: string;
+
+  @IsOptional()
+  @IsString({ each: true })
+  @IsEnum(ServiceCategory, { each: true })
+  categories?: ServiceCategory[];
 }

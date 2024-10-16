@@ -1,8 +1,9 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { Profile } from "./models/profile.model";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, PipelineStage } from "mongoose";
 import { gte } from "lodash";
+import { GeoSearchDto } from "src/profile-service/profiles/dtos/geo-search.dto";
 
 @Injectable()
 export class ProfileRepository {
@@ -63,14 +64,25 @@ export class ProfileRepository {
                 coordinates: [data.location.long, data.location.lat],
             };
         }
-        return this.profileModel.findOneAndUpdate({ _id: id }, data).lean();
+        return this.profileModel.findOneAndUpdate({ _id: id }, { $set: { ...data } }, { returnDocument: 'after' }).lean();
     }
 
 
-    async geoSearch(filter: { lat: number, lng: number, radius: number; }) {
-        const { lat, lng, radius } = filter;
+    async geoSearch(filter: GeoSearchDto) {
+        const { lat, lng, radius, categories } = filter;
 
-        const results = await this.profileModel.aggregate([
+
+        const categoriesFilter = categories?.length ? {
+            $or: [
+                {
+                    categories: { $in: categories }
+                },
+                {
+                    categories: { $size: 0 }
+                }
+            ]
+        } : undefined;
+        const aggregatePipeline: PipelineStage[] = [
             {
                 $geoNear: {
                     near: {
@@ -92,11 +104,25 @@ export class ProfileRepository {
             },
             {
                 $match: {
-                    total_distance: { $lte: 0 }
+                    total_distance: { $lte: 0 },
                 }
             }
-        ]);
+        ];
+        if (categoriesFilter) {
+            aggregatePipeline.push({
+                $match: {
+                    ...categoriesFilter
+                }
+            });
+        }
 
+        aggregatePipeline.push({
+            $sort: {
+                distance: 1
+            }
+        });
+
+        const results = await this.profileModel.aggregate(aggregatePipeline);
         return results;
     }
 

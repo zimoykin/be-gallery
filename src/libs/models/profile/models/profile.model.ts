@@ -3,6 +3,7 @@ import { ObjectId } from "mongoose";
 import { Location, LocationSchema } from "./location.model";
 import { Bucket, BucketSchema } from "./bucket.model";
 import { Equipment, EquipmentSchema } from "./equipment.model";
+import { ServiceCategory } from "../../offers/offer-category.enum";
 
 @Schema({
   collection: 'gallery_profiles',
@@ -65,10 +66,17 @@ export class Profile {
   favoriteCamera?: Equipment;
 
   @Prop({
-    type: () =>  EquipmentSchema,
+    type: () => EquipmentSchema,
     required: false
   })
   favoriteLens?: Equipment;
+
+  @Prop({
+    enum: ServiceCategory,
+    type: [String],
+    required: false
+  })
+  categories: ServiceCategory[];
 
 }
 

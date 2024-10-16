@@ -1,5 +1,5 @@
 import { IsEnum, IsNumber, IsOptional } from "class-validator";
-import { OfferCategory } from "src/libs/models/offers/offer-category.enum";
+import { ServiceCategory } from "src/libs/models/offers/offer-category.enum";
 
 export class GeoSearchDto {
     @IsNumber()
@@ -11,7 +11,7 @@ export class GeoSearchDto {
     @IsNumber()
     radius: number;
 
-    @IsEnum(OfferCategory)
+    @IsEnum(ServiceCategory, { each: true })
     @IsOptional()
-    category?: OfferCategory
+    categories?: ServiceCategory[]
 }
