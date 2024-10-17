@@ -8,6 +8,7 @@ import { plainToInstance } from 'class-transformer';
 import { IProfileCookie, ProfileCookie } from '../../libs/profile-cookie';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { title } from 'process';
+import { ServiceCategory } from 'src/libs/models/offers/offer-category.enum';
 
 @Controller('api/v1/offers')
 @ApiBearerAuth("Authorization")
@@ -42,14 +43,30 @@ export class OffersController {
         schema: {
             type: 'object',
             properties: {
+                title: { type: 'string', example: 'Trip to Atlantida' },
                 file: {
                     type: 'string',
                     format: 'binary',
                 },
-                title: { type: 'string', example: 'Trip to Atlantida' },
+                location: {
+                    type: 'object',
+                    properties: {
+                        lat: { type: 'number', example: 0.0 },
+                        long: { type: 'number', example: 0.0 },
+                        title: { type: 'string', example: 'Atlantida' },
+                        distance: { type: 'number', example: 0.0 },
+                    }
+                },
+                description: { type: 'string', example: 'Trip to Atlantida' },
                 price: { type: 'number', example: 750 },
-                text: { type: 'string', example: 'lorem ipsum....' },
-                category: { type: 'string', example: 'trip' },
+                categories: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                        enum: [...Object.values(ServiceCategory)],
+                    },
+                    example: [ServiceCategory.PHOTOGRAPHY]
+                }
             },
         },
     })
@@ -84,7 +101,7 @@ export class OffersController {
         @ProfileCookie() profile: IProfileCookie,
         @UploadedFile() file: Express.Multer.File,
         @Param('id') id: string,
-    ) { 
+    ) {
         return this.service.updateImage(id, profile.profileId, file);
     }
 

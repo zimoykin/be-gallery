@@ -1,24 +1,26 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { DynamoDbRepository, InjectRepository, IScanFilter } from "../../../libs/dynamo-db";
 import { Offer } from "./offer.model";
+import { Model, QueryOptions } from "mongoose";
+import { InjectModel } from "@nestjs/mongoose";
 
 @Injectable()
 export class OfferRepository {
     private readonly logger = new Logger(OfferRepository.name);
     constructor(
-        @InjectRepository(Offer) private readonly offerModel: DynamoDbRepository<Offer>,
+        // @ts-ignore
+        @InjectModel(Offer.name) private readonly offerModel: Model<Offer>,
     ) { }
 
     async findById(id: string) {
         return this.offerModel.findById(id);
     }
-    async find(filter?: IScanFilter<Offer>) {
-        return this.offerModel.find(filter);
+    async find(filter?: QueryOptions<Offer>) {
+        return this.offerModel.find({ ...filter });
     }
 
-    async findOne(filter?: IScanFilter<Offer>) {
+    async findOne(filter?: Partial<Offer>) {
         if (!filter) return null;
-        return this.offerModel.findOneByFilter(filter);
+        return this.offerModel.findOne(filter);
     }
 
     async create(data: Partial<Offer>) {
@@ -28,7 +30,7 @@ export class OfferRepository {
 
     async update(id: string, data: Partial<Offer>) {
         this.logger.debug(`update ${id} ${JSON.stringify(data)}`);
-        return this.offerModel.update(id, data);
+        return this.offerModel.findByIdAndUpdate(id, { $set: { ...data } });
     }
 
     async remove(id: string) {

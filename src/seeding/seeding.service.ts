@@ -45,7 +45,7 @@ export class SeedingService implements OnApplicationBootstrap {
         @InjectSender('folder_favorite_changed')
         private readonly sender: AmqpSender,
         //@ts-ignore
-        @InjectRepository(Offer) private repo: DynamoDbRepository<Offer>,
+        @InjectModel(Offer.name) private repo: Model<Offer>,
         // @ts-ignore //
         @InjectS3Bucket('profile')
         private readonly s3BucketServiceProfile: S3BucketService,

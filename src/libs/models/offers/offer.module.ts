@@ -1,10 +1,13 @@
 import { Module } from "@nestjs/common";
-import { DynamodbModule } from "src/libs/dynamo-db";
-import { Offer } from "./offer.model";
+import { Offer, OfferSchema } from "./offer.model";
 import { OfferRepository } from "./offer.repository";
+import { MongooseModule } from "@nestjs/mongoose";
 
 @Module({
-    imports: [DynamodbModule.forFeature(Offer)],
+    imports: [MongooseModule.forFeature([{
+        name: Offer.name,
+        schema: OfferSchema
+    }])],
     providers: [OfferRepository],
     exports: [OfferRepository]
 })
