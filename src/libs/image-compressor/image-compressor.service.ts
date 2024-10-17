@@ -31,7 +31,6 @@ export class ImageCompressorService {
   async convertSvgToJpg(svgBuffer: unknown) {
     try {
       const jpgBuffer = await sharp(String(svgBuffer)).jpeg().toBuffer();
-
       return jpgBuffer;
     } catch (error) {
       console.error('Error converting SVG to JPG:', error);

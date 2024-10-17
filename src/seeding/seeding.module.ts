@@ -23,6 +23,7 @@ import { ProfileDatabaseModule } from 'src/libs/models/profile/profile.module';
     S3BucketModule.forFeature('photos'),
     S3BucketModule.forFeature('preview'),
     S3BucketModule.forFeature('compressed'),
+    S3BucketModule.forFeature('profile'),
     //
     AmqpModule.forFeature('folder_favorite_changed'),
     ImageCompressorModule,

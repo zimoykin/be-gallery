@@ -46,6 +46,9 @@ export class SeedingService implements OnApplicationBootstrap {
         private readonly sender: AmqpSender,
         //@ts-ignore
         @InjectRepository(Offer) private repo: DynamoDbRepository<Offer>,
+        // @ts-ignore //
+        @InjectS3Bucket('profile')
+        private readonly s3BucketServiceProfile: S3BucketService,
 
     ) { }
 
@@ -80,8 +83,17 @@ export class SeedingService implements OnApplicationBootstrap {
             if (profile) {
                 continue;
             }
+
+            let bucket;
+            if (prof.url) {
+                const profileAvatar = await this.imageCompressorService.getImageBufferFromUrl(prof.url);
+                const preview = await this.imageCompressorService.compressImage(profileAvatar, 320, 320);
+                bucket = await this.s3BucketServiceProfile.upload(preview, `${prof.userId}.jpg`);
+            }
             const newProfile = await this.profileRepo.create({
-                ...prof
+                ...prof,
+                url: undefined,
+                bucket: bucket
             });
 
             createdProfiles.push(newProfile);
@@ -115,11 +127,8 @@ export class SeedingService implements OnApplicationBootstrap {
                         key
                     );
                     const bucketOrigdUrl = await this.s3BucketServiceOriginal.generateSignedUrl(bucket.key);
-
                     const imageSize = await this.imageCompressorService.getImageSize(imageBuffer);
-
                     const compressedWidth = Math.min(1280, imageSize.width);
-
                     const compressed = await this.imageCompressorService.compressImage(
                         imageBuffer,
                         compressedWidth,

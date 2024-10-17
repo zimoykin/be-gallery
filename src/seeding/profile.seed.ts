@@ -17,7 +17,7 @@ export const profiles: Omit<Profile, '_id'>[] = [
     },
     website: 'https://github.com/zimoykin',
     url: 'https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/24/24feebb92301fb4efeb3d0956024e33293b78c57_full.jpg',
-    privateAccess: true,
+    privateAccess: false,
     userId: '1',
     categories: [ServiceCategory.VIDEO_EDITING, ServiceCategory.DRONE_PHOTOGRAPHY, ServiceCategory.DRONE_VIDEOGRAPHY],
   },
@@ -36,7 +36,7 @@ export const profiles: Omit<Profile, '_id'>[] = [
     },
     website: 'https://github.com/zimoykin',
     url: 'https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/1f/1f8ced3635f9a2a7d71bcb4a41fe006b9d9dc996_full.jpg',
-    privateAccess: true,
+    privateAccess: false,
     userId: '2',
     categories: [ServiceCategory.MAKEUP_ARTISTRY, ServiceCategory.SET_DESIGN],
 
@@ -56,7 +56,7 @@ export const profiles: Omit<Profile, '_id'>[] = [
     },
     website: 'https://github.com/zimoykin',
     url: 'https://avataaars.io/?avatarStyle=Circle&topType=ShortHairShaggyMullet&accessoriesType=Wayfarers&hairColor=Black&facialHairType=MoustacheFancy&facialHairColor=Red&clotheType=CollarSweater&clotheColor=PastelYellow&eyeType=Cry&eyebrowType=Angry&mouthType=Serious&skinColor=Tanned',
-    privateAccess: true,
+    privateAccess: false,
     userId: '4',
     categories: [ServiceCategory.VIDEO_PRODUCTION, ServiceCategory.VIDEO_EDITING],
   },
@@ -76,7 +76,7 @@ export const profiles: Omit<Profile, '_id'>[] = [
     categories: [ServiceCategory.VIDEO_EDITING, ServiceCategory.MAKEUP_ARTISTRY, ServiceCategory.SET_DESIGN],
     website: 'https://avatar.iran.liara.run/public/24',
     url: 'https://avataaars.io/?avatarStyle=Circle&topType=LongHairStraight&accessoriesType=Blank&hairColor=BrownDark&facialHairType=Blank&clotheType=BlazerShirt&eyeType=Default&eyebrowType=Default&mouthType=Default&skinColor=Light',
-    privateAccess: true,
+    privateAccess: false,
     userId: '5',
   },
   {
@@ -93,15 +93,15 @@ export const profiles: Omit<Profile, '_id'>[] = [
       }
     },
     website: 'https://avatar.iran.liara.run/public/24',
-    url: 'https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/33/33ed774eb2384310de7dc2503b866b10aa86899f.jpg',
+    url: 'https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/56/56a1ef1811d96a2537967f8ee21fece188ea2fbb_full.jpg',
     privateAccess: false,
     userId: '6',
     categories: [ServiceCategory.VIDEO_EDITING, ServiceCategory.VIDEO_PRODUCTION, ServiceCategory.CAMERA_OPERATOR],
   },
   {
-    url: 'https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/10/10067c33a4fe0f459f9491eb3010f1fe12876333.jpg',
     name: 'Renee Miller',
     email: 'renee.miller@me.com',
+    url: 'https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/avatars/49/4976ef9575927a92d197a734fa93369877ac4421_full.jpg',
     location: {
       distance: 50,
       title: 'Ingolstadt, Germany',

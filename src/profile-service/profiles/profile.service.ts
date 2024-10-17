@@ -122,7 +122,6 @@ export class ProfileService {
 
   async updateProfile(id: string, dto: Partial<Profile>) {
     return this.profileRepository.update(id, dto);
-
   }
 
   async createProfilePhoto(profileId: string, file: unknown) {
