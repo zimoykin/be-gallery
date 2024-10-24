@@ -7,7 +7,6 @@ import { PublicPhotoService } from './public-photo.service';
 import { PhotoPublicController } from './photo-public.controller';
 import { PhotoConsumer } from './photo.consumer';
 import { AmqpModule } from '../../libs/amqp/amqp.module';
-import { ProfileModule } from 'src/profile-service/profiles/profile.module';
 import { PhotoDatabaseModule } from 'src/libs/models/photo/photo.module';
 import { FolderDatabaseModule } from 'src/libs/models/folder/folder.module';
 import { ProfileDatabaseModule } from 'src/libs/models/profile/profile.module';
@@ -22,7 +21,7 @@ import { ProfileDatabaseModule } from 'src/libs/models/profile/profile.module';
     S3BucketModule.forFeature('compressed'),
     ImageCompressorModule,
     AmqpModule.forFeature('folder_favorite_changed'),
-    AmqpModule.forFeature('folder_dominant_color'),
+    AmqpModule.forFeature('folder_dominant_color')
   ],
   controllers: [PhotoController, PhotoPublicController],
   providers: [PhotoService, PublicPhotoService, PhotoConsumer],

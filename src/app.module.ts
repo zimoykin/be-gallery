@@ -20,9 +20,23 @@ import { OffersModule } from './commercial-service/offers/offers.module';
 import { MessagesModule } from './chat-service/messages.module';
 import { EquipmentModule } from './profile-service/equipments/equipment.module';
 import { SettingsModule } from './commercial-service/settings/settings.module';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            levelFirst: true,
+            ignore: 'pid,hostname',
+            singleLine: true,
+          },
+        }
+      }
+    }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService<ConfigVariables>) => {

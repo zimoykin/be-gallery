@@ -15,7 +15,7 @@ export class PhotoConsumer implements OnModuleInit {
     constructor(
         private readonly photoRepository: PhotoRepository,
         // @ts-ignore
-        @InjectConsumer('folder_favorite_changed') private readonly consumer: AmqpConsumer,
+        @InjectConsumer('folder_favorite_changed') private readonly favoriteConsumer: AmqpConsumer,
         // @ts-ignore
         @InjectSender('folder_dominant_color') private readonly sender: AmqpSender,
         // @ts-ignore
@@ -25,7 +25,7 @@ export class PhotoConsumer implements OnModuleInit {
     ) { }
 
     async onModuleInit() {
-        this.consumer.subscribe<FolderFavoriteChanged>(async (msg) => {
+        this.favoriteConsumer.subscribe<FolderFavoriteChanged>(async (msg) => {
             this.logger.debug(JSON.stringify(msg));
             const photo = await this.photoRepository.findById(msg.contentId);
             if (!photo) {

@@ -10,9 +10,9 @@ export class LikesService {
   constructor(
     private readonly likeRepository: LikeRepository,
     //@ts-ignore
-    @InjectSender('like_added') private readonly sender: AmqpSender,
+    @InjectSender('like_updated') private readonly sender: AmqpSender,
   ) { }
-  
+
   async getLikesCountByContentIdAndProfileId(contentId: string, profileId: string) {
     const count = await this.likeRepository.count({
       match: { contentId: contentId },
@@ -31,18 +31,31 @@ export class LikesService {
 
   }
 
-  async addLike(contentId: string, profileId: string) {
-    const like = await this.likeRepository.create({
-      contentId: contentId,
-      profileId: profileId,
+  async updateLike(contentId: string, profileId: string) {
+
+    const isLikeExist = await this.likeRepository.find({
+      match: {
+        profileId,
+        contentId
+      },
+      limit: 1
     });
+
+    if (isLikeExist.length > 0) {
+      await this.likeRepository.remove(profileId, contentId);
+    } else {
+      await this.likeRepository.create({
+        contentId: contentId,
+        profileId: profileId,
+      });
+    }
 
     await this.sender.sendMessage({
-      state: 'added',
+      state: 'updated',
       contentId: contentId,
     });
 
-    return like;
+    return true;
   }
 
   async deleteLike(contentId: string, profileId: string) {

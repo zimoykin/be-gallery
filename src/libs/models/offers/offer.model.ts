@@ -1,61 +1,115 @@
-import * as luxon from 'luxon';
-import { Index, PrimaryKey, Required, SortKey, Table } from '../../../libs/dynamo-db';
 import { ServiceCategory } from './offer-category.enum';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
+import { Bucket, BucketSchema } from './bucket.model';
+import { Location, LocationSchema } from './location.model';
 
-@Table('offers')
+@Schema({
+  collection: 'gallery_offers',
+  timestamps: true,
+  versionKey: false
+})
 export class Offer {
-  @PrimaryKey()
-  id: string;
+  _id: Types.ObjectId;
 
-  @SortKey('S')
+  @Prop({
+    required: true,
+    type: String
+  })
   profileId: string;
 
+  @Prop({
+    required: true,
+    type: String
+  })
   title: string;
-  text?: string; //Markdown
 
-  price?: number;
+  @Prop({
+    required: true,
+    type: String
+  })
+  description: string; //Markdown
 
-  image?: string;
+  @Prop({
+    required: true,
+    type: Number
+  })
+  price: number;
 
-  preview?: {
-    bucketName: string;
-    folder: string;
-    key: string;
-    width?: number;
-    height?: number;
-    url: string;
-  };
 
+  @Prop({
+    required: true,
+    type: Number,
+    default: 0
+  })
+  discount: number;
+
+
+  @Prop({
+    required: false,
+    type: BucketSchema
+  })
+  preview?: Bucket;
+
+  @Prop({
+    required: false,
+    type: String
+  })
   previewUrl?: string;
+
+  @Prop({
+    required: false,
+    type: String
+  })
   previewExpriredAt?: number;
 
-  compressed?: {
-    bucketName: string;
-    folder: string;
-    url: string;
-    key: string;
-    width?: number;
-    height?: number;
-  };
 
+  @Prop({
+    required: false,
+    type: BucketSchema
+  })
+  compressed?: Bucket;
+
+  @Prop({
+    required: false,
+    type: String
+  })
   compressedUrl?: string;
+
+  @Prop({
+    required: false,
+    type: String
+  })
   compressedExpriredAt?: number;
 
   //services in the offer
+  @Prop({
+    required: false,
+    type: [String]
+  })
   categories?: ServiceCategory[];
 
-  @Index('N')
-  privateAccess = 0; // 0: public, 1: private
+  @Prop({
+    required: false,
+    type: Boolean
+  })
+  privateAccess: boolean;
 
-  @Index('N')
-  @Required()
-  availableUntil: number;
+  @Prop({
+    required: false,
+    type: [Date]
+  })
+  availableUntil: Date;
 
-  images?: string[];
 
-  constructor() {
-    const now = luxon.DateTime.now();
-    now.plus({ month: 1 });
-    this.availableUntil = now.toJSDate().getTime();
-  }
+  @Prop({
+    type: () => LocationSchema,
+    required: false
+  })
+  location?: Location;
 }
+
+
+export const OfferSchema = SchemaFactory.createForClass(Offer)
+  .index({ profileId: 1 })
+  .index({ 'location.point': '2dsphere' });

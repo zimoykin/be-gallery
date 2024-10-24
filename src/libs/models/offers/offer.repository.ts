@@ -1,24 +1,26 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { DynamoDbRepository, InjectRepository, IScanFilter } from "../../../libs/dynamo-db";
 import { Offer } from "./offer.model";
+import { Model, QueryOptions } from "mongoose";
+import { InjectModel } from "@nestjs/mongoose";
 
 @Injectable()
 export class OfferRepository {
     private readonly logger = new Logger(OfferRepository.name);
     constructor(
-        @InjectRepository(Offer) private readonly offerModel: DynamoDbRepository<Offer>,
+        // @ts-ignore
+        @InjectModel(Offer.name) private readonly offerModel: Model<Offer>,
     ) { }
 
     async findById(id: string) {
-        return this.offerModel.findById(id);
+        return this.offerModel.findById(id).lean();
     }
-    async find(filter?: IScanFilter<Offer>) {
-        return this.offerModel.find(filter);
+    async find(filter?: QueryOptions<Offer>) {
+        return this.offerModel.find({ ...filter }).lean();
     }
 
-    async findOne(filter?: IScanFilter<Offer>) {
+    async findOne(filter?: Partial<Offer>) {
         if (!filter) return null;
-        return this.offerModel.findOneByFilter(filter);
+        return this.offerModel.findOne(filter).lean();
     }
 
     async create(data: Partial<Offer>) {
@@ -26,9 +28,16 @@ export class OfferRepository {
         return this.offerModel.create(data);
     }
 
-    async update(id: string, data: Partial<Offer>) {
-        this.logger.debug(`update ${id} ${JSON.stringify(data)}`);
-        return this.offerModel.update(id, data);
+    async update(id: string, set: Partial<Offer>, unset?: (keyof Offer)[]) {
+        this.logger.debug(`update ${id} ${JSON.stringify(set)}`);
+        const updateRequest: Record<string, any> = { $set: { ...set } };
+        if (unset) {
+            updateRequest.$unset = {};
+            unset.forEach((key) => {
+                updateRequest.$unset[key] = 1;
+            });
+        }
+        return this.offerModel.findByIdAndUpdate(id, updateRequest, { new: true }).lean();
     }
 
     async remove(id: string) {

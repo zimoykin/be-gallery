@@ -1,9 +1,9 @@
 import { IsString } from "class-validator";
 
-export class LikeAddedDto {
+export class LikeUpdatedDto {
 
     @IsString()
-    state: 'added';
+    state: 'updated';
 
     @IsString()
     contentId: string;
