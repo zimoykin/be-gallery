@@ -12,7 +12,8 @@ export const offers = (profileId1: string, profileId2: string): Omit<Offer, '_id
     categories: [ServiceCategory.PHOTO_TOUR],
     profileId: profileId1,
     privateAccess: false,
-    availableUntil: DateTime.now().plus({ days: 7 }).toJSDate()
+    availableUntil: DateTime.now().plus({ days: 7 }).toJSDate(),
+    discount: 10
   },
   {
     title: 'Italian city tour with Guide',
@@ -22,7 +23,8 @@ export const offers = (profileId1: string, profileId2: string): Omit<Offer, '_id
     categories: [ServiceCategory.PHOTO_TOUR],
     profileId: profileId1,
     privateAccess: false,
-    availableUntil: DateTime.now().plus({ days: 7 }).toJSDate()
+    availableUntil: DateTime.now().plus({ days: 7 }).toJSDate(),
+    discount: 10
   },
   {
     title: 'Canon EOS 90D DSLR',
@@ -32,6 +34,7 @@ export const offers = (profileId1: string, profileId2: string): Omit<Offer, '_id
     categories: [ServiceCategory.CAMERA_OPERATOR],
     profileId: profileId2,
     privateAccess: false,
-    availableUntil: DateTime.now().plus({ days: 7 }).toJSDate()
+    availableUntil: DateTime.now().plus({ days: 7 }).toJSDate(),
+    discount: 10
   },
 ];

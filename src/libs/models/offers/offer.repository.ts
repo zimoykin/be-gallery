@@ -12,15 +12,15 @@ export class OfferRepository {
     ) { }
 
     async findById(id: string) {
-        return this.offerModel.findById(id);
+        return this.offerModel.findById(id).lean();
     }
     async find(filter?: QueryOptions<Offer>) {
-        return this.offerModel.find({ ...filter });
+        return this.offerModel.find({ ...filter }).lean();
     }
 
     async findOne(filter?: Partial<Offer>) {
         if (!filter) return null;
-        return this.offerModel.findOne(filter);
+        return this.offerModel.findOne(filter).lean();
     }
 
     async create(data: Partial<Offer>) {
@@ -28,9 +28,16 @@ export class OfferRepository {
         return this.offerModel.create(data);
     }
 
-    async update(id: string, data: Partial<Offer>) {
-        this.logger.debug(`update ${id} ${JSON.stringify(data)}`);
-        return this.offerModel.findByIdAndUpdate(id, { $set: { ...data } });
+    async update(id: string, set: Partial<Offer>, unset?: (keyof Offer)[]) {
+        this.logger.debug(`update ${id} ${JSON.stringify(set)}`);
+        const updateRequest: Record<string, any> = { $set: { ...set } };
+        if (unset) {
+            updateRequest.$unset = {};
+            unset.forEach((key) => {
+                updateRequest.$unset[key] = 1;
+            });
+        }
+        return this.offerModel.findByIdAndUpdate(id, updateRequest, { new: true }).lean();
     }
 
     async remove(id: string) {

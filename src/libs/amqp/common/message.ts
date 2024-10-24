@@ -1,8 +1,7 @@
-import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
 import { FolderDominantColor, FolderFavoriteChanged } from "./dtos/folder-favorite.dto";
 import { UserCreatedDto } from "./dtos/user-created.dto";
-import { LikeAddedDto } from "./dtos/like-added.dto";
+import { LikeUpdatedDto } from "./dtos/like-updated.dto";
 import { EquipmentFavoriteDto } from "./dtos/equipment.dto";
 
 
@@ -21,9 +20,9 @@ export const AMQP_TOPICS = {
         topic: 'user:created',
         payload: UserCreatedDto
     },
-    like_added: {
-        topic: 'like:added',
-        payload: LikeAddedDto
+    like_updated: {
+        topic: 'like:updated',
+        payload: LikeUpdatedDto
     },
     favorite_equipment: {
         topic: 'favorite:equipment',

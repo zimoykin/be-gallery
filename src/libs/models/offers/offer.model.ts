@@ -1,4 +1,3 @@
-import * as luxon from 'luxon';
 import { ServiceCategory } from './offer-category.enum';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
@@ -36,6 +35,14 @@ export class Offer {
     type: Number
   })
   price: number;
+
+
+  @Prop({
+    required: true,
+    type: Number,
+    default: 0
+  })
+  discount: number;
 
 
   @Prop({

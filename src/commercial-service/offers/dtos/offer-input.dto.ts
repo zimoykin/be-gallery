@@ -35,6 +35,10 @@ export class OfferInputDto {
     @IsNumber()
     price?: number;
 
+    @Type(() => Number)
+    @IsNumber()
+    discount?: number;
+
     @IsString()
     @IsEnum(ServiceCategory, { each: true })
     @Transform(({ value }) => {
@@ -48,6 +52,6 @@ export class OfferInputDto {
             return [];
         }
     })
-    categories?: ServiceCategory[];
+    categories: ServiceCategory[];
 
 }

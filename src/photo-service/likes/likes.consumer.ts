@@ -1,5 +1,4 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { LikesService } from "./likes.service";
 import { InjectConsumer } from "../../libs/amqp/decorators";
 import { AmqpConsumer } from "../../libs/amqp/amqp.consumer";
 import { PhotoRepository } from "../../libs/models/photo/photo.repository";
@@ -11,7 +10,7 @@ export class LikesConsumer implements OnModuleInit {
 
     constructor(
         // @ts-ignore
-        @InjectConsumer('like_added') private readonly consumer: AmqpConsumer,
+        @InjectConsumer('like_updated') private readonly consumer: AmqpConsumer,
         private readonly photoRepository: PhotoRepository,
         private readonly likeRepository: LikeRepository
     ) { }
@@ -19,7 +18,7 @@ export class LikesConsumer implements OnModuleInit {
 
     async onModuleInit() {
         await this.consumer.subscribe<{
-            state: 'added' | 'removed', // actually doesn't matter for now
+            state: 'updated',
             contentId: string;
         }>(async (msg) => {
             this.logger.debug(JSON.stringify(msg));

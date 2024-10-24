@@ -60,4 +60,12 @@ export class PublicPhotoService {
     });
   }
 
+  async getUsersPhotoByIdAndByFolderIdAndProfileId(profileId: string, folderId: string, photoId: string) {
+    const photo = await this.photoRepository.findOne({
+      _id: photoId,
+      profileId: profileId,
+      folderId: folderId
+    });
+    return photo;
+  }
 }

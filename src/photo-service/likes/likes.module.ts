@@ -11,7 +11,7 @@ import { LikeDatabaseModule } from '../../libs/models/like/like.module';
   imports: [
     PhotoDatabaseModule,
     LikeDatabaseModule,
-    AmqpModule.forFeature('like_added'),
+    AmqpModule.forFeature('like_updated'),
   ],
   controllers: [LikesController, PublicLikesController],
   providers: [LikesService, LikesConsumer],

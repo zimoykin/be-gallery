@@ -46,7 +46,7 @@ export class OffersService {
             }
             else if (offer.preview?.key) {
                 const { url, expiresIn } = await this.s3BucketPreview.generateSignedUrl(offer.preview.key);
-                await this.offerRepository.update(offer.id, { previewUrl: url, previewExpriredAt: expiresIn });
+                await this.offerRepository.update(offer._id.toString(), { previewUrl: url, previewExpriredAt: expiresIn });
                 result.push({ ...offer, previewUrl: url, previewExpriredAt: expiresIn });
             }
         }
@@ -57,7 +57,7 @@ export class OffersService {
 
 
     async createOffer(profileId: string, data: IOfferInput, file: Express.Multer.File): Promise<Offer | null> {
-        const { _id} = await this.offerRepository.create({ ...data, profileId: profileId });
+        const { _id } = await this.offerRepository.create({ ...data, profileId: profileId });
         await this.updateImage(_id.toString(), profileId, file);
         return this.offerRepository.findById(_id.toString());
     }
@@ -66,34 +66,30 @@ export class OffersService {
         const preview = await this.imageCompressorService.compressImage(file.buffer, 320, 320);
         const compressed = await this.imageCompressorService.compressImage(file.buffer, 1280);
 
-        const previewSize = await this.imageCompressorService.getImageSize(compressed);
+        const compSize = await this.imageCompressorService.getImageSize(compressed);
         const previewBucket = await this.s3BucketPreview.upload(preview, `${profileId}/${id}.jpg`);
         const compressedBucket = await this.s3BucketCompressed.upload(compressed, `${profileId}/${id}.jpg`);
 
-        await this.offerRepository.update(id, {
+        const offer = await this.offerRepository.update(id, {
             preview: {
                 ...previewBucket,
                 height: 320,
                 width: 320
             }, compressed: {
                 ...compressedBucket,
-                height: previewSize.height,
-                width: previewSize.width
+                height: compSize.height,
+                width: compSize.width
             },
-            previewUrl: undefined,
-            previewExpriredAt: undefined,
-            compressedUrl: undefined,
-            compressedExpriredAt: undefined
-        });
+        }, ['previewUrl', 'previewExpriredAt', 'compressedUrl', 'compressedExpriredAt']);
 
-        return;
+        return offer;
 
     }
 
-    async updateOffer(profileId: string, id: string, data: IOfferInput): Promise<Offer | null> {
+    async updateOffer(profileId: string, id: string, data: Partial<Offer>): Promise<Offer | null> {
         const offer = await this.offerRepository.findOne({
-                _id: new Types.ObjectId(id),
-                profileId: profileId,
+            _id: new Types.ObjectId(id),
+            profileId: profileId,
         });
         if (!offer) {
             throw new NotFoundException('Offer not found');
@@ -104,8 +100,8 @@ export class OffersService {
 
     async deleteOffer(profileId: string, id: string) {
         const data = await this.offerRepository.findOne({
-                _id: new Types.ObjectId(id),
-                profileId: profileId,
+            _id: new Types.ObjectId(id),
+            profileId: profileId,
         });
 
         if (!data) {

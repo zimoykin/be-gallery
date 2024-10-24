@@ -4,6 +4,7 @@ export interface IOfferOutput {
   title: string;
   text?: string;
   price?: number;
+  discount?: number;
   previewUrl: string;
   compressedUrl: string;
   category?: ServiceCategory;

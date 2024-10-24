@@ -7,8 +7,8 @@ import { OfferOutputDto } from './dtos/offer-output.dto';
 import { plainToInstance } from 'class-transformer';
 import { IProfileCookie, ProfileCookie } from '../../libs/profile-cookie';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { title } from 'process';
 import { ServiceCategory } from 'src/libs/models/offers/offer-category.enum';
+import { OfferUpdateDto } from './dtos/offer-update.dto';
 
 @Controller('api/v1/offers')
 @ApiBearerAuth("Authorization")
@@ -109,7 +109,7 @@ export class OffersController {
     async updateOffer(
         @ProfileCookie() profile: IProfileCookie,
         @Param('id') id: string,
-        @Body() data: OfferInputDto
+        @Body() data: OfferUpdateDto
     ): Promise<OfferOutputDto> {
         return this.service.updateOffer(profile.profileId, id, { ...data, profileId: profile.profileId }).then((res) => {
             return plainToInstance(OfferOutputDto, res);

@@ -1,9 +1,10 @@
 import { ServiceCategory } from "../../../libs/models/offers/offer-category.enum";
-import { Exclude, Expose } from "class-transformer";
+import { Exclude, Expose, Transform } from "class-transformer";
 
 @Exclude()
 export class OfferOutputDto {
-    @Expose()
+    @Expose({ name: 'id' })
+    @Transform((value) => value.obj._id)
     id: string;
 
     @Expose()
@@ -14,6 +15,9 @@ export class OfferOutputDto {
 
     @Expose()
     price?: number;
+
+    @Expose()
+    discount?: number;
 
     @Expose()
     image?: string;

@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, Logger, Param, Post } from '@nestjs/common';
-import { LikesService } from './likes.service';
 import { UserAccess } from '@zimoykin/auth';
-import { ProfileCookie, IProfileCookie } from 'src/libs/profile-cookie';
+import { LikesService } from './likes.service';
+import { ProfileCookie, IProfileCookie } from '../../libs/profile-cookie';
 
 @Controller('api/v1/likes')
 @UserAccess()
@@ -26,12 +26,12 @@ export class LikesController {
   }
 
   @Post('/:contentId')
-  async addLike(
+  async updateLike(
     @Param('contentId') contentId: string,
     @ProfileCookie() profile: IProfileCookie,
   ) {
     return this.service
-      .addLike(contentId, profile.profileId)
+      .updateLike(contentId, profile.profileId)
       .then((res) => {
         return res;
       })
