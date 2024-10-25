@@ -6,12 +6,15 @@ import { InjectS3Bucket } from '../../libs/s3-bucket/inject-s3-bucket.decorator'
 import { S3BucketService } from '../../libs/s3-bucket/s3-bucket.service';
 import { ImageCompressorService } from '../../libs/image-compressor/image-compressor.service';
 import { Types } from 'mongoose';
+import { Profile } from 'src/libs/models/profile/models/profile.model';
+import { ProfileRepository } from 'src/libs/models/profile/profile.repository';
 
 @Injectable()
 export class OffersService {
     private readonly logger = new Logger(OffersService.name);
     constructor(
         private readonly offerRepository: OfferRepository,
+        private readonly profileRepository: ProfileRepository,
         //@ts-ignore
         @InjectS3Bucket('offers-preview') private readonly s3BucketPreview: S3BucketService,
         //@ts-ignore
@@ -35,7 +38,22 @@ export class OffersService {
     }
 
     async getAllOfferByCoords(coords: { latitude: number, longitude: number; radius: number; }): Promise<Offer[]> {
-        return this.offerRepository.findByCoords(coords.latitude, coords.longitude, coords.radius ?? 25);
+        const offers = await this.offerRepository.findByCoords(coords.latitude, coords.longitude, coords.radius ?? 25);
+
+       const profiles = await this.profileRepository.findByIds(offers.map(({ profileId }) => profileId));
+
+        const result: Array<Offer & { profile?: Profile  }> = [];
+
+        for await (const offer of offers) {
+            result.push({
+                ...offer,
+                profile: profiles.find((profile) => `${profile._id}` === offer.profileId)
+            });
+
+            
+        }
+
+        return result;
     }
 
     async getAllOffersByProfileId(profileId: string): Promise<Offer[]> {
