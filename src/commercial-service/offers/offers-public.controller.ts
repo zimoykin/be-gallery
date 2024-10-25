@@ -1,8 +1,9 @@
-import { Controller, Get, Logger, Param } from '@nestjs/common';
+import { Controller, Get, Logger, Param, Query } from '@nestjs/common';
 import { OffersService } from './offers.service';
 import { ApiTags } from '@nestjs/swagger';
 import { OfferOutputDto } from './dtos/offer-output.dto';
 import { plainToInstance } from 'class-transformer';
+import { QueryCoordinatesDto } from './dtos/coordinates-param.dto';
 
 @ApiTags('Public')
 @Controller('api/v1/public/offers')
@@ -16,6 +17,18 @@ export class OffersPublicController {
     @Get()
     async getOffersList(): Promise<OfferOutputDto[]> {
         return this.service.getAllOffers().then((res) => {
+            return res.map((offer) => plainToInstance(OfferOutputDto, offer));
+        }).catch((err) => {
+            this.logger.error(err);
+            throw err;
+        });
+    }
+
+    @Get('coordinates')
+    async getOffersListByCoordinates(
+        @Query() coords: QueryCoordinatesDto
+    ): Promise<OfferOutputDto[]> {
+        return this.service.getAllOfferByCoords(coords).then((res) => {
             return res.map((offer) => plainToInstance(OfferOutputDto, offer));
         }).catch((err) => {
             this.logger.error(err);

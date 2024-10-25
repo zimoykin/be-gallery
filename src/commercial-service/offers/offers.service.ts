@@ -33,6 +33,11 @@ export class OffersService {
             limit: 5
         });
     }
+
+    async getAllOfferByCoords(coords: { latitude: number, longitude: number; radius: number; }): Promise<Offer[]> {
+        return this.offerRepository.findByCoords(coords.latitude, coords.longitude, coords.radius ?? 25);
+    }
+
     async getAllOffersByProfileId(profileId: string): Promise<Offer[]> {
         const offers = await this.offerRepository.find({
             profileId: profileId

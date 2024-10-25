@@ -21,21 +21,30 @@ import { MessagesModule } from './chat-service/messages.module';
 import { EquipmentModule } from './profile-service/equipments/equipment.module';
 import { SettingsModule } from './commercial-service/settings/settings.module';
 import { LoggerModule } from 'nestjs-pino';
+import { SubCategoryModule } from './commercial-service/sub-categories/sub-category.module';
 
 @Module({
   imports: [
-    LoggerModule.forRoot({
-      pinoHttp: {
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
-            levelFirst: true,
-            ignore: 'pid,hostname',
-            singleLine: true,
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<ConfigVariables>) => {
+        return {
+          pinoHttp: {
+            level: config.get<string>('LOG_LEVEL') || 'info',
+            transport: {
+              target: 'pino-pretty',
+              options: {
+                useLevelLabels: true,
+                colorize: true,
+                levelFirst: true,
+                ignore: 'pid,hostname',
+                singleLine: true,
+              },
+            },
           },
-        }
-      }
+        };
+      },
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -115,6 +124,7 @@ import { LoggerModule } from 'nestjs-pino';
     LikesModule,
     SeedingModule,
     SettingsModule,
+    SubCategoryModule
   ],
   controllers: [AppController],
   providers: [AppService],

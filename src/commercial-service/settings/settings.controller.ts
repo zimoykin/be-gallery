@@ -1,9 +1,13 @@
-import { Controller, Get, Logger } from '@nestjs/common';
+import { Controller, Get, Logger, Query } from '@nestjs/common';
 import { UserAccess } from '@zimoykin/auth';
 import { SettingsService } from './settings.service';
+import { LanguageDto } from './dtos/language.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UserAccess()
-@Controller('api/v1/settings')
+@ApiBearerAuth('Authorization')
+@Controller('api/v1/com/settings')
+@ApiTags('Com')
 export class SettingsController {
     private readonly logger = new Logger(SettingsController.name);
 
@@ -11,8 +15,10 @@ export class SettingsController {
         private readonly settingsService: SettingsService
     ) { }
 
-    @Get('offer-categories')
-    async getOfferCategories() {
-        return this.settingsService.getOfferCategories();
+    @Get('categories')
+    async getOfferCategories(
+        @Query() query?: LanguageDto
+    ) {
+        return this.settingsService.getOfferCategories(query?.lang);
     }
 }

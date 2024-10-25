@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Logger, Param, Post, Put, Uplo
 import { OffersService } from './offers.service';
 import { UserAccess } from '@zimoykin/auth';
 import { OfferInputDto } from './dtos/offer-input.dto';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { OfferOutputDto } from './dtos/offer-output.dto';
 import { plainToInstance } from 'class-transformer';
 import { IProfileCookie, ProfileCookie } from '../../libs/profile-cookie';
@@ -10,9 +10,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ServiceCategory } from 'src/libs/models/offers/offer-category.enum';
 import { OfferUpdateDto } from './dtos/offer-update.dto';
 
-@Controller('api/v1/offers')
-@ApiBearerAuth("Authorization")
 @UserAccess()
+@ApiBearerAuth("Authorization")
+@ApiTags('Com')
+@Controller('api/v1/com/offers')
 export class OffersController {
     private readonly logger = new Logger(OffersController.name);
 
@@ -65,7 +66,7 @@ export class OffersController {
                         type: 'string',
                         enum: [...Object.values(ServiceCategory)],
                     },
-                    example: [ServiceCategory.PHOTOGRAPHY]
+                    example: ['photo and video']
                 }
             },
         },

@@ -7,6 +7,6 @@ export interface IOfferOutput {
   discount?: number;
   previewUrl: string;
   compressedUrl: string;
-  category?: ServiceCategory;
+  category?: keyof typeof ServiceCategory;
   url?: string;
 }

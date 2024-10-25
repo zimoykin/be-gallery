@@ -25,7 +25,7 @@ export class Offer {
   title: string;
 
   @Prop({
-    required: true,
+    required: false,
     type: String
   })
   description: string; //Markdown
@@ -85,9 +85,10 @@ export class Offer {
   //services in the offer
   @Prop({
     required: false,
-    type: [String]
+    type: [String],
+    enum: [...Object.keys(ServiceCategory)]
   })
-  categories?: ServiceCategory[];
+  categories?: (keyof typeof ServiceCategory)[];
 
   @Prop({
     required: false,

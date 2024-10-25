@@ -50,7 +50,7 @@ export class ProfileOutputDto {
   favoriteLens?: IEquipment;
 
   @Expose()
-  categories?: ServiceCategory[];
+  categories?: (keyof typeof ServiceCategory)[];
 
   @Expose()
   distance: number;

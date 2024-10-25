@@ -9,7 +9,7 @@ export const offers = (profileId1: string, profileId2: string): Omit<Offer, '_id
       'Our tour: Hiking in the Pyrenees 10.9km, yachting, gastronomy, wine tasting, 3 beautiful beaches, 7 nights in a 5 star hotel, free breakfast, all flying tickets included',
     price: 300,
     previewUrl: 'https://picsum.photos/id/28/1200/800',
-    categories: [ServiceCategory.PHOTO_TOUR],
+    categories: ['HomeServices'],
     profileId: profileId1,
     privateAccess: false,
     availableUntil: DateTime.now().plus({ days: 7 }).toJSDate(),
@@ -20,7 +20,7 @@ export const offers = (profileId1: string, profileId2: string): Omit<Offer, '_id
     description:
       'Bust tour: we will visit the city of Rome, free breakfast, all flying tickets included',
     price: 200,
-    categories: [ServiceCategory.PHOTO_TOUR],
+    categories: ['FinancialServices'],
     profileId: profileId1,
     privateAccess: false,
     availableUntil: DateTime.now().plus({ days: 7 }).toJSDate(),
@@ -31,7 +31,7 @@ export const offers = (profileId1: string, profileId2: string): Omit<Offer, '_id
     description:
       'Canon EOS 90D DSLR, in perfect condition, like new. Will be shipped to you in 5 days.',
     price: 750,
-    categories: [ServiceCategory.CAMERA_OPERATOR],
+    categories: ['MedicalServices'],
     profileId: profileId2,
     privateAccess: false,
     availableUntil: DateTime.now().plus({ days: 7 }).toJSDate(),

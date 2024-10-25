@@ -34,6 +34,6 @@ export class OfferUpdateDto {
 
     @IsString({ each: true })
     @IsEnum(ServiceCategory, { each: true })
-    categories: ServiceCategory[];
+    categories: (keyof typeof ServiceCategory)[];
 
 }
