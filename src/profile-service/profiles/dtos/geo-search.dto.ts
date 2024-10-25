@@ -13,5 +13,5 @@ export class GeoSearchDto {
 
     @IsEnum(ServiceCategory, { each: true })
     @IsOptional()
-    categories?: ServiceCategory[]
+    categories?: (keyof typeof ServiceCategory)[]
 }

@@ -7,9 +7,9 @@ export class OfferInputDto {
     title: string;
 
     @IsString()
+    @IsOptional()
     description?: string;
 
-    @IsObject()
     @IsOptional()
     @Transform(({ value }) => {
         try {
@@ -35,11 +35,11 @@ export class OfferInputDto {
     @IsNumber()
     price?: number;
 
+    @IsOptional()
     @Type(() => Number)
     @IsNumber()
     discount?: number;
 
-    @IsString()
     @IsEnum(ServiceCategory, { each: true })
     @Transform(({ value }) => {
         if (typeof value === 'object')
@@ -52,6 +52,6 @@ export class OfferInputDto {
             return [];
         }
     })
-    categories: ServiceCategory[];
+    categories: keyof typeof ServiceCategory[];
 
 }

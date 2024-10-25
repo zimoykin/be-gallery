@@ -70,8 +70,6 @@ export class ProfileRepository {
 
     async geoSearch(filter: GeoSearchDto) {
         const { lat, lng, radius, categories } = filter;
-
-
         const categoriesFilter = categories?.length ? {
             $or: [
                 {

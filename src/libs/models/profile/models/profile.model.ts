@@ -72,11 +72,11 @@ export class Profile {
   favoriteLens?: Equipment;
 
   @Prop({
-    enum: ServiceCategory,
+    enum: [...Object.keys(ServiceCategory)],
     type: [String],
     required: false
   })
-  categories: ServiceCategory[];
+  categories: (keyof typeof ServiceCategory)[];
 
 }
 

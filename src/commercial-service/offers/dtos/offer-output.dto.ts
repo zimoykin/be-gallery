@@ -29,7 +29,7 @@ export class OfferOutputDto {
     compressedUrl: string;
 
     @Expose()
-    categories?: ServiceCategory[];
+    categories?: keyof typeof ServiceCategory[];
 
     @Expose()
     location?: string;

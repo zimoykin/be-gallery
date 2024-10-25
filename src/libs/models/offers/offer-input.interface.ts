@@ -7,6 +7,6 @@ export interface IOfferInput {
   price?: number;
   discount?: number;
   location?: Location;
-  category?: ServiceCategory[];
+  category?: (keyof typeof ServiceCategory)[];
   profileId: string;
 }
