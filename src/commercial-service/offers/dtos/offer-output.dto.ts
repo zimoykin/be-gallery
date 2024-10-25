@@ -1,5 +1,8 @@
+import { IProfile } from "src/libs/models/profile/profile.interface";
 import { ServiceCategory } from "../../../libs/models/offers/offer-category.enum";
-import { Exclude, Expose, Transform } from "class-transformer";
+import { Exclude, Expose, Transform, Type } from "class-transformer";
+import { ProfileOutputDto } from "src/profile-service/profiles/dtos/profile-output.dto";
+import { ValidateNested } from "class-validator";
 
 @Exclude()
 export class OfferOutputDto {
@@ -39,4 +42,9 @@ export class OfferOutputDto {
 
     @Expose()
     availableUntil: number;
+
+    @Expose()
+    @Type(() => ProfileOutputDto)
+    @ValidateNested()
+    profile: ProfileOutputDto;
 }
